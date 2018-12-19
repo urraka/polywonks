@@ -13,6 +13,7 @@ import { ColliderNode } from "./map.node.collider.js";
 import { SpawnNode } from "./map.node.spawn.js";
 import { WaypointNode } from "./map.node.waypoint.js";
 import { VertexNode } from "./map.node.vertex.js";
+import { ConnectionNode } from "./map.node.connection.js";
 
 export class MapDocument extends Node {
     constructor() {
@@ -267,6 +268,7 @@ export class MapDocument extends Node {
             for (const childElement of element.children) {
                 node.append(constructTree(childElement));
             }
+            return node;
         };
 
         const readAttributes = element => {

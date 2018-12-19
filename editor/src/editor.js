@@ -4,6 +4,7 @@ import { MapDocument } from "./map.document.js";
 import { File } from "./file.js";
 import { cfg } from "./settings.js";
 import { SelectTool } from "./tool.select.js";
+import { Path } from "./path.js";
 
 export class Editor {
     constructor(renderer) {
@@ -27,6 +28,20 @@ export class Editor {
         this.lastMouseMove = null;
         this.currentTool = new SelectTool();
         this.currentTool.enable(this);
+    }
+
+    resetState() {
+        this.view.reset();
+        this.map.iconsInfo = this.renderer.iconsInfo;
+        this.selectedNodes.clear();
+        this.previewNodes.clear();
+        this.reactiveNode = null;
+        this.modified = false;
+        this.undone = 0;
+        this.commandHistory = [];
+        this.currentTool.disable();
+        this.currentTool.enable(this);
+        this.redraw();
     }
 
     do(command) {
@@ -76,29 +91,37 @@ export class Editor {
             throw new Error("Editor.load(path) - path is not absolute.");
         }
 
+        const ext = Path.ext(path).toLowerCase();
+
         File.refresh(path.substring(1).split("/").shift(), () => {
-            File.readBuffer(path, buffer => {
-                if (buffer) {
-                    this.loadFromBuffer(buffer, path);
-                }
-            });
+            if (ext === ".pms") {
+                File.readBuffer(path, buffer => {
+                    if (buffer) {
+                        this.loadPms(buffer, path);
+                    }
+                });
+            } else if (ext === ".polywonks") {
+                File.readText(path, text => {
+                    if (text) {
+                        this.loadPolywonks(text, path);
+                    }
+                });
+            }
         });
     }
 
-    loadFromBuffer(buffer, path = "") {
+    loadPms(buffer, path = "") {
         const pms = PMS.Map.fromArrayBuffer(buffer);
         this.map = MapDocument.fromPMS(pms, path);
         this.map.iconsInfo = this.renderer.iconsInfo;
-        this.selectedNodes.clear();
-        this.previewNodes.clear();
-        this.reactiveNode = null;
-        this.modified = false;
-        this.undone = 0;
-        this.commandHistory = [];
-        this.view.reset();
-        this.currentTool.disable();
-        this.currentTool.enable(this);
-        this.redraw();
+        this.resetState();
+    }
+
+    loadPolywonks(text, path = "") {
+        this.map = MapDocument.unserialize(text);
+        this.map.path = path;
+        this.map.iconsInfo = this.renderer.iconsInfo;
+        this.resetState();
     }
 
     redraw() {
