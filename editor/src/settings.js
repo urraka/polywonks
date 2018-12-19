@@ -32,7 +32,7 @@ const defaultSettings = {
     "map.weather": "none",
     "map.steps": "hard-ground",
     "map.collider-radius": 8,
-    "app.library-url": "http://urraka.github.io/soldat-map/data/",
+    "app.library-url": "//urraka.github.io/soldat-map/data/",
     "app.library-index": "filelist",
 };
 
