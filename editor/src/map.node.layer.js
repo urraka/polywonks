@@ -1,8 +1,22 @@
 import { Node } from "./map.node.js";
+import { Enum } from "./enum.js";
+
+export const LayerType = Object.freeze({
+    Resources: -1,
+    PolygonsBack: 0,
+    SceneryBack: 1,
+    SceneryMiddle: 2,
+    PolygonsFront: 3,
+    SceneryFront: 4,
+    Colliders: 5,
+    Waypoints: 6,
+    Spawns: 7
+});
 
 export class LayerNode extends Node {
-    constructor(layerName = "Layer") {
+    constructor(name = "Layer", type = LayerType.PolygonsBack) {
         super("layer");
-        this.attributes.set("text", layerName);
+        this.attributes.set("text", name);
+        this.attributes.set("type", Enum.valueToName(LayerType, type));
     }
 }

@@ -4,7 +4,7 @@ import { Enum } from "./enum.js";
 import { Rect } from "./rect.js";
 import { Color } from "./color.js";
 import { Node } from "./map.node.js";
-import { LayerNode } from "./map.node.layer.js";
+import { LayerNode, LayerType } from "./map.node.layer.js";
 import { TriangleNode } from "./map.node.triangle.js";
 import { TextureNode } from "./map.node.texture.js";
 import { ImageNode } from "./map.node.image.js";
@@ -31,16 +31,6 @@ export class MapDocument extends Node {
         this.attributes.set("medikits", cfg("map.medikits"));
         this.attributes.set("weather", cfg("map.weather"));
         this.attributes.set("steps", cfg("map.steps"));
-
-        this.append(this.resources = new Node("resources"));
-        this.append(this.backgroundPolygons = new LayerNode("Background polygons"));
-        this.append(this.backgroundScenery = new LayerNode("Background scenery"));
-        this.append(this.middleScenery = new LayerNode("Middle scenery"));
-        this.append(this.frontPolygons = new LayerNode("Front polygons"));
-        this.append(this.frontScenery = new LayerNode("Front scenery"));
-        this.append(this.colliders = new LayerNode("Colliders"));
-        this.append(this.waypoints = new LayerNode("Waypoints"));
-        this.append(this.spawns = new LayerNode("Spawns"));
     }
 
     static fromPMS(pms, path = "") {
@@ -56,25 +46,47 @@ export class MapDocument extends Node {
         doc.attr("weather", Enum.valueToName(PMS.WeatherType, pms.weather));
         doc.attr("steps", Enum.valueToName(PMS.StepsType, pms.steps));
 
+        const layers = {
+            resources: new LayerNode("Resources", LayerType.Resources),
+            backgroundPolygons: new LayerNode("Background polygons", LayerType.PolygonsBack),
+            backgroundScenery: new LayerNode("Background scenery", LayerType.SceneryBack),
+            middleScenery: new LayerNode("Middle scenery", LayerType.SceneryMiddle),
+            frontPolygons: new LayerNode("Front polygons", LayerType.PolygonsFront),
+            frontScenery: new LayerNode("Front scenery", LayerType.SceneryFront),
+            colliders: new LayerNode("Colliders", LayerType.Colliders),
+            waypoints: new LayerNode("Waypoints", LayerType.Waypoints),
+            spawns: new LayerNode("Spawns", LayerType.Spawns)
+        };
+
+        doc.append(layers.resources);
+        doc.append(layers.backgroundPolygons);
+        doc.append(layers.backgroundScenery);
+        doc.append(layers.middleScenery);
+        doc.append(layers.frontPolygons);
+        doc.append(layers.frontScenery);
+        doc.append(layers.colliders);
+        doc.append(layers.waypoints);
+        doc.append(layers.spawns);
+
         const texture = TextureNode.fromPMS(pms, path);
-        doc.resources.append(texture);
+        layers.resources.append(texture);
 
         for (const polygon of pms.polygons) {
             if (polygon.type === PMS.PolyType.Background || polygon.type === PMS.PolyType.BackgroundTransition) {
-                doc.backgroundPolygons.append(TriangleNode.fromPMS(polygon, texture));
+                layers.backgroundPolygons.append(TriangleNode.fromPMS(polygon, texture));
             } else {
-                doc.frontPolygons.append(TriangleNode.fromPMS(polygon, texture));
+                layers.frontPolygons.append(TriangleNode.fromPMS(polygon, texture));
             }
         }
 
-        const sceneryLayers = [
-            doc.backgroundScenery,
-            doc.middleScenery,
-            doc.frontScenery
-        ];
-
         const imageNodes = pms.scenery.map(s => ImageNode.fromPMS(s, path));
-        imageNodes.forEach(node => node.appendTo(doc.resources));
+        imageNodes.forEach(node => node.appendTo(layers.resources));
+
+        const sceneryLayers = [
+            layers.backgroundScenery,
+            layers.middleScenery,
+            layers.frontScenery
+        ];
 
         pms.props.filter(prop => {
             return prop.active && sceneryLayers[prop.level] && imageNodes[prop.style - 1];
@@ -83,14 +95,14 @@ export class MapDocument extends Node {
         });
 
         const colliders = pms.colliders.map(collider => ColliderNode.fromPMS(collider));
-        colliders.forEach(node => node.appendTo(doc.colliders));
+        colliders.forEach(node => node.appendTo(layers.colliders));
 
         const spawns = pms.spawns.map(spawn => SpawnNode.fromPMS(spawn));
-        spawns.forEach(node => node.appendTo(doc.spawns));
+        spawns.forEach(node => node.appendTo(layers.spawns));
 
         const waypoints = pms.waypoints.map(() => new WaypointNode());
         waypoints.forEach((node, i) => node.fromPMS(pms.waypoints[i], waypoints));
-        waypoints.forEach(node => node.appendTo(doc.waypoints));
+        waypoints.forEach(node => node.appendTo(layers.waypoints));
 
         return doc;
     }
@@ -220,5 +232,70 @@ export class MapDocument extends Node {
         };
 
         return serializeNode(this);
+    }
+
+    static unserialize(data) {
+        const xml = new DOMParser().parseFromString(data, "application/xml");
+
+        if (xml.documentElement.tagName !== "map") {
+            return null;
+        }
+
+        const constructNode = element => {
+            switch (element.tagName) {
+                case "map": return new MapDocument();
+                case "texture": return new TextureNode();
+                case "image": return new ImageNode();
+                case "layer": return new LayerNode();
+                case "triangle": return new TriangleNode();
+                case "vertex": return new VertexNode();
+                case "scenery": return new SceneryNode();
+                case "collider": return new ColliderNode();
+                case "spawn": return new SpawnNode();
+                case "waypoint": return new WaypointNode();
+                case "connection": return new ConnectionNode();
+            }
+        };
+
+        const nodesById = new Map();
+        const nodesByElement = new Map();
+
+        const constructTree = element => {
+            const node = constructNode(element);
+            nodesByElement.set(element, node);
+            nodesById.set(element.getAttribute("id"), node);
+            for (const childElement of element.children) {
+                node.append(constructTree(childElement));
+            }
+        };
+
+        const readAttributes = element => {
+            const node = nodesByElement.get(element);
+            for (const name of element.getAttributeNames()) {
+                if (node.attributes.has(name)) {
+                    const value = element.getAttribute(name);
+                    const defaultValue = node.attributes.get(name);
+
+                    if (defaultValue === null) {
+                        node.attributes.set(name, nodesById.get(value));
+                    } else if (defaultValue instanceof Color) {
+                        node.attributes.set(name, new Color(value));
+                    } else if (typeof defaultValue === "boolean") {
+                        node.attributes.set(name, value === "true" ? true : false);
+                    } else if (typeof defaultValue === "number") {
+                        node.attributes.set(name, Number(value));
+                    } else {
+                        node.attributes.set(name, value);
+                    }
+                }
+            }
+            for (const childElement of element.children) {
+                readAttributes(childElement);
+            }
+        };
+
+        const doc = constructTree(xml.documentElement);
+        readAttributes(xml.documentElement);
+        return doc;
     }
 }

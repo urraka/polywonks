@@ -1,9 +1,11 @@
 import * as PMS from "./pms.js";
 import * as Geometry from "./geometry.js";
 import { Node } from "./map.node.js";
+import { LayerType, LayerNode } from "./map.node.layer.js";
 import { Color } from "./color.js";
 import { Matrix } from "./matrix.js";
 import { Sprite } from "./gfx.js";
+import { Enum } from "./enum.js";
 
 export class SceneryNode extends Node {
     constructor() {
@@ -62,11 +64,14 @@ export class SceneryNode extends Node {
             .multiply(Matrix.translate(0, -1))
             .multiply({ x: 0, y: 0 });
 
-        const layers = [
-            this.owner.backgroundScenery,
-            this.owner.middleScenery,
-            this.owner.frontScenery
+        const layerTypes = [
+            LayerType.SceneryBack,
+            LayerType.SceneryMiddle,
+            LayerType.SceneryFront
         ];
+
+        const layer = [...this.filter(this.ancestors(), LayerNode)][0];
+        const layerType = layer ? Enum.nameToValue(LayerType, layer.attr("type")) : -1;
 
         const prop = new PMS.Prop();
         prop.active = true;
@@ -80,7 +85,7 @@ export class SceneryNode extends Node {
         prop.scaleY = this.attr("scaleY");
         prop.alpha = this.attr("color").a;
         prop.color = this.attr("color");
-        prop.level = layers.indexOf(this.parentNode);
+        prop.level = layerTypes.indexOf(layerType);
         return prop;
     }
 

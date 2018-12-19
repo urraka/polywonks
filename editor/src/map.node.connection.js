@@ -3,7 +3,7 @@ import { Node } from "./map.node.js";
 import { cfg } from "./settings.js";
 
 export class ConnectionNode extends Node {
-    constructor(waypoint) {
+    constructor(waypoint = null) {
         super("connection");
         this.attributes.set("text", "Connection");
         this.attributes.set("waypoint", waypoint);

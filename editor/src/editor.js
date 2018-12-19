@@ -89,6 +89,9 @@ export class Editor {
         const pms = PMS.Map.fromArrayBuffer(buffer);
         this.map = MapDocument.fromPMS(pms, path);
         this.map.iconsInfo = this.renderer.iconsInfo;
+        this.selectedNodes.clear();
+        this.previewNodes.clear();
+        this.reactiveNode = null;
         this.modified = false;
         this.undone = 0;
         this.commandHistory = [];
