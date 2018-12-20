@@ -22,12 +22,10 @@ import { Rect } from "./rect.js";
 import { VertexNode } from "./map.node.vertex.js";
 
 export class Renderer {
-    constructor(width, height) {
+    constructor() {
         this.context = new Gfx.Context();
-        this.context.canvas.width = width;
-        this.context.canvas.height = height;
-        this.width = width;
-        this.height = height;
+        this.width = this.context.canvas.width;
+        this.height = this.context.canvas.height;
         this.batch = this.context.createBatch();
         this.textures = new WeakMap();
         this.colliderTexture = this.context.createTexture(512, 512, gradientCircle());

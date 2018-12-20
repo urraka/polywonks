@@ -49,6 +49,8 @@ export class SelectTool {
         this.editor.element.addEventListener("mousemove", this.onMouseMove);
         document.addEventListener("keyup", this.onKey);
         document.addEventListener("keydown", this.onKey);
+
+        app.status("tool", "Select");
     }
 
     disable() {
@@ -59,6 +61,8 @@ export class SelectTool {
         document.removeEventListener("keydown", this.onKey);
         this.editor.previewNodes.clear();
         this.editor.redraw();
+
+        app.status("tool", "");
     }
 
     replaceSelection(selection) {
@@ -120,6 +124,12 @@ export class SelectTool {
             case "1000": this.mode = "add"; break;
             case "0100": this.mode = "subtract"; break;
             default: this.mode = "replace";
+        }
+
+        switch (this.mode) {
+            case "replace": app.status("tool", "Select"); break;
+            case "add": app.status("tool", "Select (+)"); break;
+            case "subtract": app.status("tool", "Select (-)"); break;
         }
     }
 

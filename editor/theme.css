@@ -1,0 +1,19 @@
+body {
+    background-color: #1e1e1e;
+    font-family: -apple-system,BlinkMacSystemFont,Segoe WPC,Segoe UI,HelveticaNeue-Light,Ubuntu,Droid Sans,sans-serif;
+    color: #ccc;
+}
+
+.startup-loading > div {
+    border-color: rgba(255, 255, 255, .3);
+    border-top-color: #fff;
+}
+
+.app > .splitview > .panel:first-child {
+    background: #252526;
+    border-right: 1px solid #3c3c3c;
+}
+
+.statusbar {
+    background: #3c3c3c;
+}

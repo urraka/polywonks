@@ -1,0 +1,76 @@
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    font-size: 13px;
+}
+
+.panel {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    user-select: none;
+}
+
+.splitview > .panel:first-child {
+    right: auto;
+}
+
+.app > .splitview {
+    bottom: 22px;
+}
+
+.statusbar {
+    top: auto;
+    height: 22px;
+    line-height: 22px;
+    font-size: 13px;
+}
+
+.statusbar > .panel:last-child {
+    text-align: right;
+}
+
+.statusbar-item {
+    display: inline-block;
+    text-align: left;
+}
+
+.statusbar > .panel:first-child .statusbar-item {
+    padding-left: 10px;
+}
+
+.statusbar > .panel:last-child .statusbar-item {
+    padding-right: 10px;
+}
+
+.startup-loading {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.startup-loading > div {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    border: 2px solid;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

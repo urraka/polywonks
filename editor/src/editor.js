@@ -1,4 +1,5 @@
 import * as PMS from "./pms.js";
+import * as ui from "./ui.js";
 import { RenderView } from "./render.view.js";
 import { MapDocument } from "./map.document.js";
 import { File } from "./file.js";
@@ -6,10 +7,9 @@ import { cfg } from "./settings.js";
 import { SelectTool } from "./tool.select.js";
 import { Path } from "./path.js";
 
-export class Editor {
+export class Editor extends ui.Panel {
     constructor(renderer) {
-        this.element = document.createElement("div");
-        this.element.classList.add("editor-overlay");
+        super("editor");
         this.element.addEventListener("mousemove", e => this.onMouseMove(e));
         this.element.addEventListener("mousedown", e => this.onMouseDown(e));
         this.element.addEventListener("wheel", e => this.onMouseWheel(e));
@@ -27,7 +27,8 @@ export class Editor {
         this.commandHistory = [];
         this.lastMouseMove = null;
         this.currentTool = new SelectTool();
-        this.currentTool.enable(this);
+
+        setTimeout(() => this.currentTool.enable(this));
     }
 
     resetState() {
@@ -130,7 +131,14 @@ export class Editor {
 
     onMouseMove(event) {
         this.lastMouseMove = event;
-        Object.assign(this.cursor, this.view.canvasToMap(event.clientX, event.clientY));
+        const rect = event.target.getBoundingClientRect();
+        const pos = this.view.canvasToMap(event.clientX - rect.left, event.clientY - rect.top);
+        this.cursor.x = pos.x;
+        this.cursor.y = pos.y;
+
+        const x = Math.round(pos.x);
+        const y = Math.round(pos.y);
+        app.status("cursor", `${x}, ${y}`);
     }
 
     onMouseDown(event) {
