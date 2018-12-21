@@ -4,6 +4,7 @@ import { cfg } from "./settings.js";
 export class File {
     static read(type, path, callback) {
         path = Path.resolve("/", path);
+        path = File.exists(path) || path;
 
         if (path.startsWith("/soldat/") || path.startsWith("/polydrive/")) {
             if (window.location.hostname.endsWith(".github.io")) {
@@ -30,8 +31,8 @@ export class File {
         req.addEventListener("abort", () => callback(null));
 
         if (img) {
-            req.src = path;
             req.crossOrigin = "Anonymous";
+            req.src = path;
         } else {
             req.responseType = type;
             req.open("GET", path);
@@ -90,8 +91,8 @@ export class File {
             if (++count == total) {
                 tree.sort();
                 File.tree = File.tree || {};
-                File.tree[dir.substring(1).split("/").shift()] = tree;
-                callback();
+                File.tree[mount] = tree;
+                callback(File.tree[mount].slice(0));
             }
         }
 

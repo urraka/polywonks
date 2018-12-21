@@ -2,6 +2,17 @@
     box-sizing: border-box;
 }
 
+:focus {
+    outline:none;
+}
+
+ul, ul li, ul ul li {
+   margin: 0;
+   padding: 0;
+   text-indent: 0;
+   list-style-type: none;
+}
+
 html,
 body {
     width: 100%;
@@ -21,13 +32,25 @@ body {
     user-select: none;
 }
 
+.panel-header {
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    padding-left: 20px;
+    height: 22px;
+    line-height: 22px;
+    overflow: hidden;
+}
+
+/* -------------------------------------------------------------------------- */
+/* sidebar */
+
 .splitview > .panel:first-child {
     right: auto;
 }
 
-.app > .splitview {
-    bottom: 22px;
-}
+/* -------------------------------------------------------------------------- */
+/* statusbar */
 
 .statusbar {
     top: auto;
@@ -52,6 +75,89 @@ body {
 .statusbar > .panel:last-child .statusbar-item {
     padding-right: 10px;
 }
+
+/* -------------------------------------------------------------------------- */
+/* tree */
+
+.tree-view {
+    overflow: auto;
+    padding: 2px 0;
+}
+
+.tree-view > ul {
+    padding-left: 6px;
+}
+
+.tree-view ul ul {
+    padding-left: 16px;
+}
+
+.tree-view li {
+    position: relative;
+    pointer-events: none;
+}
+
+.tree-view li.with-subitems::before {
+    content: "";
+    display: block;
+    pointer-events: all;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 16px;
+    height: 22px;
+    background-size: 16px;
+    background-position: 50% 50%;
+    background-repeat: no-repeat;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23E8E8E8' d='M11 10H5.344L11 4.414V10z'/%3E%3C/svg%3E");
+}
+
+.tree-view li.with-subitems.collapsed::before {
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23E8E8E8' d='M6 4v8l4-4-4-4zm1 2.414L8.586 8 7 9.586V6.414z'/%3E%3C/svg%3E");
+}
+
+.tree-view li.collapsed > ul {
+    display: none;
+}
+
+.tree-view label {
+    display: inline-block;
+    height: 22px;
+    line-height: 22px;
+    white-space: nowrap;
+    margin-left: 16px;
+    margin-right: 16px;
+    padding: 0 6px;
+    border-radius: 3px;
+    pointer-events: all;
+}
+
+/* -------------------------------------------------------------------------- */
+/* app specific */
+
+.app > .splitview {
+    bottom: 22px;
+}
+
+.app > .splitview > .panel:first-child {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.app .explorer {
+    position: relative;
+    top: auto;
+    bottom: auto;
+    height: 100%;
+}
+
+.app .explorer > .tree-view {
+    top: 22px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* startup loading */
 
 .startup-loading {
     height: 100%;

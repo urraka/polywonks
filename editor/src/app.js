@@ -1,6 +1,8 @@
 import * as ui from "./ui.js";
 import { Renderer } from "./render.js";
 import { Editor } from "./editor.js";
+import { Explorer } from "./explorer.js";
+import { Path } from "./path.js";
 
 export class App extends ui.Panel {
     static launch() {
@@ -23,8 +25,11 @@ export class App extends ui.Panel {
 
         this.renderer = new Renderer();
         this.editor = new Editor(this.renderer);
+        this.explorers = ["polydrive", "soldat", "library"].map(root => new Explorer(root));
+
         this.mainView.append(this.renderer.context.canvas);
         this.mainView.append(this.editor);
+        this.explorers.forEach(explorer => this.sidebar.append(explorer));
 
         document.body.querySelector(".startup-loading").remove();
         document.body.append(this.element);
@@ -35,6 +40,14 @@ export class App extends ui.Panel {
         document.addEventListener("dragenter", e => this.onDragEnter(e));
 
         this.onResize();
+        this.explorers.forEach(explorer => explorer.refesh());
+    }
+
+    open(path) {
+        const ext = Path.ext(path).toLowerCase();
+        if (ext === ".pms" || ext === ".polywonks") {
+            this.editor.load(path);
+        }
     }
 
     status(name, value) {
