@@ -11,36 +11,35 @@ export class App extends ui.Panel {
 
     constructor() {
         super("app");
-        this.splitView = new ui.SplitView(300);
-        this.sidebar = this.splitView.panels[0];
-        this.mainView = this.splitView.panels[1];
 
-        this.statusbar = new ui.Statusbar();
+        const splitView = this.append(new ui.SplitView(300));
+        const sidebar = splitView.panels[0];
+        const mainView = splitView.panels[1];
+
+        this.statusbar = this.append(new ui.Statusbar());
         this.statusbar.addItem("tool", "left", 200);
         this.statusbar.addItem("cursor", "right", 100);
         this.statusbar.set("cursor", "0, 0");
 
-        this.append(this.splitView);
-        this.append(this.statusbar);
-
         this.renderer = new Renderer();
+        mainView.append(this.renderer.context.canvas);
+
         this.editor = new Editor(this.renderer);
+        mainView.append(this.editor);
+
+        const sidebarPanels = new ui.MultiPanelView();
         this.explorers = ["polydrive", "soldat", "library"].map(root => new Explorer(root));
-
-        this.mainView.append(this.renderer.context.canvas);
-        this.mainView.append(this.editor);
-        this.explorers.forEach(explorer => this.sidebar.append(explorer));
-
-        document.body.querySelector(".startup-loading").remove();
-        document.body.append(this.element);
+        this.explorers.forEach(explorer => sidebarPanels.addPanel(explorer.root, explorer.tree));
+        sidebar.append(sidebarPanels);
 
         window.addEventListener("resize", e => this.onResize(e));
         document.addEventListener("drop", e => this.onDrop(e));
         document.addEventListener("dragover", e => this.onDragOver(e));
         document.addEventListener("dragenter", e => this.onDragEnter(e));
 
+        document.body.querySelector(".startup-loading").remove();
+        document.body.append(this.element);
         this.onResize();
-        this.explorers.forEach(explorer => explorer.refesh());
     }
 
     open(path) {

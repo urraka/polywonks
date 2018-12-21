@@ -9,7 +9,7 @@ body {
     border-top-color: #fff;
 }
 
-.app > .splitview > .panel:first-child {
+.app > .split-view > .panel:first-child {
     background: #252526;
     border-right: 1px solid #3c3c3c;
 }

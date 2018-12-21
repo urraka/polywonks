@@ -5,16 +5,16 @@ export class Explorer extends ui.Panel {
     constructor(root) {
         super("explorer");
         this.root = root;
-        this.append(new ui.PanelHeader(root));
         this.tree = this.append(new ui.TreeView());
         this.tree.on("item-dblclick", (e, data) => this.onItemDblClick(e, data));
+        setTimeout(() => this.refresh());
     }
 
     onItemDblClick(event, path) {
         app.open(path);
     }
 
-    refesh() {
+    refresh() {
         File.refresh(this.root, list => {
             this.tree.clear();
 
