@@ -184,3 +184,28 @@ export class MultiPanelView extends Panel {
         header.element.addEventListener("mousedown", () => panelView.element.classList.toggle("collapsed"));
     }
 }
+
+export class TitleBar extends Panel {
+    constructor() {
+        super("titlebar");
+        this.append(elem("div", "titlebar-icon"));
+        this.menu = this.append(new MenuBar());
+    }
+}
+
+export class MenuBar {
+    constructor() {
+        this.element = elem("div", "menubar");
+    }
+
+    addItem(item, submenu) {
+        this.element.append(item.element);
+    }
+}
+
+export class MenuItem {
+    constructor(title, submenu) {
+        this.element = elem("div", "menu-item");
+        this.element.textContent = title;
+    }
+}

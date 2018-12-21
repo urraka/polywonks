@@ -12,6 +12,12 @@ export class App extends ui.Panel {
     constructor() {
         super("app");
 
+        const titlebar = this.append(new ui.TitleBar());
+        titlebar.menu.addItem(new ui.MenuItem("File"));
+        titlebar.menu.addItem(new ui.MenuItem("Edit"));
+        titlebar.menu.addItem(new ui.MenuItem("View"));
+        titlebar.menu.addItem(new ui.MenuItem("Help"));
+
         const splitView = this.append(new ui.SplitView(300));
         const sidebar = splitView.panels[0];
         const mainView = splitView.panels[1];

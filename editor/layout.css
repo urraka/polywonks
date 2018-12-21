@@ -3,7 +3,7 @@
 }
 
 :focus {
-    outline:none;
+    outline: none;
 }
 
 ul, ul li, ul ul li {
@@ -30,6 +30,7 @@ body {
     bottom: 0;
     overflow: hidden;
     user-select: none;
+    -moz-user-select: none;
 }
 
 .panel-header {
@@ -68,6 +69,33 @@ body {
     right: auto;
 }
 
+.titlebar {
+    bottom: auto;
+    height: 30px;
+    line-height: 30px;
+    display: flex;
+    justify-content: left;
+}
+
+.titlebar-icon {
+    width: 35px;
+    height: 100%;
+    flex-shrink: 0;
+}
+
+.menubar {
+    position: relative;
+    height: 30px;
+    line-height: 30px;
+    display: flex;
+    justify-content: left;
+}
+
+.menubar > .menu-item {
+    padding: 0 8px;
+    white-space: nowrap;
+}
+
 /* -------------------------------------------------------------------------- */
 /* statusbar */
 
@@ -75,7 +103,6 @@ body {
     top: auto;
     height: 22px;
     line-height: 22px;
-    font-size: 13px;
 }
 
 .statusbar > .panel:last-child {
@@ -156,7 +183,15 @@ body {
 /* -------------------------------------------------------------------------- */
 /* app specific */
 
-.app > .splitview {
+.titlebar-icon {
+    background-size: 18px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath style='fill:%23007acc;fill-opacity:1;stroke:none;stroke-width:64;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1' d='m 64,32 c -0.729108,0 -1.457953,0.04444 -2.185547,0.109375 C 45.664085,33.222284 32.888838,46.221408 32.056641,62.388672 32.021174,62.92526 32,63.462806 32,64 V 84.6875 L 84.6875,32 Z M 107.3125,32 32,107.3125 v 25.375 L 132.6875,32 Z m 48,0 L 32,155.3125 V 192 c 0,0.53719 0.02117,1.07474 0.05664,1.61133 0.832201,16.16726 13.607446,29.16639 29.757812,30.27929 C 62.542048,223.95556 63.270892,224 64,224 H 164.6875 L 90.34375,149.65625 c -5.146289,-5.00513 -1.606565,-13.73099 5.572266,-13.73633 2.162333,-9.4e-4 4.232974,0.87339 5.740234,2.42383 L 187.3125,224 h 25.375 l -98.34375,-98.34375 c -5.14629,-5.00513 -1.60656,-13.731 5.57227,-13.73633 2.16233,-9.4e-4 4.23297,0.87339 5.74023,2.42383 L 224,212.6875 v -25.375 l -85.65625,-85.65625 c -5.14629,-5.005134 -1.60656,-13.730993 5.57227,-13.736328 2.16233,-9.43e-4 4.23297,0.873391 5.74023,2.423828 L 224,164.6875 V 64 c 0,-0.537194 -0.0212,-1.07474 -0.0566,-1.611328 C 223.11108,46.221409 210.33592,33.222285 194.18555,32.109375 193.45795,32.044439 192.72911,32 192,32 Z'/%3E%3C/svg%3E%0A");
+}
+
+.app > .split-view {
+    top: 30px;
     bottom: 22px;
 }
 

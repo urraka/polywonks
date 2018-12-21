@@ -14,8 +14,13 @@ body {
     border-right: 1px solid #3c3c3c;
 }
 
+.titlebar,
 .statusbar {
     background: #3c3c3c;
+}
+
+.menubar > .menu-item:hover {
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .tree-view li.selected > label {
@@ -29,21 +34,25 @@ body {
 /* -------------------------------------------------------------------------- */
 /* scrollbars */
 
+* {
+    scrollbar-color: #1e1e1e #3c3c3c;
+}
+
 ::-webkit-scrollbar {
     width: 14px;
     height: 14px;
 }
 
 ::-webkit-scrollbar-corner {
-    box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
     background-color: #1e1e1e;
 }
 
 ::-webkit-scrollbar-track {
-    box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
 }
 
 ::-webkit-scrollbar-thumb {
     background-color: #2f2f2f;
-    box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
 }
