@@ -84,7 +84,8 @@ export class Renderer {
                     const imageData = processImage(image, {
                         premultiply: true,
                         padding: node instanceof ImageNode,
-                        colorKey: node.attr("color-key")
+                        colorKey: node.attr("color-key"),
+                        npot: node instanceof TextureNode
                     });
 
                     const texture = this.context.createTexture(imageData);

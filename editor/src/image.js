@@ -1,23 +1,49 @@
+function npot(x) {
+    let result = 1;
+    while (result < x) {
+        result = result << 1;
+    }
+    return result;
+}
+
 /**
  * @param {Image} image - The image to process.
  * @param {Object} params - Options.
  * @param {boolean} [params.premultiply=false] - Premultiply alpha.
  * @param {boolean} [params.padding=false] - Add 1px transparent padding (helps with border filtering).
  * @param {boolean} [params.colorKey=null] - Make pixels with given color transparent.
+ * @param {boolean} [params.npot=false] - Resize to npot if necessary.
  * @returns {ImageData}
  */
 export function processImage(image, params) {
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d");
 
-    if (params.padding) {
-        canvas.width = image.width + 2;
-        canvas.height = image.height + 2;
-        context.drawImage(image, 1, 1, image.width, image.height);
-    } else {
-        canvas.width = image.width;
-        canvas.height = image.height;
-        context.drawImage(image, 0, 0, image.width, image.height);
+    {
+        let dx = 0;
+        let dy = 0;
+        let dw = image.width;
+        let dh = image.height;
+        let w = image.width;
+        let h = image.height;
+
+        if (params.padding) {
+            dx = 1;
+            dy = 1;
+            w = image.width + 2;
+            h = image.height + 2;
+        }
+
+        if (params.npot) {
+            w = npot(w);
+            h = npot(h);
+            dw = w - (params.padding ? 2 : 0);
+            dh = h - (params.padding ? 2 : 0);
+        }
+
+        canvas.width = w;
+        canvas.height = h;
+        context.drawImage(image, dx, dy, dw, dh);
     }
 
     const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
