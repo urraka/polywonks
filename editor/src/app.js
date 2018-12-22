@@ -18,9 +18,9 @@ export class App extends ui.Panel {
         titlebar.menu.addItem(new ui.MenuItem("View"));
         titlebar.menu.addItem(new ui.MenuItem("Help"));
 
-        const splitView = this.append(new ui.SplitView(300));
-        const sidebar = splitView.panels[0];
-        const mainView = splitView.panels[1];
+        const clientArea = this.append(new ui.Panel("client-area"));
+        const sidebar = clientArea.append(new ui.Panel("sidebar"));
+        const mainView = clientArea.append(new ui.Panel("main-view"));
 
         this.statusbar = this.append(new ui.Statusbar());
         this.statusbar.addItem("tool", "left", 200);

@@ -1,6 +1,6 @@
 const dataMap = new WeakMap();
 
-function elem(tag, className) {
+export function elem(tag, className) {
     const element = document.createElement(tag);
 
     if (className) {
@@ -22,24 +22,6 @@ export class Panel {
     append(element) {
         this.element.append(element.element || element);
         return element;
-    }
-}
-
-export class SplitView extends Panel {
-    constructor(initialDistance) {
-        super("split-view");
-
-        this.panels = [
-            this.append(new Panel()),
-            this.append(new Panel())
-        ];
-
-        this.distance = initialDistance;
-    }
-
-    set distance(value) {
-        this.panels[0].element.style.width = value + "px";
-        this.panels[1].element.style.left = value + "px";
     }
 }
 
@@ -193,13 +175,13 @@ export class TitleBar extends Panel {
     }
 }
 
-export class MenuBar {
+export class MenuBar extends Panel {
     constructor() {
-        this.element = elem("div", "menubar");
+        super("menubar");
     }
 
     addItem(item, submenu) {
-        this.element.append(item.element);
+        this.append(item.element);
     }
 }
 
