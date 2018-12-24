@@ -66,6 +66,7 @@ body {
     height: 30px;
     line-height: 30px;
     flex-shrink: 0;
+    overflow: visible;
 }
 
 .titlebar-icon {
@@ -78,17 +79,64 @@ body {
     height: 30px;
     line-height: 30px;
     display: flex;
+    overflow: visible;
 }
 
-.menubar > .menu-item {
+.menubar > .menu-item > label {
     padding: 0 8px;
     white-space: nowrap;
-    position: relative;
+}
+
+.menubar > .menu-item > .menu {
+    left: 0;
+    top: 100%;
 }
 
 .menu {
     position: absolute;
-    padding: .5em 0;
+    padding: .5em 1px;
+    min-width: 200px;
+    line-height: 1.8em;
+}
+
+.menu > .menu-item {
+    position: relative;
+    margin-bottom: 2px;
+}
+
+.menu > .menu-item:last-child {
+    margin-bottom: 1px;
+}
+
+.menu > .menu-item > label {
+    padding: 0 2em;
+    white-space: nowrap;
+}
+
+.menu > .menu-item.separator {
+    border-bottom: 1px solid;
+    padding-top: .2em;
+    margin: .3em .8em;
+}
+
+.menu > .menu-item.has-submenu::after {
+    content: '';
+    display: block;
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 13px;
+    height: 100%;
+    padding-right: .8em;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4.52 12.364L9.879 7 4.52 1.636l.615-.615L11.122 7l-5.986 5.98-.615-.616z' fill='%23ccc'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 0 50%;
+}
+
+.menu-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
 }
 
 /* -------------------------------------------------------------------------- */

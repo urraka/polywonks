@@ -13,10 +13,21 @@ export class App extends ui.Panel {
         super("app");
 
         const titlebar = this.append(new ui.TitleBar());
-        titlebar.menu.addItem(new ui.MenuItem("File"));
-        titlebar.menu.addItem(new ui.MenuItem("Edit"));
-        titlebar.menu.addItem(new ui.MenuItem("View"));
-        titlebar.menu.addItem(new ui.MenuItem("Help"));
+        const file = titlebar.menu.addItem(new ui.MenuItem("File"));
+        const edit = titlebar.menu.addItem(new ui.MenuItem("Edit"));
+        const view = titlebar.menu.addItem(new ui.MenuItem("View"));
+        const help = titlebar.menu.addItem(new ui.MenuItem("Help"));
+
+        file.addItem(new ui.MenuItem("New Map"));
+        file.addItem(new ui.MenuItem("Save"));
+        file.addItem(new ui.MenuItem("Save As..."));
+        file.addItem(new ui.MenuSeparator());
+        const options = file.addItem(new ui.MenuItem("Options"));
+        options.addItem(new ui.MenuItem("Option 1"));
+        options.addItem(new ui.MenuItem("Option 2"));
+        edit.addItem(new ui.MenuItem("Test Button"));
+        view.addItem(new ui.MenuItem("Test Button"));
+        help.addItem(new ui.MenuItem("Test Button"));
 
         const clientArea = this.append(new ui.Panel("client-area"));
         const sidebar = clientArea.append(new ui.Panel("sidebar"));

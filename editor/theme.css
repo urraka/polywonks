@@ -19,8 +19,30 @@ body {
     background: #3c3c3c;
 }
 
-.menubar > .menu-item:hover {
+.menubar > .menu-item:hover,
+.menubar > .menu-item.active {
     background: rgba(255, 255, 255, 0.1);
+}
+
+.menu {
+    background: #252526;
+    box-shadow: rgb(0, 0, 0) 0px 2px 4px;
+}
+
+.menu .menu-item:not(.separator):not(.disabled):hover,
+.menu .menu-item.active {
+    color: #fff;
+    background: #094771;
+}
+
+.menu > .menu-item.has-submenu.active::after,
+.menu > .menu-item.has-submenu:hover::after {
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4.52 12.364L9.879 7 4.52 1.636l.615-.615L11.122 7l-5.986 5.98-.615-.616z' fill='%23fff'/%3E%3C/svg%3E");
+}
+
+.menu-item.separator {
+    border-color: #bbb;
+    opacity: 0.4;
 }
 
 .tree-view li.selected > label {
