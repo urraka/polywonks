@@ -219,7 +219,7 @@ export class Menu {
                 menu.element.style.left = rect.left + "px";
                 menu.element.style.top = (rect.top + rect.height) + "px";
             } else {
-                menu.element.style.left = (rect.left + rect.width) + "px";
+                menu.element.style.left = (rect.left + rect.width + 1) + "px";
                 menu.element.style.top = (rect.top - 1) + "px";
             }
 
