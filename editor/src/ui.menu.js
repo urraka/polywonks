@@ -1,14 +1,15 @@
-import * as ui from "./ui.base.js";
+import { Panel, elem } from "./ui.base.js";
+import { Command } from "./ui.command.js";
 
-export class TitleBar extends ui.Panel {
+export class TitleBar extends Panel {
     constructor() {
         super("titlebar");
-        this.append(ui.elem("div", "titlebar-icon"));
+        this.append(elem("div", "titlebar-icon"));
         this.menu = this.append(new MenuBar());
     }
 }
 
-export class MenuBar extends ui.Panel {
+export class MenuBar extends Panel {
     constructor() {
         super("menubar");
         this.shouldClose = false;
@@ -20,7 +21,7 @@ export class MenuBar extends ui.Panel {
     }
 
     activeItem() {
-        return this.element.querySelector(".menu-item.active");
+        return MenuItem.from(this.element.querySelector(".menu-item.active"));
     }
 
     open(menuItem) {
@@ -32,18 +33,18 @@ export class MenuBar extends ui.Panel {
             this.element.addEventListener("mouseup", this.onBarMouseUp);
             window.addEventListener("mousedown", this.onWindowMouseDown, true);
         } else if (activeItem !== menuItem) {
-            Menu.close(activeItem);
+            activeItem.submenu.close();
         }
 
         if (activeItem !== menuItem) {
-            Menu.open(menuItem);
+            menuItem.submenu.open();
         }
     }
 
     close() {
         const activeItem = this.activeItem();
         if (activeItem) {
-            Menu.close(activeItem);
+            activeItem.submenu.close();
         }
         this.element.removeEventListener("mouseover", this.onBarMouseOver);
         this.element.removeEventListener("mouseup", this.onBarMouseUp);
@@ -86,6 +87,7 @@ export class MenuBar extends ui.Panel {
     }
 
     addItem(item) {
+        item.ownerMenu = this;
         this.append(item.element);
         return item;
     }
@@ -93,7 +95,8 @@ export class MenuBar extends ui.Panel {
 
 export class Menu {
     constructor() {
-        this.element = ui.elem("div", "menu");
+        this.element = elem("div", "menu");
+        this.ownerItem = null;
         this.onMouseOver = this.onMouseOver.bind(this);
         this.onMouseOut = this.onMouseOut.bind(this);
         this.onMouseDown = this.onMouseDown.bind(this);
@@ -101,12 +104,13 @@ export class Menu {
     }
 
     addItem(item) {
+        item.ownerMenu = this;
         this.element.append(item.element);
         return item;
     }
 
     activeItem() {
-        return this.element.querySelector(".menu-item.active");
+        return MenuItem.from(this.element.querySelector(".menu-item.active"));
     }
 
     onShow() {
@@ -114,6 +118,12 @@ export class Menu {
         this.element.addEventListener("mouseout", this.onMouseOut);
         this.element.addEventListener("mousedown", this.onMouseDown);
         this.element.addEventListener("mouseup", this.onMouseUp);
+
+        [...this.element.children].map(e => MenuItem.from(e)).forEach(menuItem => {
+            const command = Command.find(menuItem.command);
+            menuItem.enabled = command.enabled;
+            menuItem.checked = command.checked;
+        });
     }
 
     onClose() {
@@ -125,8 +135,10 @@ export class Menu {
 
     onShowSubmenu(menuItem) {
         const items = Array.from(this.element.querySelectorAll(".menu-item.has-submenu"));
-        items.forEach(item => item !== menuItem && Menu.close(item));
-        Menu.open(menuItem);
+        items.map(item => MenuItem.from(item)).forEach(item => item !== menuItem && item.submenu.close());
+        if (menuItem.submenu) {
+            menuItem.submenu.open();
+        }
     }
 
     onMouseOver(event) {
@@ -134,7 +146,7 @@ export class Menu {
         if (menuItem) {
             const activeItem = this.activeItem();
             if (activeItem && activeItem !== menuItem) {
-                activeItem.classList.remove("active");
+                activeItem.active = false;
             }
             Menu.timeout(() => this.onShowSubmenu(menuItem));
         }
@@ -144,10 +156,9 @@ export class Menu {
     onMouseOut(event) {
         const menuItem = MenuItem.from(event);
         if (menuItem) {
-            const submenu = Menu.from(menuItem);
-            const isMenu = e => submenu && e && (e === submenu.element || isMenu(e.parentElement));
-            if (!isMenu(event.relatedTarget)) {
-                Menu.timeout(() => Menu.close(menuItem));
+            const isSubmenu = e => e && (e === menuItem.submenu.element || isSubmenu(e.parentElement));
+            if (menuItem.submenu && !isSubmenu(event.relatedTarget)) {
+                Menu.timeout(() => menuItem.submenu.close());
             }
         }
         event.stopPropagation();
@@ -156,7 +167,7 @@ export class Menu {
     onMouseDown(event) {
         const menuItem = MenuItem.from(event);
         if (menuItem) {
-            if (menuItem.classList.contains("has-submenu")) {
+            if (menuItem.hasSubmenu) {
                 Menu.timeout(null);
                 this.onShowSubmenu(menuItem);
             }
@@ -166,9 +177,16 @@ export class Menu {
     onMouseUp(event) {
         const menuItem = MenuItem.from(event);
         if (menuItem) {
-            if (menuItem.classList.contains("has-submenu")) {
+            if (menuItem.hasSubmenu) {
                 Menu.timeout(null);
                 this.onShowSubmenu(menuItem);
+            } else if (menuItem.enabled) {
+                let menu = this;
+                while (menu instanceof Menu) {
+                    menu = menu.ownerItem.ownerMenu;
+                }
+                menu.close();
+                Command.find(menuItem.command).execute();
             }
         }
     }
@@ -180,20 +198,10 @@ export class Menu {
         Menu.timer = func ? setTimeout(func, 300) : null;
     }
 
-    static associate(menuItem, menu) {
-        const menus = Menu.menuByMenuItem || (Menu.menuByMenuItem = new WeakMap());
-        menus.set(menuItem, menu);
-    }
-
-    static from(menuItem) {
-        const menus = Menu.menuByMenuItem || (Menu.menuByMenuItem = new WeakMap());
-        return menus.get(menuItem);
-    }
-
     static overlay(create = false) {
         let element = document.querySelector("body > .menu-overlay");
         if (!element && create) {
-            element = ui.elem("div", "menu-overlay");
+            element = elem("div", "menu-overlay");
             document.body.append(element);
         }
         return element;
@@ -206,78 +214,94 @@ export class Menu {
         }
     }
 
-    static open(menuItem) {
-        const menu = Menu.from(menuItem);
-
-        if (menu && !menu.element.parentElement) {
-            menuItem.classList.add("active");
+    open() {
+        if (!this.element.parentElement) {
+            const menuItem = this.ownerItem;
+            menuItem.active = true;
 
             const overlay = Menu.overlay(true);
-            const rect = menuItem.getBoundingClientRect();
+            const rect = menuItem.element.getBoundingClientRect();
 
-            if (menuItem.parentElement.classList.contains("menubar")) {
-                menu.element.style.left = rect.left + "px";
-                menu.element.style.top = (rect.top + rect.height) + "px";
+            if (menuItem.ownerMenu instanceof MenuBar) {
+                this.element.style.left = rect.left + "px";
+                this.element.style.top = (rect.top + rect.height) + "px";
             } else {
-                menu.element.style.left = (rect.left + rect.width + 1) + "px";
-                menu.element.style.top = (rect.top - 1) + "px";
+                this.element.style.left = (rect.left + rect.width + 1) + "px";
+                this.element.style.top = (rect.top - 1) + "px";
             }
 
-            overlay.append(menu.element);
-            menu.onShow();
+            overlay.append(this.element);
+            this.onShow();
         }
     }
 
-    static close(menuItem) {
-        const menu = Menu.from(menuItem);
-        const overlay = Menu.overlay();
-        menuItem.classList.remove("active");
-
-        if (menu && overlay && menu.element.parentElement) {
-            const items = Array.from(menu.element.querySelectorAll(".menu-item.has-submenu"));
-            items.forEach(menuItem => Menu.close(menuItem));
-            menu.element.remove();
-            menu.onClose();
+    close() {
+        if (this.element.parentElement) {
+            const menuItem = this.ownerItem;
+            const items = Array.from(this.element.querySelectorAll(".menu-item.has-submenu"));
+            items.forEach(item => MenuItem.from(item).submenu.close());
+            menuItem.active = false;
+            this.element.remove();
+            this.onClose();
             Menu.removeOverlay();
         }
     }
 }
 
 export class MenuItem {
-    constructor(title) {
-        this.element = ui.elem("div", "menu-item");
-        this.label = ui.elem("label");
-        this.label.textContent = title;
-        this.element.append(this.label);
+    constructor(title, command) {
+        this.element = elem("div", "menu-item");
+        this.ownerMenu = null;
         this.submenu = null;
+        this.command = command;
+
+        if (title) {
+            const label = elem("label");
+            label.textContent = title;
+            this.element.append(label);
+        }
+
+        const items = MenuItem.itemByElement || (MenuItem.itemByElement = new WeakMap());
+        items.set(this.element, this);
     }
 
     addItem(item) {
         if (!this.submenu) {
             this.submenu = new Menu();
-            this.element.classList.add("has-submenu");
-            Menu.associate(this.element, this.submenu);
+            this.submenu.ownerItem = this;
+            this.hasSubmenu = true;
         }
 
         this.submenu.addItem(item);
         return item;
     }
 
-    static from(event) {
-        let menuItem = event.target;
-        if (menuItem.tagName === "LABEL") {
-            menuItem = menuItem.parentElement;
+    get active() { return this.element.classList.contains("active"); }
+    get checked() { return this.element.classList.contains("checked"); }
+    get enabled() { return !this.element.classList.contains("disabled"); }
+    get hasSubmenu() { return this.element.classList.contains("has-submenu"); }
+    set active(value) { this.element.classList[value ? "add" : "remove"]("active"); }
+    set checked(value) { this.element.classList[value ? "add" : "remove"]("checked"); }
+    set enabled(value) { this.element.classList[!value ? "add" : "remove"]("disabled"); }
+    set hasSubmenu(value) { this.element.classList[value ? "add" : "remove"]("has-submenu"); }
+
+    static from(object) {
+        const items = MenuItem.itemByElement || (MenuItem.itemByElement = new WeakMap());
+        if (object instanceof MouseEvent) {
+            return items.get(object.target) || items.get(object.target.parentElement);
+        } else if (object instanceof HTMLElement) {
+            return items.get(object);
         }
-        if (menuItem.classList.contains("menu-item")) {
-            return menuItem;
-        }
-        return null;
     }
 }
 
-export class MenuSeparator {
+export class MenuSeparator extends MenuItem {
     constructor() {
-        this.element = ui.elem("div", "menu-item");
+        super();
         this.element.classList.add("separator");
     }
+
+    set active(value) {}
+    set checked(value) {}
+    set enabled(value) {}
 }

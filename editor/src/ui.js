@@ -3,6 +3,7 @@ import { Panel, elem } from "./ui.base.js";
 export * from "./ui.base.js";
 export * from "./ui.tree.js";
 export * from "./ui.menu.js";
+export * from "./ui.command.js";
 
 export class Statusbar extends Panel {
     constructor() {
@@ -12,9 +13,14 @@ export class Statusbar extends Panel {
         this.right = this.append(new Panel());
     }
 
-    addItem(name, side, width) {
+    addItem(name, side, width, textAlign = null) {
         const item = elem("div", "statusbar-item");
         item.style.width = width + "px";
+
+        if (textAlign) {
+            item.style.textAlign = textAlign;
+        }
+
         this.items.set(name, item);
         this[side].append(item);
     }

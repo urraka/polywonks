@@ -11,7 +11,6 @@ body {
 
 .sidebar {
     background: #252526;
-    border-right: 1px solid #3c3c3c;
 }
 
 .titlebar,
@@ -43,9 +42,13 @@ body {
     background: #094771;
 }
 
+.menu-item.disabled,
+.menu-item.separator {
+    opacity: 0.4;
+}
+
 .menu-item.separator {
     border-color: #bbb;
-    opacity: 0.4;
 }
 
 .menu > .menu-item.checked::before,
@@ -67,6 +70,10 @@ body {
 
 .titlebar-icon {
     background-color: #007acc;
+}
+
+.editor {
+    box-shadow: inset 0 0 4px 1px rgba(0, 0, 0, 0.5);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -34,6 +34,7 @@ const defaultSettings = {
     "map.collider-radius": 8,
     "app.library-url": "//urraka.github.io/soldat-map/data/",
     "app.library-index": "filelist",
+    "app.github": "https://github.com/urraka/polywonks",
 };
 
 const settings = Object.assign({}, defaultSettings);

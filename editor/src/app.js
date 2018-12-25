@@ -1,4 +1,6 @@
 import * as ui from "./ui.js";
+import * as cmd from "./commands.js";
+import * as fmt from "./format.js";
 import { Renderer } from "./render.js";
 import { Editor } from "./editor.js";
 import { Explorer } from "./explorer.js";
@@ -6,6 +8,13 @@ import { Path } from "./path.js";
 
 export class App extends ui.Panel {
     static launch() {
+        const commands = Object.keys(cmd).forEach(cmdType => {
+            if (cmdType.endsWith("Command")) {
+                const cmdName = fmt.pascalToDash(cmdType.replace(/Command$/, ""));
+                ui.Command.add(cmdName, new cmd[cmdType]());
+            }
+        });
+
         window.app = new App();
     }
 
@@ -27,7 +36,7 @@ export class App extends ui.Panel {
         options.addItem(new ui.MenuItem("Option 2"));
         edit.addItem(new ui.MenuItem("Test Button"));
         view.addItem(new ui.MenuItem("Test Button"));
-        help.addItem(new ui.MenuItem("Test Button"));
+        help.addItem(new ui.MenuItem("GitHub", "browse-to-github"));
 
         const clientArea = this.append(new ui.Panel("client-area"));
         const sidebar = clientArea.append(new ui.Panel("sidebar"));
@@ -35,7 +44,7 @@ export class App extends ui.Panel {
 
         this.statusbar = this.append(new ui.Statusbar());
         this.statusbar.addItem("tool", "left", 200);
-        this.statusbar.addItem("cursor", "right", 100);
+        this.statusbar.addItem("cursor", "right", 100, "right");
         this.statusbar.set("cursor", "0, 0");
 
         this.renderer = new Renderer();
