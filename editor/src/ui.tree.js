@@ -1,13 +1,13 @@
-import * as ui from "./ui.base.js";
+import { Panel, elem } from "./ui.common.js";
 
 const dataMap = new WeakMap();
 
-export class TreeView extends ui.Panel {
+export class TreeView extends Panel {
     constructor() {
         super("tree-view");
-        this.handlers = {"item-select": [], "item-dblclick": []};
+        this.handlers = { "item-select": [], "item-dblclick": [] };
         this.selected = new Set();
-        this.list = this.append(ui.elem("ul"));
+        this.list = this.append(elem("ul"));
         this.element.addEventListener("mousedown", e => this.onClick(e));
         this.element.addEventListener("dblclick", e => this.onDoubleClick(e));
     }
@@ -76,8 +76,8 @@ export class TreeView extends ui.Panel {
 
 export class TreeItem {
     constructor(text, data, subitems = false) {
-        this.element = ui.elem("li");
-        this.label = ui.elem("label");
+        this.element = elem("li");
+        this.label = elem("label");
         this.label.setAttribute("tabindex", -1);
         this.subitems = null;
         this.element.append(this.label);
@@ -93,7 +93,7 @@ export class TreeItem {
 
     addItem(item) {
         if (!this.subitems) {
-            this.subitems = ui.elem("ul");
+            this.subitems = elem("ul");
             this.element.append(this.subitems);
             this.element.classList.add("with-subitems");
             this.element.classList.add("collapsed");

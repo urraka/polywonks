@@ -8,7 +8,7 @@ import { Path } from "./path.js";
 
 export class App extends ui.Panel {
     static launch() {
-        const commands = Object.keys(cmd).forEach(cmdType => {
+        Object.keys(cmd).forEach(cmdType => {
             if (cmdType.endsWith("Command")) {
                 const cmdName = fmt.pascalToDash(cmdType.replace(/Command$/, ""));
                 ui.Command.add(cmdName, new cmd[cmdType]());
@@ -22,25 +22,11 @@ export class App extends ui.Panel {
         super("app");
 
         const titlebar = this.append(new ui.TitleBar());
-        const file = titlebar.menu.addItem(new ui.MenuItem("File"));
-        const edit = titlebar.menu.addItem(new ui.MenuItem("Edit"));
-        const view = titlebar.menu.addItem(new ui.MenuItem("View"));
-        const help = titlebar.menu.addItem(new ui.MenuItem("Help"));
-
-        file.addItem(new ui.MenuItem("New Map"));
-        file.addItem(new ui.MenuItem("Save"));
-        file.addItem(new ui.MenuItem("Save As..."));
-        file.addItem(new ui.MenuSeparator());
-        const options = file.addItem(new ui.MenuItem("Options"));
-        options.addItem(new ui.MenuItem("Option 1"));
-        options.addItem(new ui.MenuItem("Option 2"));
-        edit.addItem(new ui.MenuItem("Test Button"));
-        view.addItem(new ui.MenuItem("Test Button"));
-        help.addItem(new ui.MenuItem("GitHub", "browse-to-github"));
-
         const clientArea = this.append(new ui.Panel("client-area"));
         const sidebar = clientArea.append(new ui.Panel("sidebar"));
         const mainView = clientArea.append(new ui.Panel("main-view"));
+
+        this.createMenus(titlebar.menu);
 
         this.statusbar = this.append(new ui.Statusbar());
         this.statusbar.addItem("tool", "left", 200);
@@ -66,6 +52,51 @@ export class App extends ui.Panel {
         document.body.querySelector(".startup-loading").remove();
         document.body.append(this.element);
         this.onResize();
+    }
+
+    createMenus(menubar) {
+        const menus = [
+            ["File", [
+                ["New Map"],
+                ["Save"],
+                ["Save As..."],
+                [],
+                ["Settings"],
+            ]],
+            ["Edit", [
+                ["Undo", "undo"],
+                ["Redo", "redo"],
+            ]],
+            ["View", [
+                ["Reset Viewport", "reset-viewport"],
+                [],
+                ["Grid", "toggle-grid"],
+                ["Background", "toggle-background"],
+                ["Polygons", [
+                    ["Texture", "show-polygon-texture"],
+                    ["Plain Color", "show-polygon-plain"],
+                    ["Hide", "show-polygon-none"],
+                ]],
+                ["Wireframe", "toggle-wireframe"],
+            ]],
+            ["Help", [
+                ["Github", "browse-to-github"],
+            ]],
+        ];
+
+        const create = (menu, submenu) => {
+            for (const item of submenu) {
+                if (item.length === 0) {
+                    menu.addItem(new ui.MenuSeparator());
+                } else if (item.length === 1 || typeof item[1] === "string") {
+                    menu.addItem(new ui.MenuItem(item[0], item[1]));
+                } else {
+                    create(menu.addItem(new ui.MenuItem(item[0])), item[1]);
+                }
+            }
+        };
+
+        create(menubar, menus);
     }
 
     open(path) {

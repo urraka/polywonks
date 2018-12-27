@@ -126,9 +126,17 @@ export class Renderer {
         this.loadThemeColors();
         this.updateCanvasSize();
         this.batch.clear();
-        this.drawBackground();
+
+        if (cfg("view.background")) {
+            this.drawBackground();
+        }
+
         this.drawNode(this.editor.map, node => !(node instanceof WaypointNode) && !(node instanceof ConnectionNode));
-        this.drawGrid();
+
+        if (cfg("view.grid")) {
+            this.drawGrid();
+        }
+
         this.drawNode(this.editor.map, node => (node instanceof WaypointNode) || (node instanceof ConnectionNode));
         this.drawSelection();
         this.context.clear(this.theme.background);
@@ -293,7 +301,15 @@ export class Renderer {
             case TriangleNode: {
                 const vertices = this.nodeVertices(node);
                 if (vertices) {
-                    this.batch.add(Gfx.Triangles, this.texture(node.attr("texture")), vertices);
+                    if (cfg("view.polygons") === "texture") {
+                        this.batch.add(Gfx.Triangles, this.texture(node.attr("texture")), vertices);
+                    } else if (cfg("view.polygons") === "plain") {
+                        this.batch.add(Gfx.Triangles, this.context.whiteTexture, vertices);
+                    }
+
+                    if (cfg("view.wireframe")) {
+                        this.drawLineLoop(vertices);
+                    }
                 }
                 break;
             }
@@ -476,7 +492,9 @@ export class Renderer {
     }
 
     drawLineLoop(vertices, color) {
-        vertices.forEach(v => v.color.set(color));
+        if (color) {
+            vertices.forEach(v => v.color.set(color));
+        }
         for (let i = vertices.length - 1, j = 0; j < vertices.length - +(vertices.length < 3); i = j++) {
             this.batch.add(Gfx.Lines, null, [vertices[i], vertices[j]]);
         }

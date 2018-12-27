@@ -1,4 +1,4 @@
-import { Panel, elem } from "./ui.base.js";
+import { Panel, elem } from "./ui.common.js";
 import { Command } from "./ui.command.js";
 
 export class TitleBar extends Panel {
@@ -301,7 +301,7 @@ export class MenuSeparator extends MenuItem {
         this.element.classList.add("separator");
     }
 
-    set active(value) {}
-    set checked(value) {}
-    set enabled(value) {}
+    set active(value) { }
+    set checked(value) { }
+    set enabled(value) { }
 }

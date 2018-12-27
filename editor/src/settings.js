@@ -24,6 +24,10 @@ const defaultSettings = {
     "editor.selection-rect-threshold": 5,
     "editor.vertex-size": 7,
     "editor.waypoint-size": 11,
+    "view.grid": true,
+    "view.background": true,
+    "view.polygons": "texture",
+    "view.wireframe": false,
     "map.color-top": "#1e1e1e",
     "map.color-bottom": "#1e1e1e",
     "map.jet": 0,
@@ -40,7 +44,7 @@ const defaultSettings = {
 const settings = Object.assign({}, defaultSettings);
 
 export function cfg(name, value) {
-    if (value) {
+    if (value !== undefined) {
         Settings.set(name, value);
     } else {
         return Settings.get(name);

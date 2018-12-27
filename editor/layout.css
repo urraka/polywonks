@@ -95,7 +95,6 @@ body {
 .menu {
     position: absolute;
     padding: .5em 1px;
-    min-width: 200px;
     line-height: 1.8em;
 }
 
