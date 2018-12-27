@@ -24,7 +24,6 @@ export class App extends ui.Panel {
         const titlebar = this.append(new ui.TitleBar());
         const clientArea = this.append(new ui.Panel("client-area"));
         const sidebar = clientArea.append(new ui.Panel("sidebar"));
-        const mainView = clientArea.append(new ui.Panel("main-view"));
 
         this.createMenus(titlebar.menu);
 
@@ -33,11 +32,13 @@ export class App extends ui.Panel {
         this.statusbar.addItem("cursor", "right", 100, "right");
         this.statusbar.set("cursor", "0, 0");
 
+        this.editor = null;
         this.renderer = new Renderer();
-        mainView.append(this.renderer.context.canvas);
-
-        this.editor = new Editor(this.renderer);
-        mainView.append(this.editor);
+        this.tabs = clientArea.append(new ui.TabView());
+        this.tabs.content.element.prepend(this.renderer.context.canvas);
+        this.tabs.on("change", () => this.onTabChange());
+        this.tabs.on("close", () => this.onTabClose());
+        this.tabs.addPanel(new ui.TabPanel("Untitled", new Editor(this.renderer, true)));
 
         const sidebarPanels = new ui.MultiPanelView();
         this.explorers = ["polydrive", "soldat", "library"].map(root => new Explorer(root));
@@ -57,7 +58,7 @@ export class App extends ui.Panel {
     createMenus(menubar) {
         const menus = [
             ["File", [
-                ["New Map"],
+                ["New Map", "new-map"],
                 ["Save"],
                 ["Save As..."],
                 [],
@@ -72,12 +73,12 @@ export class App extends ui.Panel {
                 [],
                 ["Grid", "toggle-grid"],
                 ["Background", "toggle-background"],
+                ["Wireframe", "toggle-wireframe"],
                 ["Polygons", [
                     ["Texture", "show-polygon-texture"],
                     ["Plain Color", "show-polygon-plain"],
                     ["Hide", "show-polygon-none"],
                 ]],
-                ["Wireframe", "toggle-wireframe"],
             ]],
             ["Help", [
                 ["Github", "browse-to-github"],
@@ -100,14 +101,37 @@ export class App extends ui.Panel {
     }
 
     open(path) {
-        const ext = Path.ext(path).toLowerCase();
-        if (ext === ".pms" || ext === ".polywonks") {
-            this.editor.load(path);
+        if (path) {
+            const ext = Path.ext(path).toLowerCase();
+            if (ext === ".pms" || ext === ".polywonks") {
+                if (this.editor.openedAsDefault && !this.editor.modified) {
+                    this.editor.load(path);
+                    this.tabs.activePanel.title = Path.filename(path);
+                } else {
+                    const editor = new Editor(this.renderer);
+                    this.tabs.addPanel(new ui.TabPanel(Path.filename(path), editor));
+                    editor.load(path);
+                }
+            }
+        } else {
+            const editor = new Editor(this.renderer);
+            this.tabs.addPanel(new ui.TabPanel("Untitled", editor));
         }
     }
 
     status(name, value) {
         this.statusbar.set(name, value);
+    }
+
+    onTabChange() {
+        this.editor = this.tabs.activePanel.content;
+        this.editor.redraw();
+    }
+
+    onTabClose() {
+        if (this.tabs.count === 1) {
+            this.tabs.addPanel(new ui.TabPanel("Untitled", new Editor(this.renderer, true)));
+        }
     }
 
     onResize() {

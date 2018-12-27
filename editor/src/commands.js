@@ -1,6 +1,12 @@
 import * as ui from "./ui.js";
 import { cfg } from "./settings.js";
 
+export class NewMapCommand extends ui.Command {
+    execute() {
+        app.open();
+    }
+}
+
 export class BrowseToGithubCommand extends ui.Command {
     execute() {
         window.open(cfg("app.github"));

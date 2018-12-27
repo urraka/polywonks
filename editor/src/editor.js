@@ -8,13 +8,14 @@ import { SelectTool } from "./tool.select.js";
 import { Path } from "./path.js";
 
 export class Editor extends ui.Panel {
-    constructor(renderer) {
+    constructor(renderer, openedAsDefault = false) {
         super("editor");
         this.element.addEventListener("mousemove", e => this.onMouseMove(e));
         this.element.addEventListener("mousedown", e => this.onMouseDown(e));
         this.element.addEventListener("wheel", e => this.onMouseWheel(e));
 
         this.renderer = renderer;
+        this.openedAsDefault = openedAsDefault;
         this.view = new RenderView(renderer);
         this.map = new MapDocument();
         this.map.iconsInfo = this.renderer.iconsInfo;
@@ -32,6 +33,7 @@ export class Editor extends ui.Panel {
     }
 
     resetState() {
+        this.openedAsDefault = false;
         this.view.reset();
         this.map.iconsInfo = this.renderer.iconsInfo;
         this.selectedNodes.clear();

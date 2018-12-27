@@ -24,6 +24,7 @@ import { VertexNode } from "./map.node.vertex.js";
 export class Renderer {
     constructor() {
         this.context = new Gfx.Context();
+        this.context.canvas.classList.add("editor-canvas");
         this.width = this.context.canvas.width;
         this.height = this.context.canvas.height;
         this.batch = this.context.createBatch();

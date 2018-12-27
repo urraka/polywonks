@@ -68,6 +68,25 @@ body {
     background-color: #e8e8e8;
 }
 
+.tab-view > .tab-container {
+    background-color: #252526;
+}
+
+.tab-view > .tab-container > .tab {
+    color: rgba(255, 255, 255, 0.5);
+    background-color: #2d2d2d;
+    border-color: #252526;
+}
+
+.tab-view > .tab-container > .tab.active {
+    color: #fff;
+    background-color: #1e1e1e;
+}
+
+.tab-view > .tab-container > .tab > .close {
+    background-color: #fff;
+}
+
 .titlebar-icon {
     background-color: #007acc;
 }
@@ -75,9 +94,6 @@ body {
 .editor {
     box-shadow: inset 0 0 4px 1px rgba(0, 0, 0, 0.5);
 }
-
-/* -------------------------------------------------------------------------- */
-/* scrollbars */
 
 * {
     scrollbar-color: #1e1e1e #3c3c3c;
