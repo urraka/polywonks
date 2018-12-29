@@ -1,3 +1,5 @@
+import { EventEmmiter } from "./event.js";
+
 export function elem(tag, className) {
     const element = document.createElement(tag);
 
@@ -12,8 +14,9 @@ export function elem(tag, className) {
     return element;
 }
 
-export class Panel {
+export class Panel extends EventEmmiter {
     constructor(className = "") {
+        super();
         this.element = elem("div", ["panel", className]);
     }
 

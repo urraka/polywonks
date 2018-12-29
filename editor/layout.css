@@ -289,6 +289,16 @@ body {
 .sidebar {
     width: 300px;
     flex-shrink: 0;
+    flex-direction: column;
+}
+
+.sidebar-header {
+    height: 35px;
+    line-height: 35px;
+    flex-shrink: 0;
+    padding: 0 20px;
+    font-size: 11px;
+    text-transform: uppercase;
 }
 
 .startup-loading {

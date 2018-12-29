@@ -32,10 +32,10 @@ export class File {
 
         if (img) {
             req.crossOrigin = "Anonymous";
-            req.src = path;
+            req.src = encodeURI(path);
         } else {
             req.responseType = type;
-            req.open("GET", path);
+            req.open("GET", encodeURI(path));
             req.send();
         }
 

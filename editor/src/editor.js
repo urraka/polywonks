@@ -6,6 +6,7 @@ import { File } from "./file.js";
 import { cfg } from "./settings.js";
 import { SelectTool } from "./tool.select.js";
 import { Path } from "./path.js";
+import { Event } from "./event.js";
 
 export class Editor extends ui.Panel {
     constructor(renderer, openedAsDefault = false) {
@@ -17,6 +18,7 @@ export class Editor extends ui.Panel {
         this.renderer = renderer;
         this.openedAsDefault = openedAsDefault;
         this.view = new RenderView(renderer);
+        this.view.on("change", e => this.onViewChange(e));
         this.map = new MapDocument();
         this.map.iconsInfo = this.renderer.iconsInfo;
         this.selectedNodes = new Set();
@@ -28,6 +30,7 @@ export class Editor extends ui.Panel {
         this.commandHistory = [];
         this.lastMouseMove = null;
         this.currentTool = new SelectTool();
+        this.currentTool.on("change", e => this.emit(new Event("toolchange", e.data)));
 
         setTimeout(() => this.currentTool.enable(this));
     }
@@ -42,8 +45,7 @@ export class Editor extends ui.Panel {
         this.modified = false;
         this.undone = 0;
         this.commandHistory = [];
-        this.currentTool.disable();
-        this.currentTool.enable(this);
+        this.setTool(this.currentTool);
         this.redraw();
     }
 
@@ -131,16 +133,31 @@ export class Editor extends ui.Panel {
         this.renderer.redraw(this);
     }
 
+    onShow() {
+        this.setTool(this.currentTool);
+        this.emit(new Event("viewchange"));
+        this.redraw();
+    }
+
+    onClose(event) {
+        if (this.modified) {
+            event.preventDefault();
+            // TODO: show confirm message and continue to close the tab somehow
+        }
+    }
+
+    onViewChange(event) {
+        this.emit(new Event("viewchange"));
+        this.redraw();
+    }
+
     onMouseMove(event) {
         this.lastMouseMove = event;
         const rect = event.target.getBoundingClientRect();
         const pos = this.view.canvasToMap(event.clientX - rect.left, event.clientY - rect.top);
         this.cursor.x = pos.x;
         this.cursor.y = pos.y;
-
-        const x = Math.round(pos.x);
-        const y = Math.round(pos.y);
-        app.status("cursor", `${x}, ${y}`);
+        this.emit(new Event("cursorchange"));
     }
 
     onMouseDown(event) {

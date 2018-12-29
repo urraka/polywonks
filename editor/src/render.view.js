@@ -1,18 +1,40 @@
 import { Matrix } from "./matrix.js";
+import { EventEmmiter, Event } from "./event.js";
 
 // {x, y} is in map coordinates and always maps to the center of the canvas
-export class RenderView {
+export class RenderView extends EventEmmiter {
     constructor(renderer) {
-        this.x = 0;
-        this.y = 0;
-        this.scale = 1;
+        super();
+        this._x = 0;
+        this._y = 0;
+        this._scale = 1;
         this.renderer = renderer;
+    }
+
+    get x() { return this._x; }
+    get y() { return this._y; }
+    get scale() { return this._scale; }
+
+    set x(value) {
+        this._x = value;
+        this.emit(new Event("change"));
+    }
+
+    set y(value) {
+        this._y = value;
+        this.emit(new Event("change"));
+    }
+
+    set scale(value) {
+        this._scale = value;
+        this.emit(new Event("change"));
     }
 
     reset() {
         this.x = 0;
         this.y = 0;
         this.scale = 1;
+        this.emit(new Event("change"));
     }
 
     get width() {

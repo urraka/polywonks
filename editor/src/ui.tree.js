@@ -1,11 +1,11 @@
 import { Panel, elem } from "./ui.common.js";
+import { Event } from "./event.js";
 
 const dataMap = new WeakMap();
 
 export class TreeView extends Panel {
     constructor() {
         super("tree-view");
-        this.handlers = { "item-select": [], "item-dblclick": [] };
         this.selected = new Set();
         this.list = this.append(elem("ul"));
         this.element.addEventListener("mousedown", e => this.onClick(e));
@@ -24,15 +24,8 @@ export class TreeView extends Panel {
 
         if (this.selected.size > 0) {
             this.clearSelected();
-            this.handlers["item-select"].forEach(h => h(event, null));
+            this.emit(new Event("itemselect", null));
         }
-    }
-
-    on(eventType, handler) {
-        if (!(eventType in this.handlers)) {
-            throw new Error("Invalid event type");
-        }
-        this.handlers[eventType].push(handler);
     }
 
     clearSelected() {
@@ -47,7 +40,7 @@ export class TreeView extends Panel {
             this.clearSelected();
             this.selected.add(li);
             li.classList.add("selected");
-            this.handlers["item-select"].forEach(h => h(event, dataMap.get(li)));
+            this.emit(new Event("itemselect", dataMap.get(li)));
         }
     }
 
@@ -59,7 +52,7 @@ export class TreeView extends Panel {
             this.selectItem(event.target.parentElement);
         } else {
             this.clearSelected();
-            this.handlers["item-select"].forEach(h => h(event, null));
+            this.emit(new Event("itemselect", null));
         }
     }
 
@@ -69,7 +62,7 @@ export class TreeView extends Panel {
             if (li.classList.contains("with-subitems")) {
                 li.classList.toggle("collapsed");
             }
-            this.handlers["item-dblclick"].forEach(h => h(event, dataMap.get(li)));
+            this.emit(new Event("itemdblclick", dataMap.get(li)));
         }
     }
 }

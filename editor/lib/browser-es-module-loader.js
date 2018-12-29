@@ -1241,6 +1241,13 @@ function xhrFetch(url, resolve, reject) {
     }
   };
   xhr.open("GET", url, true);
+  if (window.location.hostname === 'localhost') {
+    xhr.setRequestHeader('cache-control', 'no-cache, must-revalidate, post-check=0, pre-check=0');
+    xhr.setRequestHeader('cache-control', 'max-age=0');
+    xhr.setRequestHeader('expires', '0');
+    xhr.setRequestHeader('expires', 'Tue, 01 Jan 1980 1:00:00 GMT');
+    xhr.setRequestHeader('pragma', 'no-cache');
+  }
   xhr.send(null);
 }
 

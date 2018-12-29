@@ -3,6 +3,8 @@ import * as Geometry from "./geometry.js";
 import * as Gfx from "./gfx.js";
 import * as fmt from "./format.js";
 import * as img from "./image.js";
+import * as ui from "./ui.js";
+import * as cmd from "./commands.js";
 
 import * as app from "./app.js";
 import * as buffer_reader from "./buffer.reader.js";
@@ -30,11 +32,12 @@ import * as enm from "./enum.js";
 import * as rect from "./rect.js";
 import * as settings from "./settings.js";
 import * as tool_select from "./tool.select.js";
+import * as event from "./event.js";
 
 // Note: Polywonks namespace is made global merely to aid debugging. It's only ever
 // use at entry point in index.html
 
-window.Polywonks = {PMS, Geometry, Gfx, fmt, img};
+window.Polywonks = { PMS, Geometry, Gfx, fmt, img, ui, cmd };
 
 const modules = [
     app,
@@ -63,6 +66,7 @@ const modules = [
     rect,
     settings,
     tool_select,
+    event,
 ];
 
 modules.forEach(module => {

@@ -1,5 +1,6 @@
 import { Rect } from "./rect.js";
 import { cfg } from "./settings.js";
+import { EventEmmiter, Event } from "./event.js";
 
 export class SelectCommand {
     constructor(select, unselect) {
@@ -20,8 +21,9 @@ export class SelectCommand {
     }
 }
 
-export class SelectTool {
+export class SelectTool extends EventEmmiter {
     constructor() {
+        super();
         this.editor = null;
         this.affectedNode = null;
         this.selecting = false;
@@ -50,19 +52,20 @@ export class SelectTool {
         document.addEventListener("keyup", this.onKey);
         document.addEventListener("keydown", this.onKey);
 
-        app.status("tool", "Select");
+        this.emit(new Event("change", "Select"));
     }
 
     disable() {
-        this.editor.element.removeEventListener("mouseup", this.onMouseUp);
-        this.editor.element.removeEventListener("mousedown", this.onMouseDown);
-        this.editor.element.removeEventListener("mousemove", this.onMouseMove);
-        document.removeEventListener("keyup", this.onKey);
-        document.removeEventListener("keydown", this.onKey);
-        this.editor.previewNodes.clear();
-        this.editor.redraw();
-
-        app.status("tool", "");
+        if (this.editor) {
+            this.editor.element.removeEventListener("mouseup", this.onMouseUp);
+            this.editor.element.removeEventListener("mousedown", this.onMouseDown);
+            this.editor.element.removeEventListener("mousemove", this.onMouseMove);
+            document.removeEventListener("keyup", this.onKey);
+            document.removeEventListener("keydown", this.onKey);
+            this.editor.previewNodes.clear();
+            this.editor.redraw();
+            this.emit(new Event("change", ""));
+        }
     }
 
     replaceSelection(selection) {
@@ -127,9 +130,15 @@ export class SelectTool {
         }
 
         switch (this.mode) {
-            case "replace": app.status("tool", "Select"); break;
-            case "add": app.status("tool", "Select (+)"); break;
-            case "subtract": app.status("tool", "Select (-)"); break;
+            case "replace":
+                this.emit(new Event("change", "Select"));
+                break;
+            case "add":
+                this.emit(new Event("change", "Select (+)"));
+                break;
+            case "subtract":
+                this.emit(new Event("change", "Select (-)"));
+                break;
         }
     }
 

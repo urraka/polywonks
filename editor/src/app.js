@@ -21,23 +21,31 @@ export class App extends ui.Panel {
     constructor() {
         super("app");
 
+        this.onCursorChange = this.onCursorChange.bind(this);
+        this.onViewChange = this.onViewChange.bind(this);
+        this.onToolChange = this.onToolChange.bind(this);
+
         const titlebar = this.append(new ui.TitleBar());
         const clientArea = this.append(new ui.Panel("client-area"));
         const sidebar = clientArea.append(new ui.Panel("sidebar"));
+        const sidebarHeader = sidebar.append(new ui.Panel("sidebar-header"));
+        sidebarHeader.element.textContent = "Explorer";
 
         this.createMenus(titlebar.menu);
 
         this.statusbar = this.append(new ui.Statusbar());
         this.statusbar.addItem("tool", "left", 200);
+        this.statusbar.addItem("zoom", "right", 100, "right");
         this.statusbar.addItem("cursor", "right", 100, "right");
+        this.statusbar.set("zoom", "100%");
         this.statusbar.set("cursor", "0, 0");
 
         this.editor = null;
         this.renderer = new Renderer();
         this.tabs = clientArea.append(new ui.TabView());
         this.tabs.content.element.prepend(this.renderer.context.canvas);
-        this.tabs.on("change", () => this.onTabChange());
-        this.tabs.on("close", () => this.onTabClose());
+        this.tabs.on("change", e => this.onTabChange(e));
+        this.tabs.on("close", e => this.onTabClose(e));
         this.tabs.addPanel(new ui.TabPanel("Untitled", new Editor(this.renderer, true)));
 
         const sidebarPanels = new ui.MultiPanelView();
@@ -53,6 +61,10 @@ export class App extends ui.Panel {
         document.body.querySelector(".startup-loading").remove();
         document.body.append(this.element);
         this.onResize();
+    }
+
+    createUserInterface() {
+        // TODO: move stuff away from constructor to keep it cleaner
     }
 
     createMenus(menubar) {
@@ -123,13 +135,38 @@ export class App extends ui.Panel {
         this.statusbar.set(name, value);
     }
 
-    onTabChange() {
-        this.editor = this.tabs.activePanel.content;
-        this.editor.redraw();
+    onCursorChange(event) {
+        this.status("cursor", `${Math.round(this.editor.cursor.x)}, ${Math.round(this.editor.cursor.y)}`);
     }
 
-    onTabClose() {
-        if (this.tabs.count === 1) {
+    onViewChange(event) {
+        this.status("cursor", `${Math.round(this.editor.cursor.x)}, ${Math.round(this.editor.cursor.y)}`);
+        this.status("zoom", Math.round(100 * this.editor.view.scale) + "%");
+    }
+
+    onToolChange(event) {
+        this.status("tool", event.data);
+    }
+
+    onTabChange() {
+        if (this.editor) {
+            this.editor.off("cursorchange", this.onCursorChange);
+            this.editor.off("viewchange", this.onViewChange);
+            this.editor.off("toolchange", this.onToolChange);
+        }
+
+        this.editor = this.tabs.activePanel.content;
+        this.editor.on("cursorchange", this.onCursorChange);
+        this.editor.on("viewchange", this.onViewChange);
+        this.editor.on("toolchange", this.onToolChange);
+        this.editor.onShow();
+    }
+
+    onTabClose(event) {
+        const editor = this.tabs.activePanel.content;
+        editor.onClose(event);
+
+        if (!event.defaultPrevented && this.tabs.count === 1) {
             this.tabs.addPanel(new ui.TabPanel("Untitled", new Editor(this.renderer, true)));
         }
     }

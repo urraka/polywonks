@@ -1,11 +1,11 @@
 import { Panel, elem } from "./ui.common.js";
+import { Event } from "./event.js";
 
 export class TabView extends Panel {
     constructor() {
         super("tab-view");
         this.tabs = this.append(new Panel("tab-container"));
         this.content = this.append(new Panel("tab-content"));
-        this.handlers = { change: [], close: [] };
     }
 
     addPanel(panel) {
@@ -16,20 +16,17 @@ export class TabView extends Panel {
     }
 
     closePanel(panel) {
-        // TODO: use proper event system and make it so it can be prevented
-        this.handlers["close"].forEach(h => h(panel));
-
-        const activePanel = this.activePanel;
-
-        if (panel === activePanel) {
-            const nextPanel = TabPanel.from(panel.tab.previousSibling || panel.tab.nextSibling);
-            if (nextPanel) {
-                nextPanel.active = true;
+        if (this.emit(new Event("close", panel))) {
+            const activePanel = this.activePanel;
+            if (panel === activePanel) {
+                const nextPanel = TabPanel.from(panel.tab.previousSibling || panel.tab.nextSibling);
+                if (nextPanel) {
+                    nextPanel.active = true;
+                }
             }
+            panel.tab.remove();
+            panel.element.remove();
         }
-
-        panel.tab.remove();
-        panel.element.remove();
     }
 
     get activePanel() {
@@ -38,10 +35,6 @@ export class TabView extends Panel {
 
     get count() {
         return this.tabs.element.childElementCount;
-    }
-
-    on(eventType, handler) {
-        this.handlers[eventType].push(handler);
     }
 }
 
@@ -67,6 +60,10 @@ export class TabPanel extends Panel {
         panelsByTab.set(this.tab, this);
     }
 
+    close() {
+        this.tabView.closePanel(this);
+    }
+
     set title(value) {
         this.tab.querySelector("label").textContent = value;
     }
@@ -74,16 +71,11 @@ export class TabPanel extends Panel {
     set active(value) {
         if (value) {
             const activePanel = this.tabView.activePanel;
-
-            if (activePanel) {
-                activePanel.active = false;
-            }
-
+            if (activePanel) activePanel.active = false;
             this.element.classList.add("active");
             this.tab.classList.add("active");
-
             if (activePanel !== this.tabView.activePanel) {
-                this.tabView.handlers["change"].forEach(h => h());
+                this.tabView.emit(new Event("change"));
             }
         } else {
             this.element.classList.remove("active");
