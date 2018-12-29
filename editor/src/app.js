@@ -21,50 +21,54 @@ export class App extends ui.Panel {
     constructor() {
         super("app");
 
+        this.tabs = null;
+        this.statusbar = null;
+        this.explorers = null;
+        this.editor = null;
+        this.renderer = new Renderer();
+
+        this.createUserInterface();
+        this.setupEvents();
+        this.openDefault();
+    }
+
+    setupEvents() {
         this.onCursorChange = this.onCursorChange.bind(this);
         this.onViewChange = this.onViewChange.bind(this);
         this.onToolChange = this.onToolChange.bind(this);
 
+        this.tabs.on("change", e => this.onTabChange(e));
+        this.tabs.on("close", e => this.onTabClose(e));
+        window.addEventListener("resize", e => this.onResize(e));
+        document.addEventListener("drop", e => this.onDrop(e));
+        document.addEventListener("dragover", e => this.onDragOver(e));
+        document.addEventListener("dragenter", e => this.onDragEnter(e));
+    }
+
+    createUserInterface() {
         const titlebar = this.append(new ui.TitleBar());
+        this.createMenus(titlebar.menu);
+
         const clientArea = this.append(new ui.Panel("client-area"));
+
         const sidebar = clientArea.append(new ui.Panel("sidebar"));
         const sidebarHeader = sidebar.append(new ui.Panel("sidebar-header"));
         sidebarHeader.element.textContent = "Explorer";
-
-        this.createMenus(titlebar.menu);
-
-        this.statusbar = this.append(new ui.Statusbar());
-        this.statusbar.addItem("tool", "left", 200);
-        this.statusbar.addItem("zoom", "right", 100, "right");
-        this.statusbar.addItem("cursor", "right", 100, "right");
-        this.statusbar.set("zoom", "100%");
-        this.statusbar.set("cursor", "0, 0");
-
-        this.editor = null;
-        this.renderer = new Renderer();
-        this.tabs = clientArea.append(new ui.TabView());
-        this.tabs.content.element.prepend(this.renderer.context.canvas);
-        this.tabs.on("change", e => this.onTabChange(e));
-        this.tabs.on("close", e => this.onTabClose(e));
-        this.tabs.addPanel(new ui.TabPanel("Untitled", new Editor(this.renderer, true)));
-
         const sidebarPanels = new ui.MultiPanelView();
         this.explorers = ["polydrive", "soldat", "library"].map(root => new Explorer(root));
         this.explorers.forEach(explorer => sidebarPanels.addPanel(explorer.root, explorer.tree));
         sidebar.append(sidebarPanels);
 
-        window.addEventListener("resize", e => this.onResize(e));
-        document.addEventListener("drop", e => this.onDrop(e));
-        document.addEventListener("dragover", e => this.onDragOver(e));
-        document.addEventListener("dragenter", e => this.onDragEnter(e));
+        this.tabs = clientArea.append(new ui.TabView());
+        this.tabs.content.element.prepend(this.renderer.context.canvas);
+
+        this.statusbar = this.append(new ui.Statusbar());
+        this.statusbar.addItem("tool", "left", 200);
+        this.statusbar.addItem("zoom", "right", 100, "right");
+        this.statusbar.addItem("cursor", "right", 100, "right");
 
         document.body.querySelector(".startup-loading").remove();
         document.body.append(this.element);
-        this.onResize();
-    }
-
-    createUserInterface() {
-        // TODO: move stuff away from constructor to keep it cleaner
     }
 
     createMenus(menubar) {
@@ -112,22 +116,30 @@ export class App extends ui.Panel {
         create(menubar, menus);
     }
 
-    open(path) {
+    openDefault() {
+        const editor = this.open();
+        editor.openedAsDefault = true;
+    }
+
+    open(path, title = "Untitled") {
         if (path) {
             const ext = Path.ext(path).toLowerCase();
             if (ext === ".pms" || ext === ".polywonks") {
                 if (this.editor.openedAsDefault && !this.editor.modified) {
                     this.editor.load(path);
                     this.tabs.activePanel.title = Path.filename(path);
+                    return this.editor;
                 } else {
                     const editor = new Editor(this.renderer);
                     this.tabs.addPanel(new ui.TabPanel(Path.filename(path), editor));
                     editor.load(path);
+                    return editor;
                 }
             }
         } else {
             const editor = new Editor(this.renderer);
-            this.tabs.addPanel(new ui.TabPanel("Untitled", editor));
+            this.tabs.addPanel(new ui.TabPanel(title, editor));
+            return editor;
         }
     }
 
@@ -167,22 +179,39 @@ export class App extends ui.Panel {
         editor.onClose(event);
 
         if (!event.defaultPrevented && this.tabs.count === 1) {
-            this.tabs.addPanel(new ui.TabPanel("Untitled", new Editor(this.renderer, true)));
+            this.openDefault();
         }
     }
 
     onResize() {
-        this.renderer.width = this.editor.element.clientWidth;
-        this.renderer.height = this.editor.element.clientHeight;
         this.editor.redraw();
     }
 
     onDrop(event) {
         event.preventDefault();
+
         if (event.dataTransfer.files.length) {
-            const reader = new FileReader();
-            reader.addEventListener("load", () => this.editor.loadFromBuffer(reader.result));
-            reader.readAsArrayBuffer(event.dataTransfer.files[0]);
+            const file = event.dataTransfer.files[0];
+            const ext = Path.ext(file.name).toLowerCase();
+
+            if (ext === ".pms" || ext === ".polywonks") {
+                const reader = new FileReader();
+
+                reader.addEventListener("load", () => {
+                    const editor = this.open(null, "*" + file.name);
+                    if (ext === ".pms") {
+                        editor.loadPms(reader.result);
+                    } else {
+                        editor.loadPolywonks(reader.result);
+                    }
+                });
+
+                if (ext === ".pms") {
+                    reader.readAsArrayBuffer(file);
+                } else {
+                    reader.readAsText(file);
+                }
+            }
         }
     }
 

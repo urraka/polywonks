@@ -16,7 +16,6 @@ export class BrowseToGithubCommand extends ui.Command {
 export class ResetViewportCommand extends ui.Command {
     execute() {
         app.editor.view.reset();
-        app.editor.redraw();
     }
 }
 

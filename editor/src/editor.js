@@ -9,14 +9,14 @@ import { Path } from "./path.js";
 import { Event } from "./event.js";
 
 export class Editor extends ui.Panel {
-    constructor(renderer, openedAsDefault = false) {
+    constructor(renderer) {
         super("editor");
         this.element.addEventListener("mousemove", e => this.onMouseMove(e));
         this.element.addEventListener("mousedown", e => this.onMouseDown(e));
         this.element.addEventListener("wheel", e => this.onMouseWheel(e));
 
         this.renderer = renderer;
-        this.openedAsDefault = openedAsDefault;
+        this.openedAsDefault = false;
         this.view = new RenderView(renderer);
         this.view.on("change", e => this.onViewChange(e));
         this.map = new MapDocument();

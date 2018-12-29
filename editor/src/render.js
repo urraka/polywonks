@@ -25,8 +25,6 @@ export class Renderer {
     constructor() {
         this.context = new Gfx.Context();
         this.context.canvas.classList.add("editor-canvas");
-        this.width = this.context.canvas.width;
-        this.height = this.context.canvas.height;
         this.batch = this.context.createBatch();
         this.textures = new WeakMap();
         this.colliderTexture = this.context.createTexture(512, 512, gradientCircle());
@@ -41,6 +39,14 @@ export class Renderer {
         for (const spawnType of Enum.values(SpawnTeam)) {
             this.loadIcon("spawn-" + Enum.valueToName(SpawnTeam, spawnType));
         }
+    }
+
+    get width() {
+        return this.context.canvas.width;
+    }
+
+    get height() {
+        return this.context.canvas.height;
     }
 
     loadThemeColors() {
@@ -126,9 +132,10 @@ export class Renderer {
 
     updateCanvasSize() {
         const canvas = this.context.canvas;
-        if (canvas.width !== this.width || canvas.height !== this.height) {
-            canvas.width = this.width;
-            canvas.height = this.height;
+        const overlay = this.editor.element;
+        if (canvas.width !== overlay.clientWidth || canvas.height !== overlay.clientHeight) {
+            canvas.width = overlay.clientWidth;
+            canvas.height = overlay.clientHeight;
         }
     }
 
