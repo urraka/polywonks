@@ -10,14 +10,13 @@ import (
 	"mime"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/getlantern/systray"
 	homedir "github.com/mitchellh/go-homedir"
-	"github.com/pkg/browser"
+	"github.com/skratchdot/open-golang/open"
 )
 
 func httpErrorHandler(code int) http.Handler {
@@ -283,9 +282,9 @@ func startServer(cfg map[string]string) {
 func launchEditor(cfg map[string]string) {
 	url := "http://" + cfg["addr"] + "/"
 	if cfg["launch"] == "default" {
-		browser.OpenURL(url)
+		open.Start(url)
 	} else {
-		exec.Command(cfg["launch"], url).Start()
+		open.StartWith(url, cfg["launch"])
 	}
 }
 
@@ -305,6 +304,7 @@ func main() {
 		systray.SetTooltip("Polywonks")
 
 		launch := systray.AddMenuItem("Launch", "Open polywonks editor in the browser")
+		polydrive := systray.AddMenuItem("Polydrive", "Open polydrive directory")
 		shutdown := systray.AddMenuItem("Shutdown", "Shutdown polywonks server")
 
 		go func() {
@@ -312,8 +312,10 @@ func main() {
 				select {
 				case <-shutdown.ClickedCh:
 					systray.Quit()
+				case <-polydrive.ClickedCh:
+					open.Start(cfg["polydrive"])
 				case <-launch.ClickedCh:
-					browser.OpenURL("http://" + cfg["addr"] + "/")
+					launchEditor(cfg)
 				}
 			}
 		}()

@@ -3,7 +3,7 @@
 To build the server you need to install [Go](https://golang.org/).
 
 ```bash
-go get github.com/pkg/browser
+go get github.com/skratchdot/open-golang/open
 go get github.com/getlantern/systray
 go get github.com/mitchellh/go-homedir
 
