@@ -116,6 +116,7 @@ export class Editor extends ui.Panel {
     }
 
     loadPms(buffer, path = "") {
+        this.renderer.disposeMapResources(this.map);
         const pms = PMS.Map.fromArrayBuffer(buffer);
         this.map = MapDocument.fromPMS(pms, path);
         this.map.iconsInfo = this.renderer.iconsInfo;
@@ -123,6 +124,7 @@ export class Editor extends ui.Panel {
     }
 
     loadPolywonks(text, path = "") {
+        this.renderer.disposeMapResources(this.map);
         this.map = MapDocument.unserialize(text);
         this.map.path = path;
         this.map.iconsInfo = this.renderer.iconsInfo;
@@ -143,6 +145,8 @@ export class Editor extends ui.Panel {
         if (this.modified) {
             event.preventDefault();
             // TODO: show confirm message and continue to close the tab somehow
+        } else {
+            this.renderer.disposeMapResources(this.map);
         }
     }
 

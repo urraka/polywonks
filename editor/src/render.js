@@ -70,15 +70,25 @@ export class Renderer {
         });
     }
 
-    texture(node, defaultTexture = this.context.defaultTexture) {
+    disposeMapResources(map) {
+        for (const node of map.tree()) {
+            const texture = this.textures.get(node);
+            if (texture && texture !== this.context.defaultTexture) {
+                texture.dispose();
+                this.textures.delete(node);
+            }
+        }
+    }
+
+    texture(node) {
         if (!node) {
-            return defaultTexture;
+            return this.context.defaultTexture;
         }
 
         let texture = this.textures.get(node);
 
         if (!texture) {
-            this.textures.set(node, texture = defaultTexture);
+            this.textures.set(node, texture = this.context.defaultTexture);
 
             File.readImage(Path.resolve(Path.dir(node.owner.path), node.attr("src")), image => {
                 if (image) {
