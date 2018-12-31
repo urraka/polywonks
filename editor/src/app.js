@@ -24,7 +24,6 @@ export class App extends ui.Panel {
         this.tabs = null;
         this.statusbar = null;
         this.explorers = null;
-        this.editor = null;
         this.renderer = new Renderer();
 
         this.createUserInterface();
@@ -38,6 +37,7 @@ export class App extends ui.Panel {
         this.onToolChange = this.onToolChange.bind(this);
 
         this.tabs.on("change", e => this.onTabChange(e));
+        this.tabs.on("willchange", e => this.onTabWillChange(e));
         this.tabs.on("close", e => this.onTabClose(e));
         window.addEventListener("resize", e => this.onResize(e));
         document.addEventListener("drop", e => this.onDrop(e));
@@ -116,30 +116,46 @@ export class App extends ui.Panel {
         create(menubar, menus);
     }
 
+    get editor() {
+        const activePanel = this.tabs.activePanel;
+        return activePanel ? activePanel.content : null;
+    }
+
     openDefault() {
         const editor = this.open();
         editor.openedAsDefault = true;
     }
 
-    open(path, title = "Untitled") {
-        if (path) {
-            const ext = Path.ext(path).toLowerCase();
-            if (ext === ".pms" || ext === ".polywonks") {
-                if (this.editor.openedAsDefault && !this.editor.modified) {
-                    this.editor.load(path);
-                    this.tabs.activePanel.title = Path.filename(path);
-                    return this.editor;
-                } else {
-                    const editor = new Editor(this.renderer);
-                    this.tabs.addPanel(new ui.TabPanel(Path.filename(path), editor));
-                    editor.load(path);
-                    return editor;
+    openFile(path, fn) {
+        const ext = Path.ext(path).toLowerCase();
+
+        if (ext === ".pms" || ext === ".polywonks") {
+            const activePanel = this.tabs.activePanel;
+            const activeEditor = this.editor;
+            const title = Path.filename(path);
+
+            Editor.loadFile(this.renderer, path, editor => {
+                this.tabs.addPanel(new ui.TabPanel(title, editor));
+
+                if (activePanel && activeEditor.openedAsDefault && !activeEditor.modified) {
+                    activePanel.close();
                 }
-            }
+
+                if (fn) fn(editor);
+            });
+        }
+    }
+
+    openEditor(editor = new Editor(this.renderer), title = "Untitled") {
+        this.tabs.addPanel(new ui.TabPanel(title, editor));
+        return editor;
+    }
+
+    open(...args) {
+        if (typeof args[0] === "string") {
+            return this.openFile(...args);
         } else {
-            const editor = new Editor(this.renderer);
-            this.tabs.addPanel(new ui.TabPanel(title, editor));
-            return editor;
+            return this.openEditor(...args);
         }
     }
 
@@ -157,25 +173,30 @@ export class App extends ui.Panel {
     }
 
     onToolChange(event) {
-        this.status("tool", event.data);
+        this.status("tool", event.status);
+    }
+
+    onTabWillChange() {
+        const editor = this.editor;
+
+        if (editor) {
+            editor.onDeactivate();
+            editor.off("cursorchange", this.onCursorChange);
+            editor.off("viewchange", this.onViewChange);
+            editor.off("toolchange", this.onToolChange);
+        }
     }
 
     onTabChange() {
-        if (this.editor) {
-            this.editor.off("cursorchange", this.onCursorChange);
-            this.editor.off("viewchange", this.onViewChange);
-            this.editor.off("toolchange", this.onToolChange);
-        }
-
-        this.editor = this.tabs.activePanel.content;
-        this.editor.on("cursorchange", this.onCursorChange);
-        this.editor.on("viewchange", this.onViewChange);
-        this.editor.on("toolchange", this.onToolChange);
-        this.editor.onShow();
+        const editor = this.editor;
+        editor.on("cursorchange", this.onCursorChange);
+        editor.on("viewchange", this.onViewChange);
+        editor.on("toolchange", this.onToolChange);
+        editor.onActivate();
     }
 
     onTabClose(event) {
-        const editor = this.tabs.activePanel.content;
+        const editor = event.panel.content;
         editor.onClose(event);
 
         if (!event.defaultPrevented && this.tabs.count === 1) {
@@ -198,11 +219,10 @@ export class App extends ui.Panel {
                 const reader = new FileReader();
 
                 reader.addEventListener("load", () => {
-                    const editor = this.open(null, "*" + file.name);
                     if (ext === ".pms") {
-                        editor.loadPms(reader.result);
+                        this.open(Editor.loadPms(this.renderer, reader.result), file.name);
                     } else {
-                        editor.loadPolywonks(reader.result);
+                        this.open(Editor.loadPolywonks(this.renderer, reader.result), file.name);
                     }
                 });
 

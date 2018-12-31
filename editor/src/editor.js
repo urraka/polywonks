@@ -9,17 +9,13 @@ import { Path } from "./path.js";
 import { Event } from "./event.js";
 
 export class Editor extends ui.Panel {
-    constructor(renderer) {
+    constructor(renderer, map = new MapDocument()) {
         super("editor");
-        this.element.addEventListener("mousemove", e => this.onMouseMove(e));
-        this.element.addEventListener("mousedown", e => this.onMouseDown(e));
-        this.element.addEventListener("wheel", e => this.onMouseWheel(e));
 
         this.renderer = renderer;
         this.openedAsDefault = false;
         this.view = new RenderView(renderer);
-        this.view.on("change", e => this.onViewChange(e));
-        this.map = new MapDocument();
+        this.map = map;
         this.map.iconsInfo = this.renderer.iconsInfo;
         this.selectedNodes = new Set();
         this.previewNodes = new Set();
@@ -30,23 +26,12 @@ export class Editor extends ui.Panel {
         this.commandHistory = [];
         this.lastMouseMove = null;
         this.currentTool = new SelectTool();
-        this.currentTool.on("change", e => this.emit(new Event("toolchange", e.data)));
 
-        setTimeout(() => this.currentTool.enable(this));
-    }
-
-    resetState() {
-        this.openedAsDefault = false;
-        this.view.reset();
-        this.map.iconsInfo = this.renderer.iconsInfo;
-        this.selectedNodes.clear();
-        this.previewNodes.clear();
-        this.reactiveNode = null;
-        this.modified = false;
-        this.undone = 0;
-        this.commandHistory = [];
-        this.setTool(this.currentTool);
-        this.redraw();
+        this.view.on("change", e => this.onViewChange(e));
+        this.currentTool.on("change", e => this.emit(new Event("toolchange", { status: e.status })));
+        this.element.addEventListener("mousemove", e => this.onMouseMove(e));
+        this.element.addEventListener("mousedown", e => this.onMouseDown(e));
+        this.element.addEventListener("wheel", e => this.onMouseWheel(e));
     }
 
     do(command) {
@@ -85,60 +70,18 @@ export class Editor extends ui.Panel {
         command.undo(this);
     }
 
-    setTool(tool) {
-        this.currentTool.disable();
-        this.currentTool = tool;
-        this.currentTool.enable(this);
-    }
-
-    load(path) {
-        if (!path.startsWith("/")) {
-            throw new Error("Editor.load(path) - path is not absolute.");
-        }
-
-        const ext = Path.ext(path).toLowerCase();
-
-        File.refresh(path.substring(1).split("/").shift(), () => {
-            if (ext === ".pms") {
-                File.readBuffer(path, buffer => {
-                    if (buffer) {
-                        this.loadPms(buffer, path);
-                    }
-                });
-            } else if (ext === ".polywonks") {
-                File.readText(path, text => {
-                    if (text) {
-                        this.loadPolywonks(text, path);
-                    }
-                });
-            }
-        });
-    }
-
-    loadPms(buffer, path = "") {
-        this.renderer.disposeMapResources(this.map);
-        const pms = PMS.Map.fromArrayBuffer(buffer);
-        this.map = MapDocument.fromPMS(pms, path);
-        this.map.iconsInfo = this.renderer.iconsInfo;
-        this.resetState();
-    }
-
-    loadPolywonks(text, path = "") {
-        this.renderer.disposeMapResources(this.map);
-        this.map = MapDocument.unserialize(text);
-        this.map.path = path;
-        this.map.iconsInfo = this.renderer.iconsInfo;
-        this.resetState();
-    }
-
     redraw() {
         this.renderer.redraw(this);
     }
 
-    onShow() {
-        this.setTool(this.currentTool);
+    onActivate() {
+        this.currentTool.activate(this);
         this.emit(new Event("viewchange"));
         this.redraw();
+    }
+
+    onDeactivate() {
+        this.currentTool.deactivate();
     }
 
     onClose(event) {
@@ -218,5 +161,39 @@ export class Editor extends ui.Panel {
 
         window.addEventListener("mousemove", mousemove, true);
         window.addEventListener("mouseup", mouseup, true);
+    }
+
+    static loadFile(renderer, path, fn) {
+        const ext = Path.ext(path).toLowerCase();
+
+        if (!path.startsWith("/")) {
+            throw new Error("Editor.loadFile() - path is not absolute.");
+        }
+
+        if (ext !== ".pms" && ext !== ".polywonks") {
+            throw new Error("Editor.loadFile() - file must be either .pms or .polywonks.");
+        }
+
+        File.refresh(path.substring(1).split("/").shift(), () => {
+            if (ext === ".pms") {
+                File.readBuffer(path, buffer => {
+                    fn(buffer ? Editor.loadPms(renderer, buffer, path) : null);
+                });
+            } else if (ext === ".polywonks") {
+                File.readText(path, text => {
+                    fn(text ? Editor.loadPolywonks(renderer, text, path) : null);
+                });
+            }
+        });
+    }
+
+    static loadPms(renderer, buffer, path = "") {
+        const pms = PMS.Map.fromArrayBuffer(buffer);
+        return new Editor(renderer, MapDocument.fromPMS(pms, path));
+    }
+
+    static loadPolywonks(renderer, text, path = "") {
+        const map = MapDocument.unserialize(text, path);
+        return new Editor(renderer, map);
     }
 }

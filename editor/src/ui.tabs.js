@@ -16,7 +16,7 @@ export class TabView extends Panel {
     }
 
     closePanel(panel) {
-        if (this.emit(new Event("close", panel))) {
+        if (this.emit(new Event("close", { panel }))) {
             const activePanel = this.activePanel;
             if (panel === activePanel) {
                 const nextPanel = TabPanel.from(panel.tab.previousSibling || panel.tab.nextSibling);
@@ -49,15 +49,21 @@ export class TabPanel extends Panel {
 
         const close = elem("div", "close");
         close.setAttribute("title", "Close tab");
-        close.addEventListener("click", () => this.tabView.closePanel(this));
+        close.addEventListener("click", () => this.close());
 
         this.tab = elem("div", "tab");
         this.tab.append(label);
         this.tab.append(close);
-        this.tab.addEventListener("mousedown", () => this.active = true);
+        this.tab.addEventListener("mousedown", e => this.onTabMouseDown(e));
 
         const panelsByTab = TabPanel.panelsByTab || (TabPanel.panelsByTab = new WeakMap());
         panelsByTab.set(this.tab, this);
+    }
+
+    onTabMouseDown(event) {
+        if (!event.target.classList.contains("close")) {
+            this.active = true;
+        }
     }
 
     close() {
@@ -71,10 +77,12 @@ export class TabPanel extends Panel {
     set active(value) {
         if (value) {
             const activePanel = this.tabView.activePanel;
-            if (activePanel) activePanel.active = false;
-            this.element.classList.add("active");
-            this.tab.classList.add("active");
-            if (activePanel !== this.tabView.activePanel) {
+
+            if (activePanel !== this) {
+                this.tabView.emit(new Event("willchange"));
+                if (activePanel) activePanel.active = false;
+                this.element.classList.add("active");
+                this.tab.classList.add("active");
                 this.tabView.emit(new Event("change"));
             }
         } else {

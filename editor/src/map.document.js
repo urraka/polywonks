@@ -235,7 +235,7 @@ export class MapDocument extends Node {
         return serializeNode(this);
     }
 
-    static unserialize(data) {
+    static unserialize(data, path = "") {
         const xml = new DOMParser().parseFromString(data, "application/xml");
 
         if (xml.documentElement.tagName !== "map") {
@@ -298,6 +298,7 @@ export class MapDocument extends Node {
 
         const doc = constructTree(xml.documentElement);
         readAttributes(xml.documentElement);
+        doc.path = path;
         return doc;
     }
 }

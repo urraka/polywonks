@@ -2,8 +2,8 @@ export class Event {
     constructor(type, data = null) {
         this.type = type;
         this.target = null;
-        this.data = data;
         this.defaultPrevented = false;
+        Object.assign(this, data);
     }
 
     preventDefault() {

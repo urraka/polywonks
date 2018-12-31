@@ -118,16 +118,13 @@ export class Renderer {
 
     redraw(editor = this.editor) {
         this.editor = editor;
-        if (!editor) return;
 
-        if (this.animFrameId !== null) {
-            window.cancelAnimationFrame(this.animFrameId);
+        if (this.editor && this.animFrameId === null) {
+            this.animFrameId = window.requestAnimationFrame(() => {
+                this.animFrameId = null;
+                this.draw();
+            });
         }
-
-        this.animFrameId = window.requestAnimationFrame(() => {
-            this.animFrameId = null;
-            this.draw();
-        });
     }
 
     updateCanvasSize() {

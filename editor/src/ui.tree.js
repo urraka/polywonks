@@ -24,7 +24,7 @@ export class TreeView extends Panel {
 
         if (this.selected.size > 0) {
             this.clearSelected();
-            this.emit(new Event("itemselect", null));
+            this.emit(new Event("itemselect", { data: null }));
         }
     }
 
@@ -40,7 +40,7 @@ export class TreeView extends Panel {
             this.clearSelected();
             this.selected.add(li);
             li.classList.add("selected");
-            this.emit(new Event("itemselect", dataMap.get(li)));
+            this.emit(new Event("itemselect", { data: dataMap.get(li) }));
         }
     }
 
@@ -52,7 +52,7 @@ export class TreeView extends Panel {
             this.selectItem(event.target.parentElement);
         } else {
             this.clearSelected();
-            this.emit(new Event("itemselect", null));
+            this.emit(new Event("itemselect", { data: null }));
         }
     }
 
@@ -62,7 +62,7 @@ export class TreeView extends Panel {
             if (li.classList.contains("with-subitems")) {
                 li.classList.toggle("collapsed");
             }
-            this.emit(new Event("itemdblclick", dataMap.get(li)));
+            this.emit(new Event("itemdblclick", { data: dataMap.get(li) }));
         }
     }
 }

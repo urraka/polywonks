@@ -1,6 +1,7 @@
 import { Rect } from "./rect.js";
 import { cfg } from "./settings.js";
-import { EventEmmiter, Event } from "./event.js";
+import { Event } from "./event.js";
+import { Tool } from "./tool.js";
 
 export class SelectCommand {
     constructor(select, unselect) {
@@ -21,10 +22,9 @@ export class SelectCommand {
     }
 }
 
-export class SelectTool extends EventEmmiter {
+export class SelectTool extends Tool {
     constructor() {
         super();
-        this.editor = null;
         this.affectedNode = null;
         this.selecting = false;
         this.mode = "replace";
@@ -37,8 +37,7 @@ export class SelectTool extends EventEmmiter {
         this.onKey = this.onKey.bind(this);
     }
 
-    enable(editor) {
-        this.editor = editor;
+    onActivate(editor) {
         this.affectedNode = null;
         this.command = null;
         this.selecting = false;
@@ -51,21 +50,18 @@ export class SelectTool extends EventEmmiter {
         this.editor.element.addEventListener("mousemove", this.onMouseMove);
         document.addEventListener("keyup", this.onKey);
         document.addEventListener("keydown", this.onKey);
-
-        this.emit(new Event("change", "Select"));
+        this.emit(new Event("change", { status: "Select" }));
     }
 
-    disable() {
-        if (this.editor) {
-            this.editor.element.removeEventListener("mouseup", this.onMouseUp);
-            this.editor.element.removeEventListener("mousedown", this.onMouseDown);
-            this.editor.element.removeEventListener("mousemove", this.onMouseMove);
-            document.removeEventListener("keyup", this.onKey);
-            document.removeEventListener("keydown", this.onKey);
-            this.editor.previewNodes.clear();
-            this.editor.redraw();
-            this.emit(new Event("change", ""));
-        }
+    onDeactivate() {
+        this.editor.element.removeEventListener("mouseup", this.onMouseUp);
+        this.editor.element.removeEventListener("mousedown", this.onMouseDown);
+        this.editor.element.removeEventListener("mousemove", this.onMouseMove);
+        document.removeEventListener("keyup", this.onKey);
+        document.removeEventListener("keydown", this.onKey);
+        this.editor.previewNodes.clear();
+        this.editor.redraw();
+        this.emit(new Event("change", { status: "" }));
     }
 
     replaceSelection(selection) {
@@ -131,13 +127,13 @@ export class SelectTool extends EventEmmiter {
 
         switch (this.mode) {
             case "replace":
-                this.emit(new Event("change", "Select"));
+                this.emit(new Event("change", { status: "Select" }));
                 break;
             case "add":
-                this.emit(new Event("change", "Select (+)"));
+                this.emit(new Event("change", { status: "Select (+)" }));
                 break;
             case "subtract":
-                this.emit(new Event("change", "Select (-)"));
+                this.emit(new Event("change", { status: "Select (-)" }));
                 break;
         }
     }
