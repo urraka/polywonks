@@ -2,6 +2,7 @@ import { Rect } from "./rect.js";
 import { cfg } from "./settings.js";
 import { Event } from "./event.js";
 import { Tool } from "./tool.js";
+import { Pointer } from "./pointer.js";
 
 export class SelectCommand {
     constructor(select, unselect) {
@@ -31,13 +32,14 @@ export class SelectTool extends Tool {
         this.rect = null;
         this.rectPosition = { x: 0, y: 0 };
         this.clickPosition = { x: 0, y: 0 };
-        this.onMouseUp = this.onMouseUp.bind(this);
-        this.onMouseDown = this.onMouseDown.bind(this);
-        this.onMouseMove = this.onMouseMove.bind(this);
+        this.pointer = new Pointer();
+        this.pointer.on("begin", e => this.onPointerBegin(e.mouseEvent));
+        this.pointer.on("move", e => this.onPointerMove(e.mouseEvent));
+        this.pointer.on("end", e => this.onPointerEnd(e.mouseEvent));
         this.onKey = this.onKey.bind(this);
     }
 
-    onActivate(editor) {
+    onActivate() {
         this.affectedNode = null;
         this.command = null;
         this.selecting = false;
@@ -45,20 +47,16 @@ export class SelectTool extends Tool {
         this.rect = null;
         this.rectPosition = { x: 0, y: 0 };
         this.clickPosition = { x: 0, y: 0 };
-        this.editor.element.addEventListener("mouseup", this.onMouseUp);
-        this.editor.element.addEventListener("mousedown", this.onMouseDown);
-        this.editor.element.addEventListener("mousemove", this.onMouseMove);
+        this.pointer.activate(this.editor.element, 0);
         document.addEventListener("keyup", this.onKey);
         document.addEventListener("keydown", this.onKey);
         this.emit(new Event("change", { status: "Select" }));
     }
 
     onDeactivate() {
-        this.editor.element.removeEventListener("mouseup", this.onMouseUp);
-        this.editor.element.removeEventListener("mousedown", this.onMouseDown);
-        this.editor.element.removeEventListener("mousemove", this.onMouseMove);
         document.removeEventListener("keyup", this.onKey);
         document.removeEventListener("keydown", this.onKey);
+        this.pointer.deactivate();
         this.editor.previewNodes.clear();
         this.editor.redraw();
         this.emit(new Event("change", { status: "" }));
@@ -149,7 +147,7 @@ export class SelectTool extends Tool {
         }
     }
 
-    onMouseDown(event) {
+    onPointerBegin(event) {
         this.clickPosition.x = event.clientX;
         this.clickPosition.y = event.clientY;
 
@@ -157,57 +155,53 @@ export class SelectTool extends Tool {
             return;
         }
 
-        if (event.button === 0) {
-            let selectionChanged = false;
-            this.updateMode(event);
+        let selectionChanged = false;
+        this.updateMode(event);
 
-            if (this.mode === "replace") {
-                selectionChanged = !!this.replaceSelection(new Set());
-            }
-
-            this.updatePreviewNodes();
-            this.affectedNode = this.editor.reactiveNode;
-            this.command = this[this.mode + "Selection"](new Set(this.affectedNode ? [this.affectedNode] : []));
-            selectionChanged = selectionChanged || !!this.command;
-
-            if (!this.affectedNode) {
-                this.command = null;
-            }
-
-            if (selectionChanged) {
-                this.updatePreviewNodes();
-            }
-
-            this.selecting = true;
-            this.rectPosition.x = this.editor.cursor.x;
-            this.rectPosition.y = this.editor.cursor.y;
+        if (this.mode === "replace") {
+            selectionChanged = !!this.replaceSelection(new Set());
         }
+
+        this.updatePreviewNodes();
+        this.affectedNode = this.editor.reactiveNode;
+        this.command = this[this.mode + "Selection"](new Set(this.affectedNode ? [this.affectedNode] : []));
+        selectionChanged = selectionChanged || !!this.command;
+
+        if (!this.affectedNode) {
+            this.command = null;
+        }
+
+        if (selectionChanged) {
+            this.updatePreviewNodes();
+        }
+
+        this.selecting = true;
+        this.rectPosition.x = this.editor.cursor.x;
+        this.rectPosition.y = this.editor.cursor.y;
     }
 
-    onMouseUp(event) {
+    onPointerEnd(event) {
         this.clickPosition.x = event.clientX;
         this.clickPosition.y = event.clientY;
 
-        if (event.button === 0) {
-            this.selecting = false;
-            this.command = null;
+        this.selecting = false;
+        this.command = null;
 
-            if (this.rect) {
-                this.rect.x1 = this.editor.cursor.x;
-                this.rect.y1 = this.editor.cursor.y;
+        if (this.rect) {
+            this.rect.x1 = this.editor.cursor.x;
+            this.rect.y1 = this.editor.cursor.y;
 
-                const nodes = this.rect.width > 0 && this.rect.height > 0 ?
-                    this.editor.map.nodesContainedByRect(...this.rect.values(), this.editor.view.scale) :
-                    this.editor.map.nodesIntersectingRect(...this.rect.values(), this.editor.view.scale);
+            const nodes = this.rect.width > 0 && this.rect.height > 0 ?
+                this.editor.map.nodesContainedByRect(...this.rect.values(), this.editor.view.scale) :
+                this.editor.map.nodesIntersectingRect(...this.rect.values(), this.editor.view.scale);
 
-                this[this.mode + "Selection"](new Set(nodes));
-                this.rect = null;
-                this.editor.redraw();
-            }
+            this[this.mode + "Selection"](new Set(nodes));
+            this.rect = null;
+            this.editor.redraw();
         }
     }
 
-    onMouseMove(event) {
+    onPointerMove(event) {
         if (this.selecting && !this.rect) {
             const threshold = cfg("editor.selection-rect-threshold");
             if (Math.abs(event.clientX - this.clickPosition.x) > threshold ||

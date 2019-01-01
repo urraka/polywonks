@@ -31,8 +31,12 @@ import * as render_view from "./render.view.js";
 import * as enm from "./enum.js";
 import * as rect from "./rect.js";
 import * as settings from "./settings.js";
+import * as tool from "./tool.js";
 import * as tool_select from "./tool.select.js";
+import * as tool_pan from "./tool.pan.js";
 import * as event from "./event.js";
+import * as pointer from "./pointer.js";
+import * as explorer from "./explorer.js";
 
 // Note: Polywonks namespace is made global merely to aid debugging. It's only ever
 // use at entry point in index.html
@@ -65,8 +69,12 @@ const modules = [
     enm,
     rect,
     settings,
+    tool,
     tool_select,
+    tool_pan,
     event,
+    pointer,
+    explorer,
 ];
 
 modules.forEach(module => {
