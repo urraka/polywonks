@@ -13,6 +13,26 @@ ul, ul li, ul ul li {
    list-style-type: none;
 }
 
+button {
+    border: none;
+    margin: 0;
+    padding: 0;
+    width: auto;
+    overflow: visible;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    line-height: normal;
+    -webkit-font-smoothing: inherit;
+    -moz-osx-font-smoothing: inherit;
+    -webkit-appearance: none;
+}
+
+::-moz-focus-inner {
+    border: 0;
+    padding: 0;
+}
+
 html,
 body {
     width: 100%;
@@ -43,6 +63,15 @@ body {
     overflow: hidden;
     white-space: nowrap;
     flex-shrink: 0;
+    display: flex;
+}
+
+.panel-header > label {
+    flex: 1;
+}
+
+.panel-header > .toolbar {
+    flex: 0;
 }
 
 .multi-panel-view {
@@ -299,6 +328,23 @@ body {
     padding: 0 20px;
     font-size: 11px;
     text-transform: uppercase;
+}
+
+.refresh-icon {
+    mask: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M12.6 6.134l-.094.071c-.269.333-.746 1.096-.91 2.375.057.277.092.495.092.545 0 2.206-1.794 4-4 4a3.986 3.986 0 0 1-2.817-1.164 3.987 3.987 0 0 1-1.163-2.815c0-2.206 1.794-4 4-4l.351.025v1.85S9.685 5.679 9.69 5.682l1.869-1.577-3.5-2.917v2.218l-.371-.03a5.75 5.75 0 0 0-4.055 9.826 5.75 5.75 0 0 0 9.826-4.056 5.725 5.725 0 0 0-.859-3.012z' fill='%23000'/%3E%3C/svg%3E") no-repeat 50%;
+    -webkit-mask: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M12.6 6.134l-.094.071c-.269.333-.746 1.096-.91 2.375.057.277.092.495.092.545 0 2.206-1.794 4-4 4a3.986 3.986 0 0 1-2.817-1.164 3.987 3.987 0 0 1-1.163-2.815c0-2.206 1.794-4 4-4l.351.025v1.85S9.685 5.679 9.69 5.682l1.869-1.577-3.5-2.917v2.218l-.371-.03a5.75 5.75 0 0 0-4.055 9.826 5.75 5.75 0 0 0 9.826-4.056 5.725 5.725 0 0 0-.859-3.012z' fill='%23000'/%3E%3C/svg%3E") no-repeat 50%;
+}
+
+.toolbar > button {
+    width: 28px;
+    height: 22px;
+    mask-size: 16px 16px;
+    -webkit-mask-size: 16px 16px;
+}
+
+.toolbar > button:active {
+    mask-size: 20px 20px;
+    -webkit-mask-size: 20px 20px;
 }
 
 .startup-loading {

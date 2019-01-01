@@ -104,3 +104,12 @@ export class RedoCommand extends ui.Command {
         return app.editor.undone > 0;
     }
 }
+
+export class RefreshExplorerCommand extends ui.Command {
+    execute(params) {
+        const explorer = app.explorers.find(e => e.root === params.mount);
+        if (explorer) {
+            explorer.refresh();
+        }
+    }
+}

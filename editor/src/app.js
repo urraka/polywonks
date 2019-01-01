@@ -53,11 +53,16 @@ export class App extends ui.Panel {
 
         const sidebar = clientArea.append(new ui.Panel("sidebar"));
         const sidebarHeader = sidebar.append(new ui.Panel("sidebar-header"));
-        sidebarHeader.element.textContent = "Explorer";
         const sidebarPanels = new ui.MultiPanelView();
-        this.explorers = ["polydrive", "soldat", "library"].map(root => new Explorer(root));
-        this.explorers.forEach(explorer => sidebarPanels.addPanel(explorer.root, explorer.tree));
+        sidebarHeader.element.textContent = "Explorer";
         sidebar.append(sidebarPanels);
+
+        this.explorers = ["polydrive", "soldat", "library"].map(root => {
+            const explorer = new Explorer(root);
+            const panel = sidebarPanels.addPanel(explorer.root, explorer.tree);
+            panel.header.addButton("refresh-icon", "Refresh", "refresh-explorer", { mount: explorer.root });
+            return explorer;
+        });
 
         this.tabs = clientArea.append(new ui.TabView());
         this.tabs.content.element.prepend(this.renderer.context.canvas);

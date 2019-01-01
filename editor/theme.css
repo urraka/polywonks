@@ -4,6 +4,14 @@ body {
     color: #ccc;
 }
 
+button {
+    background-color: #c5c5c5;
+}
+
+button:hover {
+    background-color: #fff;
+}
+
 .startup-loading > div {
     border-color: rgba(255, 255, 255, .3);
     border-top-color: #fff;
