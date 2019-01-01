@@ -8,6 +8,7 @@ import { SelectTool } from "./tool.select.js";
 import { Path } from "./path.js";
 import { Event } from "./event.js";
 import { PanTool } from "./tool.pan.js";
+import { ZoomTool } from "./tool.zoom.js";
 
 export class Editor extends ui.Panel {
     constructor(renderer, map = new MapDocument()) {
@@ -25,14 +26,13 @@ export class Editor extends ui.Panel {
         this.cursor = { x: 0, y: 0 };
         this.undone = 0;
         this.commandHistory = [];
-        this.lastMouseMove = null;
         this.currentTool = new SelectTool();
         this.panTool = new PanTool();
+        this.zoomTool = new ZoomTool();
 
         this.view.on("change", e => this.onViewChange(e));
         this.currentTool.on("change", e => this.emit(new Event("toolchange", { status: e.status })));
         this.element.addEventListener("mousemove", e => this.onMouseMove(e));
-        this.element.addEventListener("wheel", e => this.onMouseWheel(e));
     }
 
     do(command) {
@@ -77,6 +77,7 @@ export class Editor extends ui.Panel {
 
     onActivate() {
         this.panTool.activate(this);
+        this.zoomTool.activate(this);
         this.currentTool.activate(this);
         this.emit(new Event("viewchange"));
         this.redraw();
@@ -84,6 +85,7 @@ export class Editor extends ui.Panel {
 
     onDeactivate() {
         this.currentTool.deactivate();
+        this.zoomTool.deactivate();
         this.panTool.deactivate();
     }
 
@@ -102,37 +104,11 @@ export class Editor extends ui.Panel {
     }
 
     onMouseMove(event) {
-        this.lastMouseMove = event;
         const rect = event.target.getBoundingClientRect();
         const pos = this.view.canvasToMap(event.clientX - rect.left, event.clientY - rect.top);
         this.cursor.x = pos.x;
         this.cursor.y = pos.y;
         this.emit(new Event("cursorchange"));
-    }
-
-    onMouseWheel(event) {
-        const factor = cfg("editor.zoom-factor");
-        if (event.deltaY < 0) {
-            this.zoom(factor, event.offsetX, event.offsetY);
-        } else {
-            this.zoom(1 / factor, this.renderer.width / 2, this.renderer.height / 2);
-        }
-    }
-
-    zoom(factor, centerX, centerY) {
-        const z0 = cfg("editor.zoom-min");
-        const z1 = cfg("editor.zoom-max");
-        const s = this.view.scale;
-        const dx = centerX - this.renderer.width / 2;
-        const dy = centerY - this.renderer.height / 2;
-        this.view.scale = Math.max(z0, Math.min(z1, this.view.scale * factor));
-        this.view.x -= dx / this.view.scale - dx / s;
-        this.view.y -= dy / this.view.scale - dy / s;
-        this.redraw();
-
-        if (this.lastMouseMove) {
-            this.element.dispatchEvent(this.lastMouseMove);
-        }
     }
 
     static loadFile(renderer, path, fn) {

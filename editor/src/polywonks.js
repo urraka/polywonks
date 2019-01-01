@@ -34,6 +34,7 @@ import * as settings from "./settings.js";
 import * as tool from "./tool.js";
 import * as tool_select from "./tool.select.js";
 import * as tool_pan from "./tool.pan.js";
+import * as tool_zoom from "./tool.zoom.js";
 import * as event from "./event.js";
 import * as pointer from "./pointer.js";
 import * as explorer from "./explorer.js";
@@ -72,6 +73,7 @@ const modules = [
     tool,
     tool_select,
     tool_pan,
+    tool_zoom,
     event,
     pointer,
     explorer,
