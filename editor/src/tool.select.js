@@ -37,6 +37,7 @@ export class SelectTool extends Tool {
         this.pointer.on("move", e => this.onPointerMove(e.mouseEvent));
         this.pointer.on("end", e => this.onPointerEnd(e.mouseEvent));
         this.onKey = this.onKey.bind(this);
+        this.onMouseLeave = this.onMouseLeave.bind(this);
     }
 
     onActivate() {
@@ -48,6 +49,7 @@ export class SelectTool extends Tool {
         this.rectPosition = { x: 0, y: 0 };
         this.clickPosition = { x: 0, y: 0 };
         this.pointer.activate(this.editor.element, 0);
+        this.editor.element.addEventListener("mouseleave", this.onMouseLeave);
         document.addEventListener("keyup", this.onKey);
         document.addEventListener("keydown", this.onKey);
         this.emit(new Event("change", { status: "Select" }));
@@ -56,6 +58,7 @@ export class SelectTool extends Tool {
     onDeactivate() {
         document.removeEventListener("keyup", this.onKey);
         document.removeEventListener("keydown", this.onKey);
+        this.editor.element.removeEventListener("mouseleave", this.onMouseLeave);
         this.pointer.deactivate();
         this.editor.previewNodes.clear();
         this.editor.redraw();
@@ -222,5 +225,13 @@ export class SelectTool extends Tool {
         }
 
         this.updatePreviewNodes();
+    }
+
+    onMouseLeave() {
+        if (!this.rect) {
+            this.editor.previewNodes.clear();
+            this.editor.reactiveNode = null;
+            this.editor.redraw();
+        }
     }
 }
