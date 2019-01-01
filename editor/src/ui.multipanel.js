@@ -15,7 +15,7 @@ export class MultiPanelView extends Panel {
     }
 
     onHeaderMouseDown(event, panelView) {
-        if (event.target.tagName !== "BUTTON") {
+        if (event.button === 0 && event.target.tagName !== "BUTTON") {
             panelView.element.classList.toggle("collapsed");
         }
     }

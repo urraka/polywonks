@@ -8,7 +8,7 @@ export class TreeView extends Panel {
         super("tree-view");
         this.selected = new Set();
         this.list = this.append(elem("ul"));
-        this.element.addEventListener("mousedown", e => this.onClick(e));
+        this.element.addEventListener("mousedown", e => this.onMouseDown(e));
         this.element.addEventListener("dblclick", e => this.onDoubleClick(e));
     }
 
@@ -44,15 +44,17 @@ export class TreeView extends Panel {
         }
     }
 
-    onClick(event) {
-        if (event.target.tagName === "LI") {
-            event.target.classList.toggle("collapsed");
-            this.selectItem(event.target);
-        } else if (event.target.tagName === "LABEL") {
-            this.selectItem(event.target.parentElement);
-        } else {
-            this.clearSelected();
-            this.emit(new Event("itemselect", { data: null }));
+    onMouseDown(event) {
+        if (event.button === 0) {
+            if (event.target.tagName === "LI") {
+                event.target.classList.toggle("collapsed");
+                this.selectItem(event.target);
+            } else if (event.target.tagName === "LABEL") {
+                this.selectItem(event.target.parentElement);
+            } else {
+                this.clearSelected();
+                this.emit(new Event("itemselect", { data: null }));
+            }
         }
     }
 
