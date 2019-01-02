@@ -16,7 +16,7 @@ import (
 
 	"github.com/getlantern/systray"
 	homedir "github.com/mitchellh/go-homedir"
-	"github.com/skratchdot/open-golang/open"
+	"github.com/urraka/open-golang/open"
 )
 
 func httpErrorHandler(code int) http.Handler {
