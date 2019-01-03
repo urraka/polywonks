@@ -8,7 +8,7 @@ button {
     background-color: #c5c5c5;
 }
 
-button:hover {
+button:hover, button.active {
     background-color: #fff;
 }
 
@@ -17,8 +17,12 @@ button:hover {
     border-top-color: #fff;
 }
 
-.sidebar {
-    background: #252526;
+.sidebar-panel {
+    background-color: #252526;
+}
+
+.sidebar-toolbar {
+    background-color: #333;
 }
 
 .titlebar,

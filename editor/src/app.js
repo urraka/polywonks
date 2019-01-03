@@ -3,8 +3,8 @@ import * as cmd from "./commands.js";
 import * as fmt from "./format.js";
 import { Renderer } from "./render.js";
 import { Editor } from "./editor.js";
-import { Explorer } from "./explorer.js";
 import { Path } from "./path.js";
+import { Sidebar } from "./sidebar.js";
 
 export class App extends ui.Panel {
     static launch() {
@@ -51,18 +51,8 @@ export class App extends ui.Panel {
 
         const clientArea = this.append(new ui.Panel("client-area"));
 
-        const sidebar = clientArea.append(new ui.Panel("sidebar"));
-        const sidebarHeader = sidebar.append(new ui.Panel("sidebar-header"));
-        const sidebarPanels = new ui.MultiPanelView();
-        sidebarHeader.element.textContent = "Explorer";
-        sidebar.append(sidebarPanels);
-
-        this.explorers = ["polydrive", "soldat", "library"].map(root => {
-            const explorer = new Explorer(root);
-            const panel = sidebarPanels.addPanel(explorer.root, explorer.tree);
-            panel.header.addButton("refresh-icon", "Refresh", "refresh-explorer", { mount: explorer.root });
-            return explorer;
-        });
+        const sidebar = clientArea.append(new Sidebar());
+        this.explorers = sidebar.explorers;
 
         this.tabs = clientArea.append(new ui.TabView());
         this.tabs.content.element.prepend(this.renderer.context.canvas);
