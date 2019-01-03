@@ -1,5 +1,7 @@
 import * as ui from "./ui.js";
 import { Explorer } from "./explorer.js";
+import { MapExplorer } from "./map.explorer.js";
+import { MapProperties } from "./map.properties.js";
 
 export class Sidebar extends ui.Panel {
     constructor() {
@@ -10,6 +12,11 @@ export class Sidebar extends ui.Panel {
         this.append(this.createTools());
         this.append(this.createExplorers());
         this.setActiveTab("sidebar-tools");
+    }
+
+    set editor(editor) {
+        const explorer = this.element.querySelector(".map-explorer");
+        explorer.replaceWith(editor.explorer.element);
     }
 
     setActiveTab(id) {
@@ -35,8 +42,14 @@ export class Sidebar extends ui.Panel {
     createTools() {
         const container = new ui.Panel("sidebar-panel");
         const header = container.append(new ui.Panel("sidebar-header"));
+        const panels = container.append(new ui.MultiPanelView());
+
         container.element.setAttribute("id", "sidebar-tools");
         header.element.textContent = "Tools";
+
+        panels.addPanel("Map", new MapExplorer());
+        panels.addPanel("Properties", new MapProperties());
+
         return container;
     }
 

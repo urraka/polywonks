@@ -86,6 +86,10 @@ export class TreeItem {
         }
     }
 
+    set expanded(value) {
+        this.element.classList.toggle("collapsed", !value);
+    }
+
     addItem(item) {
         if (!this.subitems) {
             this.subitems = elem("ul");

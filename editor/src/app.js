@@ -22,8 +22,8 @@ export class App extends ui.Panel {
         super("app");
 
         this.tabs = null;
+        this.sidebar = null;
         this.statusbar = null;
-        this.explorers = null;
         this.renderer = new Renderer();
 
         this.createUserInterface();
@@ -50,13 +50,9 @@ export class App extends ui.Panel {
         this.createMenus(titlebar.menu);
 
         const clientArea = this.append(new ui.Panel("client-area"));
-
-        const sidebar = clientArea.append(new Sidebar());
-        this.explorers = sidebar.explorers;
-
+        this.sidebar = clientArea.append(new Sidebar());
         this.tabs = clientArea.append(new ui.TabView());
         this.tabs.content.element.prepend(this.renderer.context.canvas);
-
         this.statusbar = this.append(new ui.Statusbar());
         this.statusbar.addItem("tool", "left", 200);
         this.statusbar.addItem("zoom", "right", 100, "right");
@@ -188,6 +184,7 @@ export class App extends ui.Panel {
         editor.on("viewchange", this.onViewChange);
         editor.on("toolchange", this.onToolChange);
         editor.onActivate();
+        this.sidebar.editor = editor;
     }
 
     onTabClose(event) {

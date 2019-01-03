@@ -9,6 +9,7 @@ import { Path } from "./path.js";
 import { Event } from "./event.js";
 import { PanTool } from "./tool.pan.js";
 import { ZoomTool } from "./tool.zoom.js";
+import { MapExplorer } from "./map.explorer.js";
 
 export class Editor extends ui.Panel {
     constructor(renderer, map = new MapDocument()) {
@@ -29,6 +30,7 @@ export class Editor extends ui.Panel {
         this.currentTool = new SelectTool();
         this.panTool = new PanTool();
         this.zoomTool = new ZoomTool();
+        this.explorer = new MapExplorer(this.map);
 
         this.view.on("change", e => this.onViewChange(e));
         this.currentTool.on("change", e => this.emit(new Event("toolchange", { status: e.status })));

@@ -107,7 +107,7 @@ export class RedoCommand extends ui.Command {
 
 export class RefreshExplorerCommand extends ui.Command {
     execute(params) {
-        const explorer = app.explorers.find(e => e.root === params.mount);
+        const explorer = app.sidebar.explorers.find(e => e.root === params.mount);
         if (explorer) {
             explorer.refresh();
         }

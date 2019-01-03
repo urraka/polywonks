@@ -8,7 +8,7 @@ button {
     background-color: #c5c5c5;
 }
 
-button:hover, button:active {
+button:hover, button:active, button.active {
     background-color: #fff;
 }
 
