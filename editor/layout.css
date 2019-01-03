@@ -248,7 +248,7 @@ body {
     visibility: visible;
 }
 
-.tab-view > .tab-container > .tab > .close:hover {
+.tab-view > .tab-container > .tab > .close:active {
     mask-size: 20px 20px;
     -webkit-mask-size: 20px 20px;
 }

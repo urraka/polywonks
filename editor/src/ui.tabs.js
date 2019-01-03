@@ -47,7 +47,7 @@ export class TabPanel extends Panel {
         const label = elem("label");
         label.textContent = title;
 
-        const close = elem("div", "close");
+        const close = elem("button", "close");
         close.setAttribute("title", "Close tab");
         close.addEventListener("click", () => this.close());
 

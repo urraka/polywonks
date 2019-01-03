@@ -8,7 +8,7 @@ button {
     background-color: #c5c5c5;
 }
 
-button:hover, button.active {
+button:hover, button:active {
     background-color: #fff;
 }
 
@@ -93,10 +93,6 @@ button:hover, button.active {
 .tab-view > .tab-container > .tab.active {
     color: #fff;
     background-color: #1e1e1e;
-}
-
-.tab-view > .tab-container > .tab > .close {
-    background-color: #fff;
 }
 
 .titlebar-icon {
