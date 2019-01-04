@@ -308,7 +308,7 @@ export class Renderer {
     }
 
     drawNode(node, filter) {
-        if (filter(node) && (this.editor.selectedNodes.has(node) || this.editor.previewNodes.has(node))) {
+        if (filter(node) && (this.editor.selection.has(node) || this.editor.previewNodes.has(node))) {
             this.selectionNodes.push(node);
         }
 
@@ -414,7 +414,7 @@ export class Renderer {
                 const verticesFill = vertices.length === 3 ? vertices :
                     vertices.length === 4 ? [0, 1, 2, 2, 3, 0].map(i => vertices[i]) : null;
 
-                if (editor.selectedNodes.has(node)) {
+                if (editor.selection.has(node)) {
                     if (!subtractingNode(node)) {
                         if (verticesFill) this.batch.add(Gfx.Triangles, null, verticesFill);
                         this.drawLineLoop(vertices, selectedBorder);
@@ -445,7 +445,7 @@ export class Renderer {
                 rect.centerX = p.x;
                 rect.centerY = p.y;
 
-                if (editor.selectedNodes.has(node)) {
+                if (editor.selection.has(node)) {
                     if (!subtractingNode(node)) {
                         const prev = node.previousSibling || (node.parentNode && node.parentNode.lastChild);
                         const next = node.nextSibling || (node.parentNode && node.parentNode.firstChild);

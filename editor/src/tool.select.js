@@ -3,30 +3,15 @@ import { cfg } from "./settings.js";
 import { Event } from "./event.js";
 import { Tool } from "./tool.js";
 import { Pointer } from "./pointer.js";
-
-export class SelectCommand {
-    constructor(select, unselect) {
-        this.select = select;
-        this.unselect = unselect;
-    }
-
-    do(editor) {
-        this.unselect.forEach(node => editor.selectedNodes.delete(node));
-        this.select.forEach(node => editor.selectedNodes.add(node));
-        editor.redraw();
-    }
-
-    undo(editor) {
-        this.select.forEach(node => editor.selectedNodes.delete(node));
-        this.unselect.forEach(node => editor.selectedNodes.add(node));
-        editor.redraw();
-    }
-}
+import { mod } from "./math.js";
 
 export class SelectTool extends Tool {
     constructor() {
         super();
+        this.selection = null;
+        this.cycle = 0;
         this.affectedNode = null;
+        this.revertNodes = null;
         this.selecting = false;
         this.mode = "replace";
         this.rect = null;
@@ -41,7 +26,10 @@ export class SelectTool extends Tool {
     }
 
     onActivate() {
+        this.selection = this.editor.selection;
+        this.cycle = 0;
         this.affectedNode = null;
+        this.revertNodes = null;
         this.command = null;
         this.selecting = false;
         this.mode = "replace";
@@ -65,28 +53,6 @@ export class SelectTool extends Tool {
         this.emit(new Event("change", { status: "" }));
     }
 
-    replaceSelection(selection) {
-        const select = new Set([...selection].filter(node => !this.editor.selectedNodes.has(node)));
-        const unselect = new Set([...this.editor.selectedNodes].filter(node => !selection.has(node)));
-        if (select.size > 0 || unselect.size > 0) {
-            return this.editor.do(new SelectCommand(select, unselect));
-        }
-    }
-
-    addSelection(selection) {
-        const select = new Set([...selection].filter(node => !this.editor.selectedNodes.has(node)));
-        if (select.size > 0) {
-            return this.editor.do(new SelectCommand(select, new Set()));
-        }
-    }
-
-    subtractSelection(selection) {
-        const unselect = new Set([...this.editor.selectedNodes].filter(node => selection.has(node)));
-        if (unselect.size > 0) {
-            return this.editor.do(new SelectCommand(new Set(), unselect));
-        }
-    }
-
     updatePreviewNodes() {
         this.editor.previewNodes.clear();
         this.editor.reactiveNode = null;
@@ -97,7 +63,7 @@ export class SelectTool extends Tool {
                 this.editor.map.nodesIntersectingRect(...this.rect.values(), this.editor.view.scale);
 
             if (this.mode === "subtract") {
-                this.editor.previewNodes = new Set([...nodes].filter(node => this.editor.selectedNodes.has(node)));
+                this.editor.previewNodes = new Set([...nodes].filter(node => this.selection.has(node)));
             } else {
                 this.editor.previewNodes = new Set(nodes);
             }
@@ -106,13 +72,26 @@ export class SelectTool extends Tool {
             let nodes = [...this.editor.map.nodesAt(x, y, this.editor.view.scale)];
 
             if (this.mode === "subtract") {
-                nodes = nodes.filter(node => this.editor.selectedNodes.has(node)).slice(-1);
+                nodes = nodes.filter(node => this.selection.has(node));
+
+                if (nodes.length > 0) {
+                    this.cycle = this.cycle % nodes.length;
+                    nodes = [nodes[mod(-1 - this.cycle, nodes.length)]];
+                }
+
                 this.editor.previewNodes = new Set(nodes);
                 this.editor.reactiveNode = nodes.pop();
             } else {
-                const index = nodes.indexOf(this.affectedNode) - 1;
+                nodes = nodes.filter(node => !this.selection.has(node));
                 this.editor.previewNodes = new Set(nodes);
-                this.editor.reactiveNode = index >= 0 ? nodes[index] : nodes[nodes.length - 1];
+
+                if (nodes.length === 0) {
+                    this.editor.reactiveNode = null;
+                } else {
+                    this.cycle = this.cycle % nodes.length;
+                    const index = Math.max(-1, nodes.indexOf(this.affectedNode) - 1);
+                    this.editor.reactiveNode = nodes[mod(index - this.cycle, nodes.length)];
+                }
             }
         }
 
@@ -147,6 +126,10 @@ export class SelectTool extends Tool {
             if (this.mode !== mode) {
                 this.updatePreviewNodes();
             }
+        } else if (event.type === "keydown" && event.key === "Control") {
+            event.preventDefault();
+            this.cycle++;
+            this.updatePreviewNodes();
         }
     }
 
@@ -158,23 +141,28 @@ export class SelectTool extends Tool {
             return;
         }
 
-        let selectionChanged = false;
+        let changed = false;
         this.updateMode(event);
 
         if (this.mode === "replace") {
-            selectionChanged = !!this.replaceSelection(new Set());
+            changed = this.selection.clear();
         }
 
         this.updatePreviewNodes();
         this.affectedNode = this.editor.reactiveNode;
-        this.command = this[this.mode + "Selection"](new Set(this.affectedNode ? [this.affectedNode] : []));
-        selectionChanged = selectionChanged || !!this.command;
+        this.revertNodes = this.selection.clone();
+        const affected = this.affectedNode ? new Set([this.affectedNode]) : new Set();
+        changed = this.selection[this.mode](affected) || changed;
 
         if (!this.affectedNode) {
-            this.command = null;
+            this.revertNodes = null;
         }
 
-        if (selectionChanged) {
+        if (this.mode === "subtract") {
+            this.affectedNode = null;
+        }
+
+        if (changed) {
             this.updatePreviewNodes();
         }
 
@@ -198,7 +186,7 @@ export class SelectTool extends Tool {
                 this.editor.map.nodesContainedByRect(...this.rect.values(), this.editor.view.scale) :
                 this.editor.map.nodesIntersectingRect(...this.rect.values(), this.editor.view.scale);
 
-            this[this.mode + "Selection"](new Set(nodes));
+            this.selection[this.mode](new Set(nodes));
             this.rect = null;
             this.editor.redraw();
         }
@@ -211,10 +199,10 @@ export class SelectTool extends Tool {
                 Math.abs(event.clientY - this.clickPosition.y) > threshold) {
                 this.rect = new Rect(this.rectPosition.x, this.rectPosition.y, 0, 0);
 
-                if (this.command) {
-                    this.editor.undoAndForget(this.command);
+                if (this.revertNodes) {
+                    this.selection.replace(this.revertNodes);
                     this.affectedNode = null;
-                    this.command = null;
+                    this.revertNodes = null;
                 }
             }
         }

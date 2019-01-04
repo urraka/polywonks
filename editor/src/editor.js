@@ -10,6 +10,7 @@ import { Event } from "./event.js";
 import { PanTool } from "./tool.pan.js";
 import { ZoomTool } from "./tool.zoom.js";
 import { MapExplorer } from "./map.explorer.js";
+import { Selection } from "./selection.js";
 
 export class Editor extends ui.Panel {
     constructor(renderer, map = MapDocument.default()) {
@@ -20,7 +21,7 @@ export class Editor extends ui.Panel {
         this.view = new RenderView(renderer);
         this.map = map;
         this.map.iconsInfo = this.renderer.iconsInfo;
-        this.selectedNodes = new Set();
+        this.selection = new Selection(this);
         this.previewNodes = new Set();
         this.reactiveNode = null;
         this.modified = false;
