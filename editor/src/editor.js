@@ -12,7 +12,7 @@ import { ZoomTool } from "./tool.zoom.js";
 import { MapExplorer } from "./map.explorer.js";
 
 export class Editor extends ui.Panel {
-    constructor(renderer, map = new MapDocument()) {
+    constructor(renderer, map = MapDocument.default()) {
         super("editor");
 
         this.renderer = renderer;

@@ -15,6 +15,25 @@ import { WaypointNode } from "./map.node.waypoint.js";
 import { VertexNode } from "./map.node.vertex.js";
 import { ConnectionNode } from "./map.node.connection.js";
 
+function createDefaultLayers() {
+    return (list => {
+        const layers = {};
+        list.forEach(([key, layer]) => layers[key] = layer);
+        layers[Symbol.iterator] = Array.prototype[Symbol.iterator].bind(list.map(([,layer]) => layer));
+        return layers;
+    })([
+        ["resources", new LayerNode("Resources", LayerType.Resources)],
+        ["backgroundPolygons", new LayerNode("Background polygons", LayerType.PolygonsBack)],
+        ["backgroundScenery", new LayerNode("Background scenery", LayerType.SceneryBack)],
+        ["middleScenery", new LayerNode("Middle scenery", LayerType.SceneryMiddle)],
+        ["frontPolygons", new LayerNode("Front polygons", LayerType.PolygonsFront)],
+        ["frontScenery", new LayerNode("Front scenery", LayerType.SceneryFront)],
+        ["colliders", new LayerNode("Colliders", LayerType.Colliders)],
+        ["waypoints", new LayerNode("Waypoints", LayerType.Waypoints)],
+        ["spawns", new LayerNode("Spawns", LayerType.Spawns)],
+    ]);
+}
+
 export class MapDocument extends Node {
     constructor() {
         super("map");
@@ -34,6 +53,12 @@ export class MapDocument extends Node {
         this.attributes.set("steps", cfg("map.steps"));
     }
 
+    static default() {
+        const doc = new MapDocument();
+        [...createDefaultLayers()].forEach(layer => doc.append(layer));
+        return doc;
+    }
+
     static fromPMS(pms, path = "") {
         const doc = new MapDocument();
         doc.path = path;
@@ -47,27 +72,8 @@ export class MapDocument extends Node {
         doc.attr("weather", Enum.valueToName(PMS.WeatherType, pms.weather));
         doc.attr("steps", Enum.valueToName(PMS.StepsType, pms.steps));
 
-        const layers = {
-            resources: new LayerNode("Resources", LayerType.Resources),
-            backgroundPolygons: new LayerNode("Background polygons", LayerType.PolygonsBack),
-            backgroundScenery: new LayerNode("Background scenery", LayerType.SceneryBack),
-            middleScenery: new LayerNode("Middle scenery", LayerType.SceneryMiddle),
-            frontPolygons: new LayerNode("Front polygons", LayerType.PolygonsFront),
-            frontScenery: new LayerNode("Front scenery", LayerType.SceneryFront),
-            colliders: new LayerNode("Colliders", LayerType.Colliders),
-            waypoints: new LayerNode("Waypoints", LayerType.Waypoints),
-            spawns: new LayerNode("Spawns", LayerType.Spawns)
-        };
-
-        doc.append(layers.resources);
-        doc.append(layers.backgroundPolygons);
-        doc.append(layers.backgroundScenery);
-        doc.append(layers.middleScenery);
-        doc.append(layers.frontPolygons);
-        doc.append(layers.frontScenery);
-        doc.append(layers.colliders);
-        doc.append(layers.waypoints);
-        doc.append(layers.spawns);
+        const layers = createDefaultLayers();
+        [...layers].forEach(layer => doc.append(layer));
 
         const texture = TextureNode.fromPMS(pms, path);
         layers.resources.append(texture);
