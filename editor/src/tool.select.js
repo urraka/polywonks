@@ -82,7 +82,10 @@ export class SelectTool extends Tool {
                 this.editor.previewNodes = new Set(nodes);
                 this.editor.reactiveNode = nodes.pop();
             } else {
-                nodes = nodes.filter(node => !this.selection.has(node));
+                if (this.mode === "add") {
+                    nodes = nodes.filter(node => !this.selection.has(node));
+                }
+
                 this.editor.previewNodes = new Set(nodes);
 
                 if (nodes.length === 0) {
@@ -143,12 +146,12 @@ export class SelectTool extends Tool {
 
         let changed = false;
         this.updateMode(event);
+        this.updatePreviewNodes();
 
         if (this.mode === "replace") {
             changed = this.selection.clear();
         }
 
-        this.updatePreviewNodes();
         this.affectedNode = this.editor.reactiveNode;
         this.revertNodes = this.selection.clone();
         const affected = this.affectedNode ? new Set([this.affectedNode]) : new Set();
