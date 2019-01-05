@@ -1,4 +1,4 @@
-import * as ui from "./ui.js";
+import * as ui from "./ui/ui.js";
 import { cfg } from "./settings.js";
 
 export class NewMapCommand extends ui.Command {

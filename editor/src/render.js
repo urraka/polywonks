@@ -1,25 +1,28 @@
-import * as Gfx from "./gfx.js";
-import { Color } from "./color.js";
-import { Matrix } from "./matrix.js";
-import { LayerNode } from "./map.node.layer.js";
-import { TriangleNode } from "./map.node.triangle.js";
-import { Path } from "./path.js";
+import * as Gfx from "./gfx/gfx.js";
+import { Color } from "./support/color.js";
+import { Matrix } from "./support/matrix.js";
+import { Path } from "./support/path.js";
+import { Enum } from "./support/enum.js";
+import { processImage, gradientCircle } from "./support/image.js";
+import { dashToCamel } from "./support/format.js";
+import { Rect } from "./support/rect.js";
+import { SpawnTeam } from "./pms/pms.js";
 import { File } from "./file.js";
-import { TextureNode } from "./map.node.texture.js";
-import { SceneryNode } from "./map.node.scenery.js";
-import { ImageNode } from "./map.node.image.js";
-import { ColliderNode } from "./map.node.collider.js";
-import { SpawnTeam } from "./pms.js";
-import { Enum } from "./enum.js";
-import { SpawnNode } from "./map.node.spawn.js";
-import { processImage, gradientCircle } from "./image.js";
 import { cfg, Settings } from "./settings.js";
-import { WaypointNode } from "./map.node.waypoint.js";
-import { ConnectionNode } from "./map.node.connection.js";
 import { SelectTool } from "./tool.select.js";
-import { dashToCamel } from "./format.js";
-import { Rect } from "./rect.js";
-import { VertexNode } from "./map.node.vertex.js";
+
+import {
+    LayerNode,
+    TextureNode,
+    ImageNode,
+    SceneryNode,
+    TriangleNode,
+    VertexNode,
+    SpawnNode,
+    ColliderNode,
+    WaypointNode,
+    ConnectionNode,
+} from "./map/map.js";
 
 export class Renderer {
     constructor() {

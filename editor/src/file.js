@@ -1,4 +1,4 @@
-import { Path } from "./path.js";
+import { Path } from "./support/path.js";
 import { cfg } from "./settings.js";
 
 export class File {

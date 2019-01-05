@@ -1,5 +1,5 @@
+import { Pointer } from "./support/pointer.js";
 import { Tool } from "./tool.js";
-import { Pointer } from "./pointer.js";
 
 export class PanTool extends Tool {
     constructor() {

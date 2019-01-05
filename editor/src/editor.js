@@ -1,12 +1,12 @@
-import * as PMS from "./pms.js";
-import * as ui from "./ui.js";
-import { RenderView } from "./render.view.js";
-import { MapDocument } from "./map.document.js";
+import * as PMS from "./pms/pms.js";
+import * as ui from "./ui/ui.js";
+import { Path } from "./support/path.js";
+import { Event } from "./support/event.js";
+import { MapDocument } from "./map/map.js";
 import { File } from "./file.js";
+import { RenderView } from "./render.view.js";
 import { cfg } from "./settings.js";
 import { SelectTool } from "./tool.select.js";
-import { Path } from "./path.js";
-import { Event } from "./event.js";
 import { PanTool } from "./tool.pan.js";
 import { ZoomTool } from "./tool.zoom.js";
 import { MapExplorer } from "./map.explorer.js";
@@ -33,7 +33,8 @@ export class Editor extends ui.Panel {
         this.zoomTool = new ZoomTool();
         this.explorer = new MapExplorer(this.map);
 
-        this.view.on("change", e => this.onViewChange(e));
+        this.view.on("change", () => this.onViewChange());
+        this.selection.on("change", () => this.onSelectionChange());
         this.currentTool.on("change", e => this.emit(new Event("toolchange", { status: e.status })));
         this.element.addEventListener("mousemove", e => this.onMouseMove(e));
     }
@@ -101,8 +102,13 @@ export class Editor extends ui.Panel {
         }
     }
 
-    onViewChange(event) {
+    onViewChange() {
         this.emit(new Event("viewchange"));
+        this.redraw();
+    }
+
+    onSelectionChange() {
+        this.emit(new Event("selectionchange"));
         this.redraw();
     }
 

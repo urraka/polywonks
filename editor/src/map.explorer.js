@@ -1,4 +1,4 @@
-import * as ui from "./ui.js";
+import * as ui from "./ui/ui.js";
 
 export class MapExplorer extends ui.TreeView {
     constructor(map) {

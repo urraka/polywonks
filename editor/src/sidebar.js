@@ -1,4 +1,4 @@
-import * as ui from "./ui.js";
+import * as ui from "./ui/ui.js";
 import { Explorer } from "./explorer.js";
 import { MapExplorer } from "./map.explorer.js";
 import { MapProperties } from "./map.properties.js";

@@ -1,5 +1,5 @@
-import { Matrix } from "./matrix.js";
-import { EventEmmiter, Event } from "./event.js";
+import { Matrix } from "./support/matrix.js";
+import { EventEmmiter, Event } from "./support/event.js";
 
 // {x, y} is in map coordinates and always maps to the center of the canvas
 export class RenderView extends EventEmmiter {

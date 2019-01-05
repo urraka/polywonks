@@ -1,9 +1,9 @@
-import { Rect } from "./rect.js";
-import { cfg } from "./settings.js";
-import { Event } from "./event.js";
+import { Rect } from "./support/rect.js";
+import { Event } from "./support/event.js";
+import { mod } from "./support/math.js";
+import { Pointer } from "./support/pointer.js";
 import { Tool } from "./tool.js";
-import { Pointer } from "./pointer.js";
-import { mod } from "./math.js";
+import { cfg } from "./settings.js";
 
 export class SelectTool extends Tool {
     constructor() {

@@ -1,4 +1,4 @@
-import * as ui from "./ui.js";
+import * as ui from "./ui/ui.js";
 import { File } from "./file.js";
 
 export class Explorer extends ui.Panel {

@@ -1,9 +1,9 @@
-import * as ui from "./ui.js";
+import * as ui from "./ui/ui.js";
+import * as fmt from "./support/format.js";
 import * as cmd from "./commands.js";
-import * as fmt from "./format.js";
+import { Path } from "./support/path.js";
 import { Renderer } from "./render.js";
 import { Editor } from "./editor.js";
-import { Path } from "./path.js";
 import { Sidebar } from "./sidebar.js";
 
 export class App extends ui.Panel {
