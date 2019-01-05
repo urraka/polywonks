@@ -12,6 +12,14 @@ button:hover, button:active, button.active {
     background-color: #fff;
 }
 
+input {
+    background-color: #3c3c3c;
+}
+
+input:focus {
+    outline: 1px solid #007acc;
+}
+
 .startup-loading > div {
     border-color: rgba(255, 255, 255, .3);
     border-top-color: #fff;

@@ -16,7 +16,9 @@ export class Sidebar extends ui.Panel {
 
     set editor(editor) {
         const explorer = this.element.querySelector(".map-explorer");
+        const properties = this.element.querySelector(".map-properties");
         explorer.replaceWith(editor.explorer.element);
+        properties.replaceWith(editor.properties.element);
     }
 
     setActiveTab(id) {

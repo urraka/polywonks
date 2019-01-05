@@ -29,8 +29,8 @@ ul, ul li, ul ul li {
    list-style-type: none;
 }
 
-button {
-    border: none;
+input, button {
+    border: 0 none;
     margin: 0;
     padding: 0;
     width: auto;
@@ -323,6 +323,34 @@ body {
     padding: 0 6px;
     border-radius: 3px;
     pointer-events: all;
+}
+
+.property-sheet {
+    overflow-y: auto;
+    padding: 4px;
+}
+
+.property-sheet > .property-labels {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    min-width: fit-content;
+}
+
+.property-sheet > .property-inputs {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.property-sheet > .property-labels > label,
+.property-sheet > .property-inputs > input {
+    display: block;
+    white-space: nowrap;
+    height: 22px;
+    line-height: 22px;
+    margin: 4px;
+    padding: 0 4px;
 }
 
 .titlebar-icon {

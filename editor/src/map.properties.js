@@ -1,7 +1,8 @@
 import * as ui from "./ui/ui.js";
 
-export class MapProperties extends ui.Panel {
+export class MapProperties extends ui.PropertySheet {
     constructor() {
-        super("map-properties");
+        super();
+        this.element.classList.add("map-properties");
     }
 }

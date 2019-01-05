@@ -11,6 +11,7 @@ import { PanTool } from "./tool.pan.js";
 import { ZoomTool } from "./tool.zoom.js";
 import { MapExplorer } from "./map.explorer.js";
 import { Selection } from "./selection.js";
+import { MapProperties } from "./map.properties.js";
 
 export class Editor extends ui.Panel {
     constructor(renderer, map = MapDocument.default()) {
@@ -32,11 +33,14 @@ export class Editor extends ui.Panel {
         this.panTool = new PanTool();
         this.zoomTool = new ZoomTool();
         this.explorer = new MapExplorer(this.map);
+        this.properties = new MapProperties();
 
         this.view.on("change", () => this.onViewChange());
         this.selection.on("change", () => this.onSelectionChange());
         this.currentTool.on("change", e => this.emit(new Event("toolchange", { status: e.status })));
         this.element.addEventListener("mousemove", e => this.onMouseMove(e));
+
+        setTimeout(() => this.onSelectionChange());
     }
 
     do(command) {
@@ -109,6 +113,11 @@ export class Editor extends ui.Panel {
 
     onSelectionChange() {
         this.emit(new Event("selectionchange"));
+        this.properties.clear();
+        const node = this.selection.nodes.values().next().value || this.map;
+        for (const [key, value] of node.attributes) {
+            this.properties.addProperty(key, value);
+        }
         this.redraw();
     }
 
