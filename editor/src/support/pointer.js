@@ -33,6 +33,7 @@ export class Pointer extends EventEmmiter {
             this.element.removeEventListener("mousedown", this.onMouseDown);
             this.element.removeEventListener("mouseup", this.onMouseUp);
             this.element.removeEventListener("mousemove", this.onMouseMove);
+            this.element = null;
         }
     }
 
