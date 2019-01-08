@@ -2,26 +2,26 @@ import * as PMS from "../pms/pms.js";
 import * as Geometry from "../support/geometry.js";
 import { Color } from "../support/color.js";
 import { Matrix } from "../support/matrix.js";
-import { Enum } from "../support/enum.js";
 import { Sprite } from "../gfx/gfx.js";
 import { Node } from "./node.js";
 import { LayerType, LayerNode } from "./layer.js";
+import { Attribute } from "./attribute.js";
 
 export class SceneryNode extends Node {
     constructor() {
         super("scenery");
-        this.attributes.set("text", "Scenery");
-        this.attributes.set("image", null);
-        this.attributes.set("x", 0);
-        this.attributes.set("y", 0);
-        this.attributes.set("width", 0);
-        this.attributes.set("height", 0);
-        this.attributes.set("centerX", 0);
-        this.attributes.set("centerY", 0);
-        this.attributes.set("scaleX", 0);
-        this.attributes.set("scaleY", 0);
-        this.attributes.set("rotation", 0);
-        this.attributes.set("color", new Color(255, 255, 255));
+        this.attributes.get("text").value = "Scenery";
+        this.attributes.set("image", new Attribute("node", null));
+        this.attributes.set("x", new Attribute("float", 0));
+        this.attributes.set("y", new Attribute("float", 0));
+        this.attributes.set("width", new Attribute("float", 0));
+        this.attributes.set("height", new Attribute("float", 0));
+        this.attributes.set("centerX", new Attribute("float", 0));
+        this.attributes.set("centerY", new Attribute("float", 0));
+        this.attributes.set("scaleX", new Attribute("float", 0));
+        this.attributes.set("scaleY", new Attribute("float", 0));
+        this.attributes.set("rotation", new Attribute("float", 0));
+        this.attributes.set("color", new Attribute("color", new Color(255, 255, 255)));
     }
 
     static fromPMS(prop, imageNodes) {
@@ -71,7 +71,7 @@ export class SceneryNode extends Node {
         ];
 
         const layer = [...this.filter(this.ancestors(), LayerNode)][0];
-        const layerType = layer ? Enum.nameToValue(LayerType, layer.attr("type")) : -1;
+        const layerType = layer ? LayerType.value(layer.attr("type")) : -1;
 
         const prop = new PMS.Prop();
         prop.active = true;

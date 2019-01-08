@@ -20,6 +20,7 @@
 
 :focus {
     outline: none;
+    outline-offset: 0;
 }
 
 ul, ul li, ul ul li {

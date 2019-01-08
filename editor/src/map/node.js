@@ -1,5 +1,10 @@
-export class Node {
+import { EventEmmiter, Event } from "../support/event.js";
+import { ValueType } from "../support/type.js";
+import { Attribute } from "./attribute.js";
+
+export class Node extends EventEmmiter {
     constructor(nodeName) {
+        super();
         this.owner = null;
         this.nodeName = nodeName;
         this.parentNode = null;
@@ -8,13 +13,32 @@ export class Node {
         this.nextSibling = null;
         this.previousSibling = null;
         this.attributes = new Map();
+        this.attributes.set("text", new Attribute("string", ""));
+    }
+
+    emit(event) {
+        super.emit(event);
+        if (this.parentNode) {
+            this.parentNode.emit(event);
+        }
     }
 
     attr(name, value) {
+        const attribute = this.attributes.get(name);
+
+        if (!attribute) {
+            throw new Error("Invalid attribute");
+        }
+
         if (value === undefined) {
-            return this.attributes.get(name);
+            return attribute.value;
         } else {
-            this.attributes.set(name, value);
+            const val = attribute.value;
+            attribute.value = value;
+
+            if (!ValueType.equals(attribute.dataType, val, attribute.value)) {
+                this.emit(new Event("attributechange", { attribute: name }));
+            }
         }
     }
 

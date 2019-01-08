@@ -2,11 +2,12 @@ import * as Sectors from "./sectors.js";
 import { pms_read } from "./read.js";
 import { pms_write } from "./write.js";
 import { Color } from "../support/color.js";
+import { Enum } from "../support/enum.js";
 
 // -------------------------------------------------------------------------- //
 // enums
 
-export const PolyType = Object.freeze({
+export const PolyType = new Enum({
     Normal: 0,
     OnlyBulletsCollide: 1,
     OnlyPlayersCollide: 2,
@@ -35,20 +36,20 @@ export const PolyType = Object.freeze({
     BackgroundTransition: 25
 });
 
-export const WeatherType = Object.freeze({
+export const WeatherType = new Enum({
     None: 0,
     Rain: 1,
     Sandstorm: 2,
     Snow: 3
 });
 
-export const StepsType = Object.freeze({
+export const StepsType = new Enum({
     HardGround: 0,
     SoftGround: 1,
     None: 2
 });
 
-export const ActionType = Object.freeze({
+export const ActionType = new Enum({
     None: 0,
     StopAndCamp: 1,
     Wait1Second: 2,
@@ -58,12 +59,12 @@ export const ActionType = Object.freeze({
     Wait20Seconds: 6
 });
 
-export const PathType = Object.freeze({
+export const PathType = new Enum({
     Path1: 1,
     Path2: 2
 });
 
-export const SpawnTeam = Object.freeze({
+export const SpawnTeam = new Enum({
     General: 0,
     Alpha: 1,
     Bravo: 2,

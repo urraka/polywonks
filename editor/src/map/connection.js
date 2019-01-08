@@ -1,12 +1,13 @@
 import * as Geometry from "../support/geometry.js";
 import { cfg } from "../settings.js";
 import { Node } from "./node.js";
+import { Attribute } from "./attribute.js";
 
 export class ConnectionNode extends Node {
     constructor(waypoint = null) {
         super("connection");
-        this.attributes.set("text", "Connection");
-        this.attributes.set("waypoint", waypoint);
+        this.attributes.get("text").value = "Connection";
+        this.attributes.set("waypoint", new Attribute("node", waypoint));
     }
 
     intersectsPoint(x, y, scale) {

@@ -2,7 +2,6 @@ import * as Gfx from "./gfx/gfx.js";
 import { Color } from "./support/color.js";
 import { Matrix } from "./support/matrix.js";
 import { Path } from "./support/path.js";
-import { Enum } from "./support/enum.js";
 import { processImage, gradientCircle } from "./support/image.js";
 import { dashToCamel } from "./support/format.js";
 import { Rect } from "./support/rect.js";
@@ -39,8 +38,8 @@ export class Renderer {
         this.selectionNodes = null;
         this.theme = null;
 
-        for (const spawnType of Enum.values(SpawnTeam)) {
-            this.loadIcon("spawn-" + Enum.valueToName(SpawnTeam, spawnType));
+        for (const spawnType of SpawnTeam.names()) {
+            this.loadIcon("spawn-" + spawnType);
         }
     }
 

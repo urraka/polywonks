@@ -3,14 +3,15 @@ import { Color } from "../support/color.js";
 import { Path } from "../support/path.js";
 import { File } from "../file.js";
 import { Node } from "./node.js";
+import { Attribute } from "./attribute.js";
 
 export class ImageNode extends Node {
     constructor() {
         super("image");
-        this.attributes.set("text", "Image");
-        this.attributes.set("src", "");
-        this.attributes.set("export-name", "");
-        this.attributes.set("color-key", new Color());
+        this.attributes.get("text").value = "Image";
+        this.attributes.set("src", new Attribute("string", ""));
+        this.attributes.set("export-name", new Attribute("string", ""));
+        this.attributes.set("color-key", new Attribute("color", new Color()));
     }
 
     static fromPMS(scenery, path) {

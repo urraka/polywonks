@@ -114,6 +114,10 @@ export class Color extends Uint8Array {
             (this.a !== 255 ? "." + toStr(this.a) : "");
     }
 
+    equals(b) {
+        return this[0] === b[0] && this[1] === b[1] && this[2] === b[2] && this[3] === b[3];
+    }
+
     static rgba(r, g, b, a = 255) {
         return new Color(r, g, b, a);
     }

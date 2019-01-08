@@ -3,14 +3,15 @@ import * as Geometry from "../support/geometry.js";
 import { Rect } from "../support/rect.js";
 import { cfg } from "../settings.js";
 import { Node } from "./node.js";
+import { Attribute } from "./attribute.js";
 
 export class ColliderNode extends Node {
     constructor() {
         super("collider");
-        this.attributes.set("text", "Collider");
-        this.attributes.set("x", 0);
-        this.attributes.set("y", 0);
-        this.attributes.set("radius", cfg("map.collider-radius"));
+        this.attributes.get("text").value = "Collider";
+        this.attributes.set("x", new Attribute("float", 0));
+        this.attributes.set("y", new Attribute("float", 0));
+        this.attributes.set("radius", new Attribute("float", cfg("map.collider-radius")));
     }
 
     static fromPMS(collider) {

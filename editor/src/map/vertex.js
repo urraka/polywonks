@@ -3,16 +3,17 @@ import { Color } from "../support/color.js";
 import { rectContainsPoint } from "../support/geometry.js";
 import { cfg } from "../settings.js";
 import { Node } from "./node.js";
+import { Attribute } from "./attribute.js";
 
 export class VertexNode extends Node {
     constructor() {
         super("vertex");
-        this.attributes.set("text", "Vertex");
-        this.attributes.set("x", 0);
-        this.attributes.set("y", 0);
-        this.attributes.set("u", 0);
-        this.attributes.set("v", 0);
-        this.attributes.set("color", new Color(255, 255, 255, 255));
+        this.attributes.get("text").value = "Vertex";
+        this.attributes.set("x", new Attribute("float", 0));
+        this.attributes.set("y", new Attribute("float", 0));
+        this.attributes.set("u", new Attribute("float", 0));
+        this.attributes.set("v", new Attribute("float", 0));
+        this.attributes.set("color", new Attribute("color", new Color(255, 255, 255, 255)));
     }
 
     static fromPMS(vertex) {

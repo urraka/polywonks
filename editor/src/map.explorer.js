@@ -1,12 +1,12 @@
 import * as ui from "./ui/ui.js";
 
 export class MapExplorer extends ui.TreeView {
-    constructor(map) {
+    constructor(editor) {
         super();
         this.element.classList.add("map-explorer");
 
-        if (map) {
-            const root = this.addNode(this, map);
+        if (editor) {
+            const root = this.addNode(this, editor.map);
             root.expanded = true;
         }
     }

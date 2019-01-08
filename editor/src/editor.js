@@ -32,9 +32,10 @@ export class Editor extends ui.Panel {
         this.currentTool = new SelectTool();
         this.panTool = new PanTool();
         this.zoomTool = new ZoomTool();
-        this.explorer = new MapExplorer(this.map);
-        this.properties = new MapProperties();
+        this.explorer = new MapExplorer(this);
+        this.properties = new MapProperties(this);
 
+        this.map.on("attributechange", e => this.onMapAttrChange(e));
         this.view.on("change", () => this.onViewChange());
         this.selection.on("change", () => this.onSelectionChange());
         this.currentTool.on("change", e => this.emit(new Event("toolchange", { status: e.status })));
@@ -106,6 +107,10 @@ export class Editor extends ui.Panel {
         }
     }
 
+    onMapAttrChange() {
+        this.redraw();
+    }
+
     onViewChange() {
         this.emit(new Event("viewchange"));
         this.redraw();
@@ -113,11 +118,6 @@ export class Editor extends ui.Panel {
 
     onSelectionChange() {
         this.emit(new Event("selectionchange"));
-        this.properties.clear();
-        const node = this.selection.nodes.values().next().value || this.map;
-        for (const [key, value] of node.attributes) {
-            this.properties.addProperty(key, value);
-        }
         this.redraw();
     }
 

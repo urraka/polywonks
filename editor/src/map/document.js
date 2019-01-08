@@ -1,8 +1,8 @@
 import * as PMS from "../pms/pms.js";
 import { cfg } from "../settings.js";
-import { Enum } from "../support/enum.js";
 import { Rect } from "../support/rect.js";
 import { Color } from "../support/color.js";
+import { Attribute } from "./attribute.js";
 import { Node } from "./node.js";
 import { LayerNode, LayerType } from "./layer.js";
 import { TriangleNode } from "./triangle.js";
@@ -14,6 +14,7 @@ import { SpawnNode } from "./spawn.js";
 import { WaypointNode } from "./waypoint.js";
 import { VertexNode } from "./vertex.js";
 import { ConnectionNode } from "./connection.js";
+import { ValueType } from "../support/type.js";
 
 function createDefaultLayers() {
     return (list => {
@@ -42,15 +43,15 @@ export class MapDocument extends Node {
         this.path = "";
         this.iconsInfo = {};
 
-        this.attributes.set("text", "Map");
-        this.attributes.set("description", "");
-        this.attributes.set("color-top", new Color(cfg("map.color-top")));
-        this.attributes.set("color-bottom", new Color(cfg("map.color-bottom")));
-        this.attributes.set("jet", cfg("map.jet"));
-        this.attributes.set("grenades", cfg("map.grenades"));
-        this.attributes.set("medikits", cfg("map.medikits"));
-        this.attributes.set("weather", cfg("map.weather"));
-        this.attributes.set("steps", cfg("map.steps"));
+        this.attributes.get("text").value = "Map";
+        this.attributes.set("description", new Attribute("string", ""));
+        this.attributes.set("color-top", new Attribute("color", new Color(cfg("map.color-top"))));
+        this.attributes.set("color-bottom", new Attribute("color", new Color(cfg("map.color-bottom"))));
+        this.attributes.set("jet", new Attribute("int16", cfg("map.jet")));
+        this.attributes.set("grenades", new Attribute("uint8", cfg("map.grenades")));
+        this.attributes.set("medikits", new Attribute("uint8", cfg("map.medikits")));
+        this.attributes.set("weather", new Attribute(PMS.WeatherType, cfg("map.weather")));
+        this.attributes.set("steps", new Attribute(PMS.StepsType, cfg("map.steps")));
     }
 
     static default() {
@@ -69,8 +70,8 @@ export class MapDocument extends Node {
         doc.attr("jet", pms.jetAmount);
         doc.attr("grenades", pms.grenades);
         doc.attr("medikits", pms.medikits);
-        doc.attr("weather", Enum.valueToName(PMS.WeatherType, pms.weather));
-        doc.attr("steps", Enum.valueToName(PMS.StepsType, pms.steps));
+        doc.attr("weather", PMS.WeatherType.name(pms.weather));
+        doc.attr("steps", PMS.StepsType.name(pms.steps));
 
         const layers = createDefaultLayers();
         [...layers].forEach(layer => doc.append(layer));
@@ -151,8 +152,8 @@ export class MapDocument extends Node {
         pms.jetAmount = this.attr("jet");
         pms.grenades = this.attr("grenades");
         pms.medikits = this.attr("medikits");
-        pms.weather = Enum.nameToValue(PMS.WeatherType, this.attr("weather"));
-        pms.steps = Enum.nameToValue(PMS.StepsType, this.attr("steps"));
+        pms.weather = PMS.WeatherType.value(this.attr("weather"));
+        pms.steps = PMS.StepsType.value(this.attr("steps"));
         pms.randId = Math.trunc(Math.random() * 0xffffffff);
 
         pms.polygons = [...this.filter(this.descendants(), TriangleNode)].map(node => node.toPMS());
@@ -207,8 +208,8 @@ export class MapDocument extends Node {
         const nodeTypeCount = {};
 
         for (const node of this.tree()) {
-            for (const [, value] of node.attributes) {
-                if (value instanceof Node) {
+            for (const [, {dataType, value}] of node.attributes) {
+                if (dataType === "node" && value !== null) {
                     if (!nodeId.has(value)) {
                         const name = value.nodeName;
                         nodeTypeCount[name] = nodeTypeCount[name] || 0;
@@ -222,11 +223,11 @@ export class MapDocument extends Node {
         const serializeNode = (node, level = 0) => {
             return `${"  ".repeat(level)}<` + node.nodeName +
                 (nodeId.has(node) ? ` id="${nodeId.get(node)}"` : "") +
-                [...node.attributes.entries()].reduce((accum, [key, value]) => {
-                    if (value instanceof Node) {
+                [...node.attributes.entries()].reduce((accum, [key, {dataType, value}]) => {
+                    if (dataType === "node" && value !== null) {
                         return accum + " " + `${key}="${nodeId.get(value)}"`;
                     } else {
-                        return accum + " " + `${key}="${value.toString()
+                        return accum + " " + `${key}="${ValueType.toString(dataType, value)
                             .replace(/&/g, "&amp;")
                             .replace(/</g, "&lt;")
                             .replace(/>/g, "&gt;")
@@ -281,19 +282,14 @@ export class MapDocument extends Node {
             const node = nodesByElement.get(element);
             for (const name of element.getAttributeNames()) {
                 if (node.attributes.has(name)) {
-                    const value = element.getAttribute(name);
-                    const defaultValue = node.attributes.get(name);
-
-                    if (defaultValue === null) {
-                        node.attributes.set(name, nodesById.get(value));
-                    } else if (defaultValue instanceof Color) {
-                        node.attributes.set(name, new Color(value));
-                    } else if (typeof defaultValue === "boolean") {
-                        node.attributes.set(name, value === "true" ? true : false);
-                    } else if (typeof defaultValue === "number") {
-                        node.attributes.set(name, Number(value));
+                    const strval = element.getAttribute(name);
+                    const attr = node.attributes.get(name);
+                    if (attr.dataType === "node") {
+                        if (strval) {
+                            attr.value = nodesById.get(strval);
+                        }
                     } else {
-                        node.attributes.set(name, value);
+                        attr.value = ValueType.fromString(attr.dataType, strval);
                     }
                 }
             }

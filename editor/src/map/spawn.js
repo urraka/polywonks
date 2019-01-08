@@ -1,23 +1,23 @@
 import * as PMS from "../pms/pms.js";
 import * as Geometry from "../support/geometry.js";
-import { Enum } from "../support/enum.js";
 import { Rect } from "../support/rect.js";
 import { Node } from "./node.js";
+import { Attribute } from "./attribute.js";
 
 export class SpawnNode extends Node {
     constructor() {
         super("spawn");
-        this.attributes.set("text", "Spawn");
-        this.attributes.set("x", 0);
-        this.attributes.set("y", 0);
-        this.attributes.set("type", "general");
+        this.attributes.get("text").value = "Spawn";
+        this.attributes.set("x", new Attribute("float", 0));
+        this.attributes.set("y", new Attribute("float", 0));
+        this.attributes.set("type", new Attribute(PMS.SpawnTeam, "general"));
     }
 
     static fromPMS(spawn) {
         const node = new SpawnNode();
         node.attr("x", spawn.x);
         node.attr("y", spawn.y);
-        node.attr("type", Enum.valueToName(PMS.SpawnTeam, spawn.team));
+        node.attr("type", PMS.SpawnTeam.name(spawn.team));
         return node;
     }
 
@@ -26,7 +26,7 @@ export class SpawnNode extends Node {
         spawn.active = true;
         spawn.x = this.attr("x");
         spawn.y = this.attr("y");
-        spawn.team = Enum.nameToValue(PMS.SpawnTeam, this.attr("type"));
+        spawn.team = PMS.SpawnTeam.value(this.attr("type"));
         return spawn;
     }
 

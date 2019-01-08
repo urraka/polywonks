@@ -1,21 +1,21 @@
 import * as PMS from "../pms/pms.js";
 import * as Geometry from "../support/geometry.js";
-import { Enum } from "../support/enum.js";
 import { Node } from "./node.js";
 import { VertexNode } from "./vertex.js";
+import { Attribute } from "./attribute.js";
 
 export class TriangleNode extends Node {
     constructor() {
         super("triangle");
-        this.attributes.set("text", "Triangle");
-        this.attributes.set("poly-type", "normal");
-        this.attributes.set("bounciness", 0);
-        this.attributes.set("texture", null);
+        this.attributes.get("text").value = "Triangle";
+        this.attributes.set("poly-type", new Attribute(PMS.PolyType, "normal"));
+        this.attributes.set("bounciness", new Attribute("float", 0));
+        this.attributes.set("texture", new Attribute("node", null));
     }
 
     static fromPMS(polygon, textureNode) {
         const node = new TriangleNode();
-        node.attr("poly-type", Enum.valueToName(PMS.PolyType, polygon.type));
+        node.attr("poly-type", PMS.PolyType.name(polygon.type));
         node.attr("bounciness", Math.round(100 * Math.max(0, Math.hypot(polygon.normals[2].x, polygon.normals[2].y) - 1)));
         node.attr("texture", textureNode);
         polygon.vertices.forEach(v => node.append(VertexNode.fromPMS(v)));
@@ -24,7 +24,7 @@ export class TriangleNode extends Node {
 
     toPMS() {
         const polygon = new PMS.Polygon();
-        polygon.type = Enum.nameToValue(PMS.PolyType, this.attr("poly-type"));
+        polygon.type = PMS.PolyType.value(this.attr("poly-type"));
 
         polygon.vertices = [...this.filter(this.children(), VertexNode)].map(node => {
             return node.toPMS();

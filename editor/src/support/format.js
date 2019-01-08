@@ -9,3 +9,7 @@ export function dashToPascal(str) {
 export function dashToCamel(str) {
     return str.replace(/(-.)/g, (m, p1) => p1.slice(-1).toUpperCase());
 }
+
+export function isPascalCase(str) {
+    return /^[A-Z][A-z0-9]*$/.test(str);
+}

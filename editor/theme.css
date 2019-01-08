@@ -20,6 +20,10 @@ input:focus {
     outline: 1px solid #007acc;
 }
 
+input.invalid {
+    outline: 1px solid #f00;
+}
+
 .startup-loading > div {
     border-color: rgba(255, 255, 255, .3);
     border-top-color: #fff;

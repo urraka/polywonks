@@ -1,7 +1,8 @@
 import { Enum } from "../support/enum.js";
 import { Node } from "./node.js";
+import { Attribute } from "./attribute.js";
 
-export const LayerType = Object.freeze({
+export const LayerType = new Enum({
     Resources: -1,
     PolygonsBack: 0,
     SceneryBack: 1,
@@ -16,7 +17,7 @@ export const LayerType = Object.freeze({
 export class LayerNode extends Node {
     constructor(name = "Layer", type = LayerType.PolygonsBack) {
         super("layer");
-        this.attributes.set("text", name);
-        this.attributes.set("type", Enum.valueToName(LayerType, type));
+        this.attributes.get("text").value = name;
+        this.attributes.set("type", new Attribute(LayerType, LayerType.name(type)));
     }
 }

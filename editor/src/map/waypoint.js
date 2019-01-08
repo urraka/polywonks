@@ -1,24 +1,24 @@
 import * as PMS from "../pms/pms.js";
 import * as Geometry from "../support/geometry.js";
-import { Enum } from "../support/enum.js";
 import { Rect } from "../support/rect.js";
 import { cfg } from "../settings.js";
 import { Node } from "./node.js";
 import { ConnectionNode } from "./connection.js";
+import { Attribute } from "./attribute.js";
 
 export class WaypointNode extends Node {
     constructor() {
         super("waypoint");
-        this.attributes.set("text", "Waypoint");
-        this.attributes.set("x", 0);
-        this.attributes.set("y", 0);
-        this.attributes.set("left", false);
-        this.attributes.set("right", false);
-        this.attributes.set("up", false);
-        this.attributes.set("down", false);
-        this.attributes.set("jet", false);
-        this.attributes.set("path", "path-1");
-        this.attributes.set("action", "none");
+        this.attributes.get("text").value = "Waypoint";
+        this.attributes.set("x", new Attribute("float", 0));
+        this.attributes.set("y", new Attribute("float", 0));
+        this.attributes.set("left", new Attribute("boolean", false));
+        this.attributes.set("right", new Attribute("boolean", false));
+        this.attributes.set("up", new Attribute("boolean", false));
+        this.attributes.set("down", new Attribute("boolean", false));
+        this.attributes.set("jet", new Attribute("boolean", false));
+        this.attributes.set("path", new Attribute(PMS.PathType, "path-1"));
+        this.attributes.set("action", new Attribute(PMS.ActionType, "none"));
     }
 
     fromPMS(waypoint, waypointNodes) {
@@ -29,8 +29,8 @@ export class WaypointNode extends Node {
         this.attr("up", waypoint.up);
         this.attr("down", waypoint.down);
         this.attr("jet", waypoint.jet);
-        this.attr("path", Enum.valueToName(PMS.PathType, waypoint.path));
-        this.attr("action", Enum.valueToName(PMS.ActionType, waypoint.action));
+        this.attr("path", PMS.PathType.name(waypoint.path));
+        this.attr("action", PMS.ActionType.name(waypoint.action));
 
         for (const connection of waypoint.connections) {
             const waypointNode = waypointNodes[connection - 1];
@@ -51,8 +51,8 @@ export class WaypointNode extends Node {
         waypoint.up = this.attr("up");
         waypoint.down = this.attr("down");
         waypoint.jet = this.attr("jet");
-        waypoint.path = Enum.nameToValue(PMS.PathType, this.attr("path"));
-        waypoint.action = Enum.nameToValue(PMS.ActionType, this.attr("action"));
+        waypoint.path = PMS.PathType.value(this.attr("path"));
+        waypoint.action = PMS.ActionType.value(this.attr("action"));
         waypoint.connections = [...this.children()].map(node => waypointNodes.indexOf(node.attr("waypoint")) + 1);
         return waypoint;
     }
