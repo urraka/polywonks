@@ -1,8 +1,8 @@
 import { Panel, elem } from "./common.js";
-import { EventEmmiter, Event } from "../support/event.js";
+import { EventEmitter, Event } from "../support/event.js";
 import { ValueType } from "../support/type.js";
 
-export class PropertyItem extends EventEmmiter {
+export class PropertyItem extends EventEmitter {
     constructor(key, value, type, title) {
         super();
         this.key = key;

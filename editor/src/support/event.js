@@ -11,7 +11,7 @@ export class Event {
     }
 }
 
-export class EventEmmiter {
+export class EventEmitter {
     constructor() {
         this.listeners = {};
     }

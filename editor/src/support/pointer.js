@@ -1,6 +1,6 @@
-import { EventEmmiter, Event } from "./event.js";
+import { EventEmitter, Event } from "./event.js";
 
-export class Pointer extends EventEmmiter {
+export class Pointer extends EventEmitter {
     constructor() {
         super();
         this.element = null;

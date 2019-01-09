@@ -1,8 +1,8 @@
-import { EventEmmiter, Event } from "../support/event.js";
+import { EventEmitter, Event } from "../support/event.js";
 import { ValueType } from "../support/type.js";
 import { Attribute } from "./attribute.js";
 
-export class Node extends EventEmmiter {
+export class Node extends EventEmitter {
     constructor(nodeName) {
         super();
         this.owner = null;
