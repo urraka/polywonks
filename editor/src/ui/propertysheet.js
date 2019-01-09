@@ -14,14 +14,22 @@ export class PropertyItem extends EventEmmiter {
         this.input.value = ValueType.toString(type, value);
         this.onChange = this.onChange.bind(this);
         this.input.addEventListener("change", this.onChange);
+        this.input.addEventListener("input", () => this.onInput());
+    }
+
+    onInput() {
+        const strval = ValueType.toString(this.type, this.value);
+        this.input.classList.toggle("modified", this.input.value !== strval);
     }
 
     onChange() {
         const strval = ValueType.toString(this.type, this.value);
+        this.input.classList.remove("invalid");
         if (this.input.value !== strval) {
             try {
                 const val = this.value;
                 this.value = ValueType.fromString(this.type, this.input.value);
+                this.input.classList.remove("modified");
                 this.input.removeEventListener("change", this.onChange);
                 this.input.value = ValueType.toString(this.type, this.value);
                 this.input.addEventListener("change", this.onChange);

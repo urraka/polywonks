@@ -51,12 +51,23 @@ export function cfg(name, value) {
     }
 }
 
+export function cfgDefault(name) {
+    return Settings.getDefault(name);
+}
+
 export class Settings {
     static get(name) {
         if (!(name in settings)) {
             throw new Error("Invalid setting");
         }
         return settings[name];
+    }
+
+    static getDefault(name) {
+        if (!(name in defaultSettings)) {
+            throw new Error("Invalid setting");
+        }
+        return defaultSettings[name];
     }
 
     static set(name, value) {

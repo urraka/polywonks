@@ -68,7 +68,7 @@ export class Color extends Uint8Array {
         }
     }
 
-    parse(str) {
+    parse(str, defaultColor) {
         let m;
 
         if (m = str.match(/^#?([0-9a-f]{3})$/i)) {
@@ -103,9 +103,17 @@ export class Color extends Uint8Array {
                 Math.min(255, m[3]),
                 Math.min(255, Math.round(m[4] * 255))
             ]);
+        } else if (defaultColor !== undefined) {
+            this.set(defaultColor);
         } else {
-            console.warn("Invalid color string");
+            throw new Error("Invalid color string");
         }
+    }
+
+    static parse(...args) {
+        const color = new Color();
+        color.parse(...args);
+        return color;
     }
 
     toString() {

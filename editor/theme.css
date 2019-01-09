@@ -24,6 +24,10 @@ input.invalid {
     outline: 1px solid #f00;
 }
 
+input.modified {
+    color: #fff;
+}
+
 .startup-loading > div {
     border-color: rgba(255, 255, 255, .3);
     border-top-color: #fff;

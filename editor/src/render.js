@@ -7,7 +7,7 @@ import { dashToCamel } from "./support/format.js";
 import { Rect } from "./support/rect.js";
 import { SpawnTeam } from "./pms/pms.js";
 import { File } from "./file.js";
-import { cfg, Settings } from "./settings.js";
+import { cfg, cfgDefault, Settings } from "./settings.js";
 import { SelectTool } from "./tool.select.js";
 
 import {
@@ -56,7 +56,7 @@ export class Renderer {
         for (const key of Settings.list()) {
             if (key.startsWith("theme.")) {
                 const propertyName = dashToCamel(key.substring("theme.".length));
-                this.theme[propertyName] = new Color(cfg(key));
+                this.theme[propertyName] = Color.parse(cfg(key), cfgDefault(key));
             }
         }
     }
