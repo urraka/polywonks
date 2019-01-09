@@ -8,6 +8,7 @@
     --icon-close: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.428 8L12 10.573 10.572 12 8 9.428 5.428 12 4 10.573 6.572 8 4 5.428 5.427 4 8 6.572 10.573 4 12 5.428 9.428 8z' fill='%23000'/%3E%3C/svg%3E");
     --icon-check: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='-2 -2 16 16'%3E%3Cpath fill='%23424242' d='M9 0L4.5 9 3 6H0l3 6h3l6-12z'/%3E%3C/svg%3E");
     --icon-submenu: url("data:image/svg+xml;charset=utf-8,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4.52 12.364L9.879 7 4.52 1.636l.615-.615L11.122 7l-5.986 5.98-.615-.616z' fill='%23000'/%3E%3C/svg%3E");
+    --icon-options: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23000' d='M11 4.414H5.344L8.172 10L11 4.414z' stroke-linejoin='round' stroke='%23000'/%3E%3C/svg%3E");
 }
 
 *, ::before, ::after {
@@ -329,6 +330,7 @@ body {
 .property-sheet {
     overflow-y: auto;
     padding: 4px;
+    max-width: 100%;
 }
 
 .property-sheet > .property-labels {
@@ -342,6 +344,7 @@ body {
     display: flex;
     flex-direction: column;
     flex: 1;
+    width: 0;
 }
 
 .property-sheet > .property-labels > label,
@@ -352,6 +355,47 @@ body {
     line-height: 22px;
     margin: 4px;
     padding: 0 4px;
+}
+
+.select {
+    display: block;
+    position: relative;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    height: 22px;
+    line-height: 22px;
+    margin: 4px;
+    padding: 0 16px 0 4px;
+    overflow: hidden;
+}
+
+.select::after {
+    content: '';
+    display: block;
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 16px;
+    height: 22px;
+    mask-size: 14px 15px;
+    -webkit-mask-size: 14px 15px;
+    mask-image: var(--icon-options);
+    -webkit-mask-image: var(--icon-options);
+}
+
+.select-options {
+    position: absolute;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.select-options > .select-item {
+    white-space: nowrap;
+    line-height: 22px;
+    padding: 0 4px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .titlebar-icon {

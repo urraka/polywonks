@@ -1,6 +1,7 @@
 import { Panel, elem } from "./common.js";
 import { EventEmitter, Event } from "../support/event.js";
 import { ValueType } from "../support/type.js";
+import { Select } from "./select.js";
 
 export class PropertyItem extends EventEmitter {
     constructor(key, value, type, title) {
@@ -9,20 +10,33 @@ export class PropertyItem extends EventEmitter {
         this.value = value;
         this.type = type;
         this.label = elem("label");
-        this.input = elem("input");
         this.label.textContent = title;
-        this.input.value = ValueType.toString(type, value);
-        this.onChange = this.onChange.bind(this);
-        this.input.addEventListener("change", this.onChange);
-        this.input.addEventListener("input", () => this.onInput());
+        this.onTextChange = this.onTextChange.bind(this);
+
+        if (type.toString() === "enum") {
+            this.input = new Select();
+            [...type.names()].forEach(name => this.input.addOption(name, name));
+            this.input.value = value;
+            this.input.on("change", () => this.onSelectChange());
+        } else {
+            this.input = elem("input");
+            this.input.value = ValueType.toString(type, value);
+            this.input.addEventListener("change", this.onTextChange);
+            this.input.addEventListener("input", () => this.onTextInput());
+        }
     }
 
-    onInput() {
+    onSelectChange() {
+        this.value = this.input.value;
+        this.emit(new Event("change"));
+    }
+
+    onTextInput() {
         const strval = ValueType.toString(this.type, this.value);
         this.input.classList.toggle("modified", this.input.value !== strval);
     }
 
-    onChange() {
+    onTextChange() {
         const strval = ValueType.toString(this.type, this.value);
         this.input.classList.remove("invalid");
         if (this.input.value !== strval) {
@@ -30,9 +44,9 @@ export class PropertyItem extends EventEmitter {
                 const val = this.value;
                 this.value = ValueType.fromString(this.type, this.input.value);
                 this.input.classList.remove("modified");
-                this.input.removeEventListener("change", this.onChange);
+                this.input.removeEventListener("change", this.onTextChange);
                 this.input.value = ValueType.toString(this.type, this.value);
-                this.input.addEventListener("change", this.onChange);
+                this.input.addEventListener("change", this.onTextChange);
                 if (!ValueType.equals(this.type, val, this.value)) {
                     this.emit(new Event("change"));
                 }
@@ -52,7 +66,7 @@ export class PropertySheet extends Panel {
     addProperty(key, value, type, title = key) {
         const property = new PropertyItem(key, value, type, title);
         this.columns[0].append(property.label);
-        this.columns[1].append(property.input);
+        this.columns[1].append(property.input.element || property.input);
         property.on("change", () => this.emit(new Event("propertychange", { property })));
     }
 

@@ -16,7 +16,7 @@ input {
     background-color: #3c3c3c;
 }
 
-input:focus {
+input:focus, .select:focus, .select.active, .select-options {
     outline: 1px solid #007acc;
 }
 
@@ -26,6 +26,18 @@ input.invalid {
 
 input.modified {
     color: #fff;
+}
+
+.select, .select-options {
+    background-color: #3c3c3c;
+}
+
+.select::after {
+    background-color: #ccc;
+}
+
+.select-options > .select-item:hover {
+    background-color: #062F4A;
 }
 
 .startup-loading > div {
