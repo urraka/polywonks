@@ -17,7 +17,7 @@ export class SpawnNode extends Node {
         const node = new SpawnNode();
         node.attr("x", spawn.x);
         node.attr("y", spawn.y);
-        node.attr("type", PMS.SpawnTeam.name(spawn.team));
+        node.attr("type", spawn.team);
         return node;
     }
 

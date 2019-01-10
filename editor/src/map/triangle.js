@@ -15,7 +15,7 @@ export class TriangleNode extends Node {
 
     static fromPMS(polygon, textureNode) {
         const node = new TriangleNode();
-        node.attr("poly-type", PMS.PolyType.name(polygon.type));
+        node.attr("poly-type", polygon.type);
         node.attr("bounciness", Math.round(100 * Math.max(0, Math.hypot(polygon.normals[2].x, polygon.normals[2].y) - 1)));
         node.attr("texture", textureNode);
         polygon.vertices.forEach(v => node.append(VertexNode.fromPMS(v)));

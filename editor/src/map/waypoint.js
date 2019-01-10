@@ -29,8 +29,8 @@ export class WaypointNode extends Node {
         this.attr("up", waypoint.up);
         this.attr("down", waypoint.down);
         this.attr("jet", waypoint.jet);
-        this.attr("path", PMS.PathType.name(waypoint.path));
-        this.attr("action", PMS.ActionType.name(waypoint.action));
+        this.attr("path", waypoint.path);
+        this.attr("action", waypoint.action);
 
         for (const connection of waypoint.connections) {
             const waypointNode = waypointNodes[connection - 1];

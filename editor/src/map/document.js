@@ -70,8 +70,8 @@ export class MapDocument extends Node {
         doc.attr("jet", pms.jetAmount);
         doc.attr("grenades", pms.grenades);
         doc.attr("medikits", pms.medikits);
-        doc.attr("weather", PMS.WeatherType.name(pms.weather));
-        doc.attr("steps", PMS.StepsType.name(pms.steps));
+        doc.attr("weather", pms.weather);
+        doc.attr("steps", pms.steps);
 
         const layers = createDefaultLayers();
         [...layers].forEach(layer => doc.append(layer));
