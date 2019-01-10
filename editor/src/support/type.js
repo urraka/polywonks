@@ -1,8 +1,19 @@
 import { Color } from "./color.js";
 import { Node } from "../map/node.js";
 import { clamp } from "./math.js";
+import { Enum } from "./enum.js";
 
 export class ValueType {
+    static typeOf(type) {
+        if (type instanceof Enum) {
+            return "enum";
+        } else if (typeof type === "string") {
+            return type;
+        } else {
+            throw new Error("Invalid type");
+        }
+    }
+
     static toString(type, value) {
         if (value === undefined) {
             throw new Error("ValueType.toString() - undefined value");
@@ -21,7 +32,7 @@ export class ValueType {
             throw new Error("Value must be a string");
         }
 
-        switch (type.toString()) {
+        switch (ValueType.typeOf(type)) {
             case "node": throw new Error("Invalid type conversion");
             case "color": return new Color(value);
             case "enum": return ValueType.sanitize(type, value);
@@ -44,7 +55,7 @@ export class ValueType {
     }
 
     static defaultValue(type) {
-        switch (type.toString()) {
+        switch (ValueType.typeOf(type)) {
             case "node": return null;
             case "color": return new Color();
             case "enum": return type.defaultName();
@@ -58,7 +69,7 @@ export class ValueType {
     }
 
     static sanitize(type, value) {
-        switch (type.toString()) {
+        switch (ValueType.typeOf(type)) {
             case "node": {
                 if (value !== null && !(value instanceof Node)) {
                     throw new Error("Value must be a node object");
@@ -120,7 +131,7 @@ export class ValueType {
     }
 
     static equals(type, a, b) {
-        switch (type.toString()) {
+        switch (ValueType.typeOf(type)) {
             case "color": return a.equals(b);
             default: return a === b;
         }

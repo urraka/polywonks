@@ -13,7 +13,7 @@ export class PropertyItem extends EventEmitter {
         this.label.textContent = title;
         this.onTextChange = this.onTextChange.bind(this);
 
-        if (type.toString() === "enum") {
+        if (ValueType.typeOf(type) === "enum") {
             this.input = new Select();
             [...type.names()].forEach(name => this.input.addOption(name, name));
             this.input.value = value;

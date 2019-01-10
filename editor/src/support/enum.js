@@ -68,8 +68,4 @@ export class Enum {
             yield this[key];
         }
     }
-
-    toString() {
-        return "enum";
-    }
 }
