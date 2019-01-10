@@ -16,6 +16,10 @@ export class Node extends EventEmitter {
         this.attributes.set("text", new Attribute("string", ""));
     }
 
+    toString() {
+        return this.attr("text");
+    }
+
     emit(event) {
         super.emit(event);
         if (this.parentNode) {

@@ -54,6 +54,14 @@ export class MapDocument extends Node {
         this.attributes.set("steps", new Attribute(PMS.StepsType, cfg("map.steps")));
     }
 
+    get resources() {
+        return [...this.children()].find(node => (node instanceof LayerNode) && node.attr("type") === "resources");
+    }
+
+    get waypoints() {
+        return [...this.children()].find(node => (node instanceof LayerNode) && node.attr("type") === "waypoints");
+    }
+
     static default() {
         const doc = new MapDocument();
         [...createDefaultLayers()].forEach(layer => doc.append(layer));

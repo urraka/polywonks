@@ -13,17 +13,30 @@ export class PropertyItem extends EventEmitter {
         this.label.textContent = title;
         this.onTextChange = this.onTextChange.bind(this);
 
-        if (ValueType.typeOf(type) === "enum") {
-            this.input = new Select();
-            [...type.names()].forEach(name => this.input.addOption(name, name));
-            this.input.value = value;
-            this.input.on("change", () => this.onSelectChange());
-        } else {
-            this.input = elem("input");
-            this.input.value = ValueType.toString(type, value);
-            this.input.addEventListener("change", this.onTextChange);
-            this.input.addEventListener("input", () => this.onTextInput());
-            this.input.addEventListener("keydown", e => this.onTextKeyDown(e));
+        switch (ValueType.typeOf(type)) {
+            case "enum": {
+                this.input = new Select();
+                [...type.names()].forEach(name => this.input.addOption(name, name));
+                this.input.value = value;
+                this.input.on("change", () => this.onSelectChange());
+                break;
+            }
+
+            case "array": {
+                this.input = new Select();
+                type.forEach(item => this.input.addOption(item.toString(), item));
+                this.input.value = value;
+                this.input.on("change", () => this.onSelectChange());
+                break;
+            }
+
+            default: {
+                this.input = elem("input");
+                this.input.value = ValueType.toString(type, value);
+                this.input.addEventListener("change", this.onTextChange);
+                this.input.addEventListener("input", () => this.onTextInput());
+                this.input.addEventListener("keydown", e => this.onTextKeyDown(e));
+            }
         }
     }
 

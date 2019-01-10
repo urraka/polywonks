@@ -9,6 +9,8 @@ export class ValueType {
             return "enum";
         } else if (typeof type === "string") {
             return type;
+        } else if (type && "length" in type) {
+            return "array";
         } else {
             throw new Error("Invalid type");
         }
