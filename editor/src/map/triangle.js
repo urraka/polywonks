@@ -8,7 +8,7 @@ export class TriangleNode extends Node {
     constructor() {
         super("triangle");
         this.attributes.get("text").value = "Triangle";
-        this.attributes.set("poly-type", new Attribute(PMS.PolyType, "normal"));
+        this.attributes.set("poly-type", new Attribute(PMS.PolyType, PMS.PolyType.Normal));
         this.attributes.set("bounciness", new Attribute("float", 0));
         this.attributes.set("texture", new Attribute("node", null));
     }

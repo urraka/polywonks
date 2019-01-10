@@ -10,7 +10,7 @@ export class SpawnNode extends Node {
         this.attributes.get("text").value = "Spawn";
         this.attributes.set("x", new Attribute("float", 0));
         this.attributes.set("y", new Attribute("float", 0));
-        this.attributes.set("type", new Attribute(PMS.SpawnTeam, "general"));
+        this.attributes.set("type", new Attribute(PMS.SpawnTeam, PMS.SpawnTeam.General));
     }
 
     static fromPMS(spawn) {

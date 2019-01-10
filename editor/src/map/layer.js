@@ -18,6 +18,6 @@ export class LayerNode extends Node {
     constructor(name = "Layer", type = LayerType.PolygonsBack) {
         super("layer");
         this.attributes.get("text").value = name;
-        this.attributes.set("type", new Attribute(LayerType, LayerType.name(type)));
+        this.attributes.set("type", new Attribute(LayerType, type));
     }
 }

@@ -1,3 +1,4 @@
+export * from "./attribute.js";
 export * from "./node.js";
 export * from "./collider.js";
 export * from "./connection.js";

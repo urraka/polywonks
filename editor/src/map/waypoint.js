@@ -17,8 +17,8 @@ export class WaypointNode extends Node {
         this.attributes.set("up", new Attribute("boolean", false));
         this.attributes.set("down", new Attribute("boolean", false));
         this.attributes.set("jet", new Attribute("boolean", false));
-        this.attributes.set("path", new Attribute(PMS.PathType, "path-1"));
-        this.attributes.set("action", new Attribute(PMS.ActionType, "none"));
+        this.attributes.set("path", new Attribute(PMS.PathType, PMS.PathType.Path1));
+        this.attributes.set("action", new Attribute(PMS.ActionType, PMS.ActionType.None));
     }
 
     fromPMS(waypoint, waypointNodes) {

@@ -16,6 +16,7 @@ import * as matrix from "./support/matrix.js";
 import * as path from "./support/path.js";
 import * as pointer from "./support/pointer.js";
 import * as rect from "./support/rect.js";
+import * as type from "./support/type.js";
 import * as map from "./map/map.js";
 import * as app from "./app.js";
 import * as editor from "./editor.js";
@@ -53,6 +54,7 @@ const modules = [
     render_view,
     enm,
     rect,
+    type,
     settings,
     tool,
     tool_select,

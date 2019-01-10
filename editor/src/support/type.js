@@ -74,8 +74,12 @@ export class ValueType {
             }
 
             case "enum": {
-                if (![...type.names()].includes(value)) {
-                    throw new Error("Invalid enum value", type, value);
+                if (typeof value === "string") {
+                    if (![...type.names()].includes(value)) {
+                        throw new Error("Invalid enum value", type, value);
+                    }
+                } else {
+                    value = type.name(value);
                 }
                 return value;
             }
