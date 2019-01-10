@@ -23,6 +23,7 @@ export class PropertyItem extends EventEmitter {
             this.input.value = ValueType.toString(type, value);
             this.input.addEventListener("change", this.onTextChange);
             this.input.addEventListener("input", () => this.onTextInput());
+            this.input.addEventListener("keydown", e => this.onTextKeyDown(e));
         }
     }
 
@@ -39,6 +40,7 @@ export class PropertyItem extends EventEmitter {
     onTextChange() {
         const strval = ValueType.toString(this.type, this.value);
         this.input.classList.remove("invalid");
+
         if (this.input.value !== strval) {
             try {
                 const val = this.value;
@@ -53,6 +55,19 @@ export class PropertyItem extends EventEmitter {
             } catch (e) {
                 this.input.classList.add("invalid");
             }
+        }
+    }
+
+    onTextKeyDown(event) {
+        if (event.key === "Escape" && (
+            this.input.classList.contains("modified") ||
+            this.input.classList.contains("invalid")
+        )) {
+            this.input.removeEventListener("change", this.onTextChange);
+            this.input.value = ValueType.toString(this.type, this.value);
+            this.input.addEventListener("change", this.onTextChange);
+            this.input.classList.remove("modified");
+            this.input.classList.remove("invalid");
         }
     }
 }
