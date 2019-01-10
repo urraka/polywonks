@@ -17,6 +17,16 @@ export class Enum {
         Object.freeze(this);
     }
 
+    filter(fn) {
+        const filtered = {};
+        for (const key of Object.keys(this)) {
+            if (fn(this[key])) {
+                filtered[key] = this[key];
+            }
+        }
+        return new Enum(filtered);
+    }
+
     name(value) {
         for (const key of Object.keys(this)) {
             if (this[key] === value) {

@@ -3,7 +3,7 @@ import { ValueType } from "../support/type.js";
 export class Attribute {
     constructor(dataType, value) {
         this.dataType = dataType;
-        this.val = value;
+        this.value = value;
     }
 
     get value() {
