@@ -36,7 +36,7 @@ input.modified {
     background-color: #ccc;
 }
 
-.select-options > .select-item:hover {
+.select-options > .select-item.current {
     background-color: #062F4A;
 }
 

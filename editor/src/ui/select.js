@@ -11,6 +11,7 @@ export class Select extends EventEmitter {
         this.displayCount = 10;
         this.val = undefined;
         this.element.addEventListener("click", () => this.onClick());
+        this.element.addEventListener("keydown", e => this.onKeyDown(e));
         this.onWindowMouseDown = this.onWindowMouseDown.bind(this);
         this.onWindowMouseDown = this.onWindowMouseDown.bind(this);
         this.onWindowResize = this.onWindowResize.bind(this);
@@ -51,20 +52,15 @@ export class Select extends EventEmitter {
     }
 
     onOptionsClick(event) {
+        if (event.target.classList.contains("current")) {
+            this.submit();
+        }
+    }
+
+    onOptionsMouseOver(event) {
         if (event.target.classList.contains("select-item")) {
-            let index = 0, item = event.target;
-            while (item.previousElementSibling) {
-                item = item.previousElementSibling;
-                index++;
-            }
-
-            if (this.val !== this.options[index].value) {
-                this.val = this.options[index].value;
-                this.element.textContent = this.options[index].text;
-                this.emit(new Event("change"));
-            }
-
-            this.close();
+            this.list.querySelector(".current").classList.remove("current");
+            event.target.classList.add("current");
         }
     }
 
@@ -85,8 +81,82 @@ export class Select extends EventEmitter {
     }
 
     onKeyDown(event) {
-        if (event.key === "Escape") {
-            this.close();
+        if (this.list) {
+            switch (event.key) {
+                case "Escape": this.close(); break;
+                case "Enter": this.submit(); break;
+                case "ArrowUp": this.selectPrevious(); break;
+                case "ArrowDown": this.selectNext(); break;
+            }
+        } else {
+            switch (event.key) {
+                case "Enter": this.open(); break;
+                case "ArrowUp": this.selectPrevious(); break;
+                case "ArrowDown": this.selectNext(); break;
+            }
+        }
+    }
+
+    submit() {
+        let index = 0;
+        let item = this.list.querySelector(".current");
+        while (item.previousElementSibling) {
+            item = item.previousElementSibling;
+            index++;
+        }
+
+        if (this.val !== this.options[index].value) {
+            this.val = this.options[index].value;
+            this.element.textContent = this.options[index].text;
+            this.emit(new Event("change"));
+        }
+
+        this.close();
+    }
+
+    selectPrevious() {
+        if (this.list) {
+            const item = this.list.querySelector(".current");
+            const prev = item.previousElementSibling;
+            if (prev) {
+                item.classList.remove("current");
+                prev.classList.add("current");
+                this.scrollToItem(prev);
+            }
+        } else {
+            const index = this.options.findIndex(({value}) => value === this.val) - 1;
+            if (index >= 0 && this.val !== this.options[index].value) {
+                this.val = this.options[index].value;
+                this.element.textContent = this.options[index].text;
+                this.emit(new Event("change"));
+            }
+        }
+    }
+
+    selectNext() {
+        if (this.list) {
+            const item = this.list.querySelector(".current");
+            const next = item.nextElementSibling;
+            if (next) {
+                item.classList.remove("current");
+                next.classList.add("current");
+                this.scrollToItem(next);
+            }
+        } else {
+            const index = this.options.findIndex(({value}) => value === this.val) + 1;
+            if (index < this.options.length && this.val !== this.options[index].value) {
+                this.val = this.options[index].value;
+                this.element.textContent = this.options[index].text;
+                this.emit(new Event("change"));
+            }
+        }
+    }
+
+    scrollToItem(item) {
+        if (item.offsetTop < this.list.scrollTop) {
+            item.scrollIntoView({block: "start"});
+        } else if (item.offsetTop + item.offsetHeight > this.list.scrollTop + this.list.clientHeight) {
+            item.scrollIntoView({block: "end"});
         }
     }
 
@@ -101,14 +171,25 @@ export class Select extends EventEmitter {
 
         const selectRect = this.element.getBoundingClientRect();
         this.list = elem("div", "select-options");
+        this.list.setAttribute("tabindex", -1);
         this.list.style.width = selectRect.width + "px";
         this.list.style.left = selectRect.left + "px";
         this.list.style.top = selectRect.top + selectRect.height + "px";
 
-        for (const {text} of this.options) {
+        let currentItem = null;
+
+        for (const {text, value} of this.options) {
             const item = elem("div", "select-item");
-            item.textContent = text;
             this.list.append(item);
+            item.textContent = text;
+            if (value === this.value && !currentItem) {
+                currentItem = item;
+                item.classList.add("current");
+            }
+        }
+
+        if (!currentItem) {
+            currentItem = this.list.firstElementChild;
         }
 
         document.body.append(this.list);
@@ -122,12 +203,15 @@ export class Select extends EventEmitter {
         }
 
         this.list.addEventListener("click", e => this.onOptionsClick(e));
+        this.list.addEventListener("mouseover", e => this.onOptionsMouseOver(e));
         window.addEventListener("mousedown", this.onWindowMouseDown, true);
         window.addEventListener("scroll", this.onWindowMouseDown, true);
         window.addEventListener("resize", this.onWindowResize, true);
         document.addEventListener("keydown", this.onKeyDown, true);
 
+        currentItem.scrollIntoView({block: "center"});
         this.element.classList.add("active");
+        this.list.focus();
     }
 
     close() {
@@ -139,6 +223,7 @@ export class Select extends EventEmitter {
             this.list.remove();
             this.list = null;
             this.element.classList.remove("active");
+            this.element.focus();
         }
     }
 }
