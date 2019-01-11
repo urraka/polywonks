@@ -37,8 +37,8 @@ export class EventEmitter {
     }
 
     emit(event) {
+        event.target = event.target || this;
         if (this.listeners[event.type]) {
-            event.target = event.target || this;
             [...this.listeners[event.type]].forEach(listener => listener.call(this, event));
         }
         return !event.defaultPrevented;
