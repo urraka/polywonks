@@ -20,7 +20,7 @@ export class SceneryNode extends Node {
         this.attributes.set("centerY", new Attribute("float", 0));
         this.attributes.set("scaleX", new Attribute("float", 0));
         this.attributes.set("scaleY", new Attribute("float", 0));
-        this.attributes.set("rotation", new Attribute("float", 0));
+        this.attributes.set("rotation", new Attribute("angle", 0));
         this.attributes.set("color", new Attribute("color", new Color(255, 255, 255)));
     }
 

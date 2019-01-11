@@ -25,8 +25,13 @@ export class ValueType {
             }
         }
 
-        value = ValueType.sanitize(type, value);
-        return value !== null ? value.toString() : "";
+        if (type === "angle") {
+            value = ValueType.sanitize("float", value);
+            return Math.fround(value * (180 / Math.PI)).toString() + "°";
+        } else {
+            value = ValueType.sanitize(type, value);
+            return value !== null ? value.toString() : "";
+        }
     }
 
     static fromString(type, value) {
@@ -41,8 +46,8 @@ export class ValueType {
             case "int8": case "uint8":
             case "int16": case "uint16":
             case "int32": case "uint32":
-            case "float":
-                return ValueType.sanitize(type, Number(value));
+            case "float": return ValueType.sanitize(type, Number(value));
+            case "angle": return ValueType.sanitize("float", Number(value.replace(/°$/, "")) * (Math.PI / 180));
             case "string": return value;
             case "boolean": {
                 if (value === "true") {
@@ -65,6 +70,7 @@ export class ValueType {
             case "int16": case "uint16":
             case "int32": case "uint32":
             case "float": return 0;
+            case "angle": return 0;
             case "string": return "";
             case "boolean": return false;
         }
@@ -100,7 +106,7 @@ export class ValueType {
             case "int8": case "uint8":
             case "int16": case "uint16":
             case "int32": case "uint32":
-            case "float": {
+            case "float": case "angle": {
                 if (typeof value !== "number" || Number.isNaN(value) || !Number.isFinite(value)) {
                     throw new Error("Value must be a valid number");
                 } else switch (type) {
@@ -111,6 +117,7 @@ export class ValueType {
                     case "uint16": return clamp(Math.trunc(value), 0, 0xffff);
                     case "uint32": return clamp(Math.trunc(value), 0, 0xffffffff);
                     case "float": return Math.fround(value);
+                    case "angle": return Math.fround(value);
                 }
             }
 
