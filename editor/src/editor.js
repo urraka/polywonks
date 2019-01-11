@@ -53,19 +53,19 @@ export class Editor extends ui.Panel {
             this.commandHistory = this.commandHistory.slice(0, limit);
         }
 
-        command.do(this);
+        command.do();
         return command;
     }
 
     redo() {
         if (this.undone > 0) {
-            this.commandHistory[--this.undone].do(this);
+            this.commandHistory[--this.undone].do();
         }
     }
 
     undo() {
         if (this.commandHistory.length > this.undone) {
-            this.commandHistory[this.undone++].undo(this);
+            this.commandHistory[this.undone++].undo();
         }
     }
 
@@ -77,7 +77,7 @@ export class Editor extends ui.Panel {
                 this.undone--;
             }
         }
-        command.undo(this);
+        command.undo();
     }
 
     redraw() {

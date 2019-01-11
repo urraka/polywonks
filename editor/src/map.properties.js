@@ -1,6 +1,7 @@
 import * as PMS from "./pms/pms.js";
 import * as ui from "./ui/ui.js";
 import { LayerNode, ImageNode, TextureNode, WaypointNode } from "./map/map.js";
+import { AttributeChangeCommand } from "./editor.commands.js";
 
 export class MapProperties extends ui.PropertySheet {
     constructor(editor) {
@@ -15,7 +16,28 @@ export class MapProperties extends ui.PropertySheet {
     }
 
     onPropertyChange(event) {
-        this.node.attr(event.property.key, event.property.value);
+        const key = event.property.key;
+        const value = event.property.value;
+        const type = this.node.attributes.get(key).dataType;
+        const layer = this.node.filter(this.node.ancestors(), LayerNode).next().value;
+        const command = new AttributeChangeCommand(this.editor);
+
+        const sameLayerType = (node) => {
+            const nodeLayer = node.filter(node.ancestors(), LayerNode).next().value;
+            return nodeLayer && nodeLayer.attr("type") === layer.attr("type");
+        };
+
+        for (const node of this.editor.selection.nodes) {
+            if (node.attributes.has(key) && node.attributes.get(key).dataType === type &&
+                (type !== PMS.PolyType || sameLayerType(node))
+            ) {
+                command.attr(node, key, value);
+            }
+        }
+
+        if (command.hasChanges) {
+            this.editor.do(command);
+        }
     }
 
     onSelectionChange() {
