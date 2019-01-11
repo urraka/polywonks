@@ -43,6 +43,8 @@ export class App extends ui.Panel {
         document.addEventListener("drop", e => this.onDrop(e));
         document.addEventListener("dragover", e => this.onDragOver(e));
         document.addEventListener("dragenter", e => this.onDragEnter(e));
+        document.addEventListener("keydown", e => this.onKeyDown(e));
+        document.addEventListener("contextmenu", e => e.preventDefault());
     }
 
     createUserInterface() {
@@ -233,5 +235,11 @@ export class App extends ui.Panel {
 
     onDragEnter(event) {
         event.preventDefault();
+    }
+
+    onKeyDown(event) {
+        if (event.ctrlKey && (event.key === "z") || event.key === "ContextMenu") {
+            event.preventDefault();
+        }
     }
 }
