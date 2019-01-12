@@ -10,11 +10,8 @@ export class MapProperties extends ui.PropertySheet {
         this.editor = editor;
         this.node = null;
         this.on("propertychange", e => this.onPropertyChange(e));
-
-        if (this.editor) {
-            this.editor.on("selectionchange", () => this.onSelectionChange());
-            this.editor.map.on("attributechange", e => this.onAttributeChange(e));
-        }
+        this.editor.on("selectionchange", () => this.onSelectionChange());
+        this.editor.map.on("attributechange", e => this.onAttributeChange(e));
     }
 
     onAttributeChange(event) {

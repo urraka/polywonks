@@ -1,7 +1,5 @@
 import * as ui from "./ui/ui.js";
 import { Explorer } from "./explorer.js";
-import { MapExplorer } from "./map.explorer.js";
-import { MapProperties } from "./map.properties.js";
 
 export class Sidebar extends ui.Panel {
     constructor() {
@@ -49,8 +47,8 @@ export class Sidebar extends ui.Panel {
         container.element.setAttribute("id", "sidebar-tools");
         header.element.textContent = "Tools";
 
-        panels.addPanel("Map", new MapExplorer());
-        panels.addPanel("Properties", new MapProperties());
+        panels.addPanel("Map", new ui.Panel("map-explorer"));
+        panels.addPanel("Properties", new ui.Panel("map-properties"));
 
         return container;
     }

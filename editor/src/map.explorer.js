@@ -4,11 +4,7 @@ export class MapExplorer extends ui.TreeView {
     constructor(editor) {
         super();
         this.element.classList.add("map-explorer");
-
-        if (editor) {
-            const root = this.addNode(this, editor.map);
-            root.expanded = true;
-        }
+        this.addNode(this, editor.map).expanded = true;
     }
 
     addNode(parentItem, node) {
