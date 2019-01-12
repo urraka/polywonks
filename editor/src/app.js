@@ -128,7 +128,8 @@ export class App extends ui.Panel {
             const title = Path.filename(path);
 
             Editor.loadFile(this.renderer, path, editor => {
-                this.tabs.addPanel(new ui.TabPanel(title, editor));
+                const panel = this.tabs.addPanel(new ui.TabPanel(title, editor));
+                editor.on("change", () => this.onEditorChange({editor, panel}));
 
                 if (activePanel && activeEditor.openedAsDefault && !activeEditor.modified) {
                     activePanel.close();
@@ -140,7 +141,8 @@ export class App extends ui.Panel {
     }
 
     openEditor(editor = new Editor(this.renderer), title = "Untitled") {
-        this.tabs.addPanel(new ui.TabPanel(title, editor));
+        const panel = this.tabs.addPanel(new ui.TabPanel(title, editor));
+        editor.on("change", () => this.onEditorChange({editor, panel}));
         return editor;
     }
 
@@ -196,6 +198,10 @@ export class App extends ui.Panel {
         if (!event.defaultPrevented && this.tabs.count === 1) {
             this.openDefault();
         }
+    }
+
+    onEditorChange(event) {
+        event.panel.modified = event.editor.modified;
     }
 
     onResize() {

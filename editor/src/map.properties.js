@@ -26,13 +26,14 @@ export class MapProperties extends ui.PropertySheet {
         const type = this.node.attributes.get(key).dataType;
         const layer = this.node.filter(this.node.ancestors(), LayerNode).next().value;
         const command = new AttributeChangeCommand(this.editor);
+        const selection = this.editor.selection;
 
         const sameLayerType = (node) => {
             const nodeLayer = node.filter(node.ancestors(), LayerNode).next().value;
             return nodeLayer && nodeLayer.attr("type") === layer.attr("type");
         };
 
-        for (const node of this.editor.selection.nodes) {
+        for (const node of (selection.nodes.count > 0 ? selection.nodes : [this.node])) {
             if (node.attributes.has(key) && node.attributes.get(key).dataType === type &&
                 (type !== PMS.PolyType || sameLayerType(node))
             ) {

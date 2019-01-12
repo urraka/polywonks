@@ -25,9 +25,9 @@ export class Editor extends ui.Panel {
         this.selection = new Selection(this);
         this.previewNodes = new Set();
         this.reactiveNode = null;
-        this.modified = false;
         this.cursor = { x: 0, y: 0 };
         this.undone = 0;
+        this.saveIndex = 0;
         this.commandHistory = [];
         this.currentTool = new SelectTool();
         this.panTool = new PanTool();
@@ -44,7 +44,15 @@ export class Editor extends ui.Panel {
         setTimeout(() => this.onSelectionChange());
     }
 
+    get modified() {
+        return this.saveIndex !== this.undone;
+    }
+
     do(command) {
+        if (this.saveIndex >= 0) {
+            this.saveIndex = this.saveIndex - this.undone + 1;
+        }
+
         this.commandHistory.splice(0, this.undone, command);
         this.undone = 0;
 
@@ -54,30 +62,22 @@ export class Editor extends ui.Panel {
         }
 
         command.do();
+        this.emit(new Event("change"));
         return command;
     }
 
     redo() {
         if (this.undone > 0) {
             this.commandHistory[--this.undone].do();
+            this.emit(new Event("change"));
         }
     }
 
     undo() {
         if (this.commandHistory.length > this.undone) {
             this.commandHistory[this.undone++].undo();
+            this.emit(new Event("change"));
         }
-    }
-
-    undoAndForget(command) {
-        const index = this.commandHistory.indexOf(command);
-        if (index >= 0) {
-            this.commandHistory.splice(index, 1);
-            if (this.undone > index) {
-                this.undone--;
-            }
-        }
-        command.undo();
     }
 
     redraw() {

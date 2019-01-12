@@ -13,6 +13,7 @@ export class TabView extends Panel {
         this.content.append(panel.element);
         panel.tabView = this;
         panel.active = true;
+        return panel;
     }
 
     closePanel(panel) {
@@ -89,6 +90,10 @@ export class TabPanel extends Panel {
             this.element.classList.remove("active");
             this.tab.classList.remove("active");
         }
+    }
+
+    set modified(value) {
+        this.tab.classList.toggle("modified", value);
     }
 
     static from(tabElement) {
