@@ -101,20 +101,20 @@ export class Editor extends ui.Panel {
     onClose(event) {
         if (this.modified) {
             event.preventDefault();
+            this.onDeactivate();
 
             const dialog = new ui.Dialog();
             dialog.message = `Save changes to ${event.panel.title}?`;
             dialog.addButton("yes", "Yes", true);
             dialog.addButton("no", "No");
             dialog.addButton("cancel", "Cancel");
-
+            dialog.on("close", () => this.onActivate());
             dialog.on("buttonclick", ({ button }) => {
+                dialog.close();
                 if (button === "no") {
                     this.saveIndex = this.undone;
                     event.panel.close();
                 }
-
-                dialog.close();
             });
 
             dialog.show();

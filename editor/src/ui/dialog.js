@@ -75,6 +75,7 @@ export class Dialog extends Panel {
             this.element.remove();
             this.overlay.remove();
             this.overlay = null;
+            this.emit(new Event("close"));
         }
     }
 
