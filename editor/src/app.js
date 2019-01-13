@@ -39,6 +39,7 @@ export class App extends ui.Panel {
         this.tabs.on("change", e => this.onTabChange(e));
         this.tabs.on("willchange", e => this.onTabWillChange(e));
         this.tabs.on("close", e => this.onTabClose(e));
+        window.addEventListener("beforeunload", e => this.onBeforeUnload(e));
         window.addEventListener("resize", e => this.onResize(e));
         document.addEventListener("drop", e => this.onDrop(e));
         document.addEventListener("dragover", e => this.onDragOver(e));
@@ -202,6 +203,18 @@ export class App extends ui.Panel {
 
     onEditorChange(event) {
         event.panel.modified = event.editor.modified;
+    }
+
+    onBeforeUnload(event) {
+        for (const tab of this.tabs.tabs.element.querySelectorAll(".tab")) {
+            const panel = ui.TabPanel.from(tab);
+            const editor = panel.content;
+            if (editor.modified) {
+                event.preventDefault();
+                event.returnValue = "";
+                break;
+            }
+        }
     }
 
     onResize() {
