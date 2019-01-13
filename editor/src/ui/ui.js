@@ -6,3 +6,4 @@ export * from "./propertysheet.js";
 export * from "./menu.js";
 export * from "./tree.js";
 export * from "./tabs.js";
+export * from "./dialog.js";

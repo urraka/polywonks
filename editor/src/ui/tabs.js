@@ -71,6 +71,10 @@ export class TabPanel extends Panel {
         this.tabView.closePanel(this);
     }
 
+    get title() {
+        return this.tab.querySelector("label").textContent;
+    }
+
     set title(value) {
         this.tab.querySelector("label").textContent = value;
     }

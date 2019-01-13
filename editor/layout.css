@@ -410,6 +410,47 @@ body {
     text-overflow: ellipsis;
 }
 
+.dialog-overlay {
+    display: flex;
+    align-items: center;
+    cursor: default;
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.dialog {
+    width: auto;
+    height: auto;
+    margin: auto;
+    max-width: 100%;
+    max-height: 100%;
+    flex-direction: column;
+}
+
+.dialog-body {
+    padding: 50px 40px 30px;
+    min-width: 350px;
+}
+
+.dialog-buttons {
+    display: flex;
+    justify-content: flex-end;
+    padding: 10px;
+}
+
+.dialog-buttons button {
+    line-height: 30px;
+    margin-right: 6px;
+    padding: 0 20px;
+}
+
+.dialog-buttons button:last-child {
+    margin-right: 0;
+}
+
 .titlebar-icon {
     mask-image: var(--icon-polywonks);
     mask-size: 18px 18px;

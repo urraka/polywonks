@@ -101,7 +101,23 @@ export class Editor extends ui.Panel {
     onClose(event) {
         if (this.modified) {
             event.preventDefault();
-            // TODO: show confirm message and continue to close the tab somehow
+
+            const dialog = new ui.Dialog();
+            dialog.message = `Save changes to ${event.panel.title}?`;
+            dialog.addButton("yes", "Yes", true);
+            dialog.addButton("no", "No");
+            dialog.addButton("cancel", "Cancel");
+
+            dialog.on("buttonclick", ({ button }) => {
+                if (button === "no") {
+                    this.saveIndex = this.undone;
+                    event.panel.close();
+                }
+
+                dialog.close();
+            });
+
+            dialog.show();
         } else {
             this.renderer.disposeMapResources(this.map);
         }

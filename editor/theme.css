@@ -123,6 +123,23 @@ input.modified {
     background-color: #1e1e1e;
 }
 
+.dialog {
+    background: #252526;
+    box-shadow: 0 2px 4px rgb(0, 0, 0, 0.5);
+}
+
+.dialog button {
+    background-color: #333;
+}
+
+.dialog button:hover, .dialog button:active {
+    background-color: #333;
+}
+
+.dialog button:focus {
+    outline: 1px solid #007acc;
+}
+
 .titlebar-icon {
     background-color: #007acc;
 }
