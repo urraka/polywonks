@@ -56,6 +56,7 @@ export class Dialog extends Panel {
             this.overlay.setAttribute("tabindex", -1);
             this.overlay.append(this.element);
             this.overlay.addEventListener("keydown", e => this.onKeyDown(e));
+            this.overlay.addEventListener("mousedown", e => this.onOverlayMouseDown(e));
             document.body.append(this.overlay);
 
             if (this.defaultButton) {
@@ -123,6 +124,16 @@ export class Dialog extends Panel {
         } else if (event.key === "Escape") {
             if (this.emit(new Event("cancel"))) {
                 this.close();
+            }
+        }
+    }
+
+    onOverlayMouseDown(event) {
+        if (event.target === this.overlay) {
+            event.stopPropagation();
+            if (!this.element.classList.contains("shake")) {
+                this.element.classList.add("shake");
+                setTimeout(() => this.element.classList.remove("shake"), 400);
             }
         }
     }
