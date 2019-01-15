@@ -7,6 +7,30 @@ export class NewMapCommand extends ui.Command {
     }
 }
 
+export class SaveCommand extends ui.Command {
+    execute() {
+        app.editor.save();
+    }
+}
+
+export class SaveAsCommand extends ui.Command {
+    execute() {
+        app.editor.saveAs();
+    }
+}
+
+export class ExportCommand extends ui.Command {
+    execute() {
+        app.editor.export();
+    }
+}
+
+export class ExportAsCommand extends ui.Command {
+    execute() {
+        app.editor.exportAs();
+    }
+}
+
 export class BrowseToGithubCommand extends ui.Command {
     execute() {
         window.open(cfg("app.github"));

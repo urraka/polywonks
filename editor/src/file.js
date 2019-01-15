@@ -1,5 +1,6 @@
 import { Path } from "./support/path.js";
 import { cfg } from "./settings.js";
+import { EventEmitter, Event } from "./support/event.js";
 
 export class File {
     static read(type, path, callback) {
@@ -66,17 +67,30 @@ export class File {
             return;
         }
 
-        path = "/api/write" + path;
-
         const req = new XMLHttpRequest();
-        req.addEventListener("load", () => callback && callback(true));
         req.addEventListener("error", () => callback && callback(false));
         req.addEventListener("abort", () => callback && callback(false));
-        req.open("PUT", path);
+        req.addEventListener("load", () => {
+            if (callback) callback(true);
+            File.emitter.emit(new Event("write", { path }));
+        });
+        req.open("PUT", "/api/write" + path);
         req.send(data);
     }
 
     static refresh(mount, callback) {
+        if (typeof mount !== "string") {
+            let n = mount.length;
+            const result = {};
+            mount.forEach(mnt => File.refresh(mnt, list => {
+                result[mnt] = list;
+                if (--n === 0) {
+                    callback(mount.flatMap(m => result[m]));
+                }
+            }));
+            return;
+        }
+
         const tree = [];
         let count = 0;
         let total = 0;
@@ -123,4 +137,8 @@ export class File {
         path = path.toLowerCase();
         return File.tree && File.tree[mount] && File.tree[mount].find(entry => entry.toLowerCase() === path);
     }
+
+    static get emitter() { return File._emitter || (File._emitter = new EventEmitter()); }
+    static on(...args) { return File.emitter.on(...args); }
+    static off(...args) { return File.emitter.off(...args); }
 }

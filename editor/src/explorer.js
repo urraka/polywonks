@@ -7,7 +7,14 @@ export class Explorer extends ui.Panel {
         this.root = root;
         this.tree = this.append(new ui.TreeView());
         this.tree.on("itemdblclick", e => this.onItemDblClick(e.data));
+        File.on("write", e => this.onFileWrite(e));
         setTimeout(() => this.refresh());
+    }
+
+    onFileWrite(event) {
+        if (event.path.startsWith(`/${this.root}/`)) {
+            this.refresh();
+        }
     }
 
     onItemDblClick(path) {

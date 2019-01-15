@@ -12,6 +12,7 @@ import { ZoomTool } from "./tool.zoom.js";
 import { MapExplorer } from "./map.explorer.js";
 import { Selection } from "./selection.js";
 import { MapProperties } from "./map.properties.js";
+import { SaveDialog } from "./dialog.save.js";
 
 export class Editor extends ui.Panel {
     constructor(renderer, map = MapDocument.default()) {
@@ -26,14 +27,21 @@ export class Editor extends ui.Panel {
         this.previewNodes = new Set();
         this.reactiveNode = null;
         this.cursor = { x: 0, y: 0 };
-        this.undone = 0;
+        this.saveName = map.path;
         this.saveIndex = 0;
+        this.undone = 0;
         this.commandHistory = [];
         this.currentTool = new SelectTool();
         this.panTool = new PanTool();
         this.zoomTool = new ZoomTool();
         this.explorer = new MapExplorer(this);
         this.properties = new MapProperties(this);
+
+        if (Path.ext(map.path).toLowerCase() === ".pms") {
+            this.saveName = this.saveName.slice(0, -4) + ".polywonks";
+        } else if (map.path === "") {
+            this.saveName = "Untitled.polywonks";
+        }
 
         this.map.on("attributechange", e => this.onMapAttrChange(e));
         this.view.on("change", () => this.onViewChange());
@@ -46,6 +54,57 @@ export class Editor extends ui.Panel {
 
     get modified() {
         return this.saveIndex !== this.undone;
+    }
+
+    save() {
+        if (this.saveName.startsWith("/")) {
+            const mount = this.saveName.substring(1).split("/").shift();
+            File.refresh(mount, () => {
+                if (File.exists(this.saveName)) {
+                    File.write(this.saveName, this.map.serialize(), ok => {
+                        if (ok) {
+                            this.saveIndex = this.undone;
+                            this.emit(new Event("change"));
+                        } else {
+                            this.onDeactivate();
+                            ui.msgbox("Save", "Failed to write file " + this.saveName, () => this.onActivate());
+                        }
+                    });
+                } else {
+                    this.saveAs();
+                }
+            })
+        } else {
+            this.saveAs();
+        }
+    }
+
+    saveAs() {
+        const dialog = new SaveDialog(Path.filename(this.saveName), Path.dir(this.saveName) || "/polydrive/");
+
+        this.onDeactivate();
+        dialog.on("close", () => this.onActivate());
+
+        dialog.on("save", event => {
+            File.write(event.path, this.map.serialize(), ok => {
+                if (ok) {
+                    this.saveName = event.path;
+                    this.saveIndex = this.undone;
+                    this.emit(new Event("change"));
+                } else {
+                    this.onDeactivate();
+                    ui.msgbox("Save as...", "Failed to write file " + event.path, () => this.onActivate());
+                }
+            });
+        });
+
+        dialog.show();
+    }
+
+    export() {
+    }
+
+    exportAs() {
     }
 
     do(command) {
@@ -102,22 +161,14 @@ export class Editor extends ui.Panel {
         if (this.modified) {
             event.preventDefault();
             this.onDeactivate();
-
-            const dialog = new ui.Dialog();
-            dialog.message = `Save changes to ${event.panel.title}?`;
-            dialog.addButton("yes", "Yes", true);
-            dialog.addButton("no", "No");
-            dialog.addButton("cancel", "Cancel");
-            dialog.on("close", () => this.onActivate());
-            dialog.on("buttonclick", ({ button }) => {
-                dialog.close();
-                if (button === "no") {
+            const message = `Save changes to ${Path.filename(this.saveName)}?`;
+            ui.confirm("Closing", message, "yes", result => {
+                this.onActivate();
+                if (result === "no") {
                     this.saveIndex = this.undone;
                     event.panel.close();
                 }
             });
-
-            dialog.show();
         } else {
             this.renderer.disposeMapResources(this.map);
         }

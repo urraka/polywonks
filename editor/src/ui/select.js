@@ -10,32 +10,41 @@ export class Select extends EventEmitter {
         this.options = [];
         this.displayCount = 10;
         this.val = undefined;
-        this.element.addEventListener("click", () => this.onClick());
-        this.element.addEventListener("keydown", e => this.onKeyDown(e));
         this.onWindowMouseDown = this.onWindowMouseDown.bind(this);
         this.onWindowMouseDown = this.onWindowMouseDown.bind(this);
         this.onWindowResize = this.onWindowResize.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
+        this.element.addEventListener("click", () => this.onClick());
+        this.element.addEventListener("keydown", this.onKeyDown);
+        this.element.addEventListener("focusout", e => this.onFocusOut(e));
     }
 
     addOption(text, value) {
         if (this.list) this.close();
-        this.options.push({text, value});
+        this.options.push({ text, value });
+    }
+
+    setText(text) {
+        this.element.textContent = text;
+    }
+
+    selectOption(option) {
+        if (option) {
+            if (option.value !== this.val) {
+                this.val = option.value;
+                this.setText(option.text);
+                this.emit(new Event("change"));
+            }
+        } else if (this.val !== undefined) {
+            this.val = undefined;
+            this.setText("");
+            this.emit(new Event("change"));
+        }
     }
 
     set value(v) {
         if (v !== this.val) {
-            const option = this.options.find(({value}) => v === value);
-
-            if (option) {
-                this.val = option.value;
-                this.element.textContent = option.text;
-            } else {
-                this.val = undefined;
-                this.element.textContent = "";
-            }
-
-            this.emit(new Event("change"));
+            this.selectOption(this.options.find(({ value }) => v === value));
         }
     }
 
@@ -46,6 +55,14 @@ export class Select extends EventEmitter {
     onClick() {
         if (!this.list) {
             this.open();
+        } else {
+            this.close();
+        }
+    }
+
+    onFocusOut(event) {
+        if (this.list && event.relatedTarget && this.list.contains(event.relatedTarget)) {
+            this.element.focus();
         } else {
             this.close();
         }
@@ -81,36 +98,38 @@ export class Select extends EventEmitter {
     }
 
     onKeyDown(event) {
+        let handled = true;
+
+        switch (event.key) {
+            case "Enter": this.list ? this.submit() : this.open(); break;
+            case "Escape": this.list ? this.close() : (handled = false); break;
+            case "ArrowUp": this.selectPrevious(); break;
+            case "ArrowDown": this.selectNext(); break;
+            default: handled = false;
+        }
+
+        if (handled) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+    }
+
+    get activeOption() {
         if (this.list) {
-            switch (event.key) {
-                case "Escape": this.close(); break;
-                case "Enter": this.submit(); break;
-                case "ArrowUp": this.selectPrevious(); break;
-                case "ArrowDown": this.selectNext(); break;
+            let index = 0;
+            let item = this.list.querySelector(".current");
+            while (item.previousElementSibling) {
+                item = item.previousElementSibling;
+                index++;
             }
+            return this.options[index];
         } else {
-            switch (event.key) {
-                case "Enter": this.open(); break;
-                case "ArrowUp": this.selectPrevious(); break;
-                case "ArrowDown": this.selectNext(); break;
-            }
+            return null;
         }
     }
 
     submit() {
-        let index = 0;
-        let item = this.list.querySelector(".current");
-        while (item.previousElementSibling) {
-            item = item.previousElementSibling;
-            index++;
-        }
-
-        if (this.val !== this.options[index].value) {
-            this.val = this.options[index].value;
-            this.element.textContent = this.options[index].text;
-            this.emit(new Event("change"));
-        }
-
+        this.selectOption(this.activeOption);
         this.close();
     }
 
@@ -124,11 +143,9 @@ export class Select extends EventEmitter {
                 this.scrollToItem(prev);
             }
         } else {
-            const index = this.options.findIndex(({value}) => value === this.val) - 1;
-            if (index >= 0 && this.val !== this.options[index].value) {
-                this.val = this.options[index].value;
-                this.element.textContent = this.options[index].text;
-                this.emit(new Event("change"));
+            const index = this.options.findIndex(({ value }) => value === this.val) - 1;
+            if (index >= 0) {
+                this.selectOption(this.options[index]);
             }
         }
     }
@@ -143,21 +160,55 @@ export class Select extends EventEmitter {
                 this.scrollToItem(next);
             }
         } else {
-            const index = this.options.findIndex(({value}) => value === this.val) + 1;
-            if (index < this.options.length && this.val !== this.options[index].value) {
-                this.val = this.options[index].value;
-                this.element.textContent = this.options[index].text;
-                this.emit(new Event("change"));
+            const index = this.options.findIndex(({ value }) => value === this.val) + 1;
+            if (index < this.options.length) {
+                this.selectOption(this.options[index]);
             }
         }
     }
 
     scrollToItem(item) {
         if (item.offsetTop < this.list.scrollTop) {
-            item.scrollIntoView({block: "start"});
+            item.scrollIntoView({ block: "start" });
         } else if (item.offsetTop + item.offsetHeight > this.list.scrollTop + this.list.clientHeight) {
-            item.scrollIntoView({block: "end"});
+            item.scrollIntoView({ block: "end" });
         }
+    }
+
+    updateListItems() {
+        while (this.list.firstChild) {
+            this.list.firstChild.remove();
+        }
+
+        let currentItem = null;
+
+        for (const { text, value } of this.options) {
+            const item = elem("div", "select-item");
+            this.list.append(item);
+            item.textContent = text;
+            if (value === this.value && !currentItem) {
+                currentItem = item;
+            }
+        }
+
+        currentItem = currentItem || this.list.firstElementChild;
+        currentItem.classList.add("current");
+
+        const selectRect = this.element.getBoundingClientRect();
+        const itemRect = currentItem.getBoundingClientRect();
+        const n = Math.min(this.options.length, this.displayCount);
+        const height = Math.min(window.innerHeight, n * itemRect.height);
+
+        this.list.style.left = selectRect.left + "px";
+        this.list.style.top = selectRect.top + selectRect.height + "px";
+        this.list.style.width = selectRect.width + "px";
+        this.list.style.height = height + "px";
+
+        if (selectRect.top + selectRect.height + height > window.innerHeight) {
+            this.list.style.top = Math.max(0, selectRect.top - height) + "px";
+        }
+
+        return currentItem;
     }
 
     open() {
@@ -169,49 +220,19 @@ export class Select extends EventEmitter {
             return;
         }
 
-        const selectRect = this.element.getBoundingClientRect();
         this.list = elem("div", "select-options");
         this.list.setAttribute("tabindex", -1);
-        this.list.style.width = selectRect.width + "px";
-        this.list.style.left = selectRect.left + "px";
-        this.list.style.top = selectRect.top + selectRect.height + "px";
-
-        let currentItem = null;
-
-        for (const {text, value} of this.options) {
-            const item = elem("div", "select-item");
-            this.list.append(item);
-            item.textContent = text;
-            if (value === this.value && !currentItem) {
-                currentItem = item;
-                item.classList.add("current");
-            }
-        }
-
-        if (!currentItem) {
-            currentItem = this.list.firstElementChild;
-        }
-
         document.body.append(this.list);
-
-        const itemRect = this.list.firstElementChild.getBoundingClientRect();
-        const n = Math.min(this.options.length, this.displayCount);
-        const height = Math.min(window.innerHeight, n * itemRect.height);
-        this.list.style.height = height + "px";
-        if (selectRect.top + selectRect.height + height > window.innerHeight) {
-            this.list.style.top = Math.max(0, selectRect.top - height) + "px";
-        }
 
         this.list.addEventListener("click", e => this.onOptionsClick(e));
         this.list.addEventListener("mouseover", e => this.onOptionsMouseOver(e));
         window.addEventListener("mousedown", this.onWindowMouseDown, true);
         window.addEventListener("scroll", this.onWindowMouseDown, true);
         window.addEventListener("resize", this.onWindowResize, true);
-        document.addEventListener("keydown", this.onKeyDown, true);
 
-        currentItem.scrollIntoView({block: "center"});
+        const currentItem = this.updateListItems();
+        currentItem.scrollIntoView({ block: "center" });
         this.element.classList.add("active");
-        this.list.focus();
     }
 
     close() {
@@ -219,7 +240,6 @@ export class Select extends EventEmitter {
             window.removeEventListener("mousedown", this.onWindowMouseDown, true);
             window.removeEventListener("scroll", this.onWindowMouseDown, true);
             window.removeEventListener("resize", this.onWindowResize, true);
-            document.removeEventListener("keydown", this.onKeyDown, true);
             this.list.remove();
             this.list = null;
             this.element.classList.remove("active");

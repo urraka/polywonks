@@ -1,26 +1,57 @@
 import { Panel, elem } from "./common.js";
 import { Event } from "../support/event.js";
 
+export function msgbox(title, message, onclose) {
+    const dialog = new Dialog();
+    dialog.header.textContent = title;
+    dialog.body.textContent = message;
+    dialog.body.classList.add("message");
+    dialog.addButton("ok", "Ok", true);
+    dialog.on("buttonclick", () => dialog.close());
+    if (onclose) dialog.on("close", onclose);
+    dialog.show();
+}
+
+export function confirm(title, message, defaultButton, onclose) {
+    const dialog = new Dialog();
+    dialog.header.textContent = title;
+    dialog.body.textContent = message;
+    dialog.body.classList.add("message");
+    dialog.addButton("yes", "Yes", defaultButton === "yes");
+    dialog.addButton("no", "No", defaultButton === "no");
+    dialog.addButton("cancel", "Cancel", defaultButton === "cancel");
+    dialog.result = "cancel";
+
+    dialog.on("buttonclick", e => {
+        dialog.result = e.button;
+        dialog.close();
+    });
+
+    dialog.on("close", () => {
+        onclose(dialog.result);
+    });
+
+    dialog.show();
+}
+
 export class Dialog extends Panel {
     constructor() {
         super("dialog");
         this.overlay = null;
-        this.defaultButton = undefined;
+        this.previousModal = null;
+        this.defaultButton = null;
         this.onFocusTrapsIn = this.onFocusTrapsIn.bind(this);
         this.onOverlayFocusOut = this.onOverlayFocusOut.bind(this);
         this.onDocumentFocusIn = this.onDocumentFocusIn.bind(this);
 
-        const begin = this.append(elem("div"));
+        const begin = this.append(elem("div", "focus-trap"));
+        this.header = this.append(elem("div", "dialog-header"));
         this.body = this.append(elem("div", "dialog-body"));
         this.buttons = this.append(elem("div", "dialog-buttons"));
-        const end = this.append(elem("div"));
+        const end = this.append(elem("div", "focus-trap"));
 
         begin.setAttribute("tabindex", 0);
         end.setAttribute("tabindex", 0);
-    }
-
-    set message(text) {
-        this.element.querySelector(".dialog-body").textContent = text;
     }
 
     activate() {
@@ -28,6 +59,7 @@ export class Dialog extends Panel {
         this.element.lastElementChild.addEventListener("focusin", this.onFocusTrapsIn);
         this.overlay.addEventListener("focusout", this.onOverlayFocusOut);
         document.addEventListener("focusin", this.onDocumentFocusIn);
+        this.overlay.classList.add("active");
     }
 
     deactivate() {
@@ -35,6 +67,7 @@ export class Dialog extends Panel {
         this.element.lastElementChild.removeEventListener("focusin", this.onFocusTrapsIn);
         this.overlay.removeEventListener("focusout", this.onOverlayFocusOut);
         document.removeEventListener("focusin", this.onDocumentFocusIn);
+        this.overlay.classList.remove("active");
     }
 
     addButton(key, text, defaultButton = false) {
@@ -52,11 +85,19 @@ export class Dialog extends Panel {
 
     show() {
         if (!this.overlay) {
+            const elementToDialog = Dialog.elementToDialog || (Dialog.elementToDialog = new WeakMap());
+            this.previousModal = elementToDialog.get(document.querySelector("body > .dialog-overlay.active"));
+
+            if (this.previousModal) {
+                this.previousModal.deactivate();
+            }
+
             this.overlay = elem("div", "dialog-overlay");
             this.overlay.setAttribute("tabindex", -1);
             this.overlay.append(this.element);
             this.overlay.addEventListener("keydown", e => this.onKeyDown(e));
             this.overlay.addEventListener("mousedown", e => this.onOverlayMouseDown(e));
+            elementToDialog.set(this.overlay, this);
             document.body.append(this.overlay);
 
             if (this.defaultButton) {
@@ -75,6 +116,14 @@ export class Dialog extends Panel {
             this.element.remove();
             this.overlay.remove();
             this.overlay = null;
+
+            if (this.previousModal) {
+                if (this.previousModal.overlay) {
+                    this.previousModal.activate();
+                }
+                this.previousModal = null;
+            }
+
             this.emit(new Event("close"));
         }
     }
@@ -83,27 +132,31 @@ export class Dialog extends Panel {
         this.emit(new Event("buttonclick", { button: key }));
     }
 
+    get focusableElements() {
+        return [...this.element.querySelectorAll('input,select,textarea,button,a[href],[tabindex="0"]:not(.focus-trap)')];
+    }
+
     onFocusTrapsIn(event) {
         const focused = event.target;
         const unfocused = event.relatedTarget;
 
         if (focused === this.element.firstElementChild) {
             if (!unfocused || (focused.compareDocumentPosition(unfocused) & Node.DOCUMENT_POSITION_PRECEDING)) {
-                this.buttons.firstElementChild.focus();
+                this.focusableElements.shift().focus();
             } else {
-                this.buttons.lastElementChild.focus();
+                this.focusableElements.pop().focus();
             }
         } else if (focused === this.element.lastElementChild) {
             if (!unfocused || (focused.compareDocumentPosition(unfocused) & Node.DOCUMENT_POSITION_FOLLOWING)) {
-                this.buttons.lastElementChild.focus();
+                this.focusableElements.pop().focus();
             } else {
-                this.buttons.firstElementChild.focus();
+                this.focusableElements.shift().focus();
             }
         }
     }
 
     onDocumentFocusIn(event) {
-        if (!event.relatedTarget) {
+        if (!event.relatedTarget && !this.overlay.contains(event.target)) {
             this.element.firstElementChild.focus();
         }
     }

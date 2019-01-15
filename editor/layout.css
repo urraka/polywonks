@@ -352,7 +352,7 @@ body {
     min-width: fit-content;
 }
 
-.property-sheet > .property-inputs {
+.property-sheet > .property-controls {
     display: flex;
     flex-direction: column;
     flex: 1;
@@ -360,7 +360,7 @@ body {
 }
 
 .property-sheet > .property-labels > label,
-.property-sheet > .property-inputs > input {
+.property-sheet > .property-controls > input {
     display: block;
     white-space: nowrap;
     height: 22px;
@@ -410,6 +410,25 @@ body {
     text-overflow: ellipsis;
 }
 
+.select.combobox {
+    display: flex;
+    padding: 0;
+}
+
+.select.combobox::after {
+    content: none;
+    display: none;
+}
+
+.select.combobox > input {
+    outline: none;
+    display: block;
+    height: 22px;
+    line-height: 22px;
+    flex: 1;
+    padding: 0 4px;
+}
+
 .dialog-overlay {
     display: flex;
     align-items: center;
@@ -422,6 +441,7 @@ body {
 }
 
 .dialog {
+    display: none;
     width: auto;
     height: auto;
     margin: auto;
@@ -430,20 +450,38 @@ body {
     flex-direction: column;
 }
 
+.dialog-overlay.active > .dialog {
+    display: flex;
+}
+
+.dialog-header {
+    flex-shrink: 0;
+    height: 22px;
+    line-height: 22px;
+    padding: 0 8px;
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
 .dialog-body {
-    padding: 50px 40px 30px;
-    min-width: 350px;
+    min-width: 450px;
+}
+
+.dialog-body.message {
+    padding: 20px;
 }
 
 .dialog-buttons {
+    flex-shrink: 0;
     display: flex;
     justify-content: flex-end;
-    padding: 10px;
+    padding: 0 8px 8px 8px;
 }
 
 .dialog-buttons button {
-    line-height: 30px;
-    margin-right: 6px;
+    line-height: 22px;
+    margin-right: 8px;
     padding: 0 20px;
 }
 

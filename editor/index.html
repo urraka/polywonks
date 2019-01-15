@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <meta charset="utf-8">
     <title>Polywonks</title>
@@ -9,18 +8,8 @@
     <link rel="stylesheet" type="text/css" href="layout.css">
     <link rel="stylesheet" type="text/css" href="theme.css">
 </head>
-
 <body>
-    <div class="startup-loading">
-        <div></div>
-    </div>
-    <script src="lib/babel-browser-build.js"></script>
-    <script src="lib/browser-es-module-loader.js"></script>
-    <script>
-        new BrowserESModuleLoader().import('./src/polywonks.js').then(m => {
-            Polywonks.App.launch();
-        });
-    </script>
+    <div class="startup-loading"><div></div></div>
+    <script src="src/polywonks.js" type="module"></script>
 </body>
-
 </html>

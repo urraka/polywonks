@@ -2,19 +2,20 @@ import { Panel, elem } from "./common.js";
 import { EventEmitter, Event } from "../support/event.js";
 import { ValueType } from "../support/type.js";
 import { Select } from "./select.js";
+import { ComboBox } from "./combobox.js";
 
 export class PropertySheet extends Panel {
     constructor() {
         super("property-sheet");
-        this.columns = ["property-labels", "property-inputs"].map(cls => this.append(elem("div", cls)));
+        this.columns = ["property-labels", "property-controls"].map(cls => this.append(elem("div", cls)));
         this.properties = {};
     }
 
-    addProperty(key, value, type, title = key) {
-        const property = new PropertyItem(key, value, type, title);
+    addProperty(key, value, type, title = key, autocomplete = null) {
+        const property = new PropertyItem(key, value, type, title, autocomplete);
         this.properties[key] = property;
         this.columns[0].append(property.label);
-        this.columns[1].append(property.input.element || property.input);
+        this.columns[1].append(property.control.element || property.control);
         property.on("change", () => this.emit(new Event("propertychange", { property })));
     }
 
@@ -25,7 +26,7 @@ export class PropertySheet extends Panel {
 }
 
 export class PropertyItem extends EventEmitter {
-    constructor(key, value, type, title) {
+    constructor(key, value, type, title, autocomplete = null) {
         super();
         this.key = key;
         this.value = value;
@@ -37,39 +38,47 @@ export class PropertyItem extends EventEmitter {
 
         switch (ValueType.typeOf(type)) {
             case "enum": {
-                this.input = new Select();
-                [...type.names()].forEach(name => this.input.addOption(name, name));
-                this.input.value = value;
-                this.input.on("change", this.onSelectChange);
+                this.control = new Select();
+                [...type.names()].forEach(name => this.control.addOption(name, name));
+                this.control.value = value;
+                this.control.on("change", this.onSelectChange);
                 break;
             }
 
             case "array": {
-                this.input = new Select();
-                type.forEach(item => this.input.addOption(item.toString(), item));
-                this.input.value = value;
-                this.input.on("change", this.onSelectChange);
+                this.control = new Select();
+                type.forEach(item => this.control.addOption(item.toString(), item));
+                this.control.value = value;
+                this.control.on("change", this.onSelectChange);
                 break;
             }
 
             default: {
-                this.input = elem("input");
-                this.input.value = ValueType.toString(type, value);
-                this.input.addEventListener("change", this.onTextChange);
-                this.input.addEventListener("input", () => this.onTextInput());
-                this.input.addEventListener("keydown", e => this.onTextKeyDown(e));
+                if (autocomplete) {
+                    this.control = new ComboBox();
+                    autocomplete.forEach(item => this.control.addOption(item, item));
+                    this.control.value = value;
+                    this.control.input.addEventListener("change", this.onTextChange);
+                    this.control.input.addEventListener("input", () => this.onTextInput());
+                } else {
+                    this.control = elem("input");
+                    this.control.value = ValueType.toString(type, value);
+                    this.control.addEventListener("change", this.onTextChange);
+                    this.control.addEventListener("input", () => this.onTextInput());
+                    this.control.addEventListener("keydown", e => this.onTextKeyDown(e));
+                }
             }
         }
     }
 
     onSelectChange() {
-        this.value = this.input.value;
+        this.value = this.control.value;
         this.emit(new Event("change"));
     }
 
     onTextInput() {
         const strval = ValueType.toString(this.type, this.value);
-        this.input.classList.toggle("modified", this.input.value !== strval);
+        this.toggleState("modified", this.control.value !== strval);
     }
 
     onTextChange() {
@@ -78,11 +87,13 @@ export class PropertyItem extends EventEmitter {
 
     onTextKeyDown(event) {
         if (event.key === "Escape") {
-            if (this.input.classList.contains("modified") || this.input.classList.contains("invalid")) {
+            event.stopPropagation();
+            if (this.hasState("modified") || this.hasState("invalid")) {
                 this.reset(this.value);
             }
         } else if (event.key === "Enter") {
             event.preventDefault();
+            event.stopPropagation();
             this.submit(true);
         }
     }
@@ -90,37 +101,49 @@ export class PropertyItem extends EventEmitter {
     reset(value) {
         this.value = value;
 
-        if (this.input instanceof Select) {
-            this.input.off("change");
-            this.input.value = value;
-            this.input.on("change", this.onSelectChange);
+        if (this.control instanceof Select) {
+            this.control.off("change");
+            this.control.value = value;
+            this.control.on("change", this.onSelectChange);
         } else {
             this.input.removeEventListener("change", this.onTextChange);
-            this.input.value = ValueType.toString(this.type, value);
+            this.control.value = ValueType.toString(this.type, value);
             this.input.addEventListener("change", this.onTextChange);
-            this.input.classList.remove("modified");
-            this.input.classList.remove("invalid");
+            this.toggleState("modified", false);
+            this.toggleState("invalid", false);
         }
     }
 
     submit(force = false) {
         const strval = ValueType.toString(this.type, this.value);
-        this.input.classList.remove("invalid");
+        this.toggleState("invalid", false);
 
-        if (force || this.input.value !== strval) {
+        if (force || this.control.value !== strval) {
             try {
                 const val = this.value;
-                this.value = ValueType.fromString(this.type, this.input.value);
-                this.input.classList.remove("modified");
+                this.value = ValueType.fromString(this.type, this.control.value);
+                this.toggleState("modified", false);
                 this.input.removeEventListener("change", this.onTextChange);
-                this.input.value = ValueType.toString(this.type, this.value);
+                this.control.value = ValueType.toString(this.type, this.value);
                 this.input.addEventListener("change", this.onTextChange);
                 if (force || !ValueType.equals(this.type, val, this.value)) {
                     this.emit(new Event("change"));
                 }
             } catch (e) {
-                this.input.classList.add("invalid");
+                this.toggleState("invalid", true);
             }
         }
+    }
+
+    toggleState(state, enable) {
+        (this.control.classList || this.control.element.classList).toggle(state, enable);
+    }
+
+    hasState(state) {
+        (this.control.classList || this.control.element.classList).contains(state);
+    }
+
+    get input() {
+        return this.control instanceof ComboBox ? this.control.input : this.control;
     }
 }

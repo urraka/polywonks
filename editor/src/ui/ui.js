@@ -3,6 +3,8 @@ export * from "./command.js";
 export * from "./statusbar.js";
 export * from "./multipanel.js";
 export * from "./propertysheet.js";
+export * from "./select.js";
+export * from "./combobox.js";
 export * from "./menu.js";
 export * from "./tree.js";
 export * from "./tabs.js";

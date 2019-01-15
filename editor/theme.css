@@ -16,15 +16,15 @@ input {
     background-color: #3c3c3c;
 }
 
-input:focus, .select:focus, .select.active, .select-options {
+input:focus, .select:focus, .select:focus-within, .select.active, .select-options {
     outline: 1px solid #007acc;
 }
 
-input.invalid {
+.property-sheet .invalid {
     outline: 1px solid #f00;
 }
 
-input.modified {
+.property-sheet .modified {
     color: #fff;
 }
 
@@ -55,7 +55,7 @@ input.modified {
 
 .titlebar,
 .statusbar {
-    background: #3c3c3c;
+    background-color: #3c3c3c;
 }
 
 .panel-header {
@@ -68,18 +68,18 @@ input.modified {
 
 .menubar > .menu-item:hover,
 .menubar > .menu-item.active {
-    background: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .menu {
-    background: #252526;
+    background-color: #252526;
     box-shadow: 0 2px 4px rgb(0, 0, 0, 0.5);
 }
 
 .menu .menu-item:not(.separator):not(.disabled):hover,
 .menu .menu-item.active {
     color: #fff;
-    background: #094771;
+    background-color: #094771;
 }
 
 .menu-item.disabled,
@@ -124,8 +124,20 @@ input.modified {
 }
 
 .dialog {
-    background: #252526;
+    background-color: #252526;
     box-shadow: 0 2px 4px rgb(0, 0, 0, 0.5);
+}
+
+.dialog-overlay.active {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.dialog-overlay.active > .dialog {
+    box-shadow: 0 0px 10px 4px rgb(0, 0, 0, 0.5);
+}
+
+.dialog-header {
+    background-color: rgba(0, 122, 204, 0.5);
 }
 
 .dialog button {

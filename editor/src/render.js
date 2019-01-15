@@ -97,22 +97,26 @@ export class Renderer {
 
         if (!texture) {
             this.textures.set(node, texture = this.context.defaultTexture);
+            const dir = Path.dir(node.owner.path);
+            const src = node.attr("src");
 
-            File.readImage(Path.resolve(Path.dir(node.owner.path), node.attr("src")), image => {
-                if (image) {
-                    const imageData = processImage(image, {
-                        premultiply: true,
-                        padding: node instanceof ImageNode,
-                        colorKey: node.attr("color-key"),
-                        npot: node instanceof TextureNode
-                    });
+            if (src && (dir.startsWith("/") || src.startsWith("/"))) {
+                File.readImage(Path.resolve(dir, src), image => {
+                    if (image) {
+                        const imageData = processImage(image, {
+                            premultiply: true,
+                            padding: node instanceof ImageNode,
+                            colorKey: node.attr("color-key"),
+                            npot: node instanceof TextureNode
+                        });
 
-                    const texture = this.context.createTexture(imageData);
-                    texture.setRepeat(node instanceof TextureNode);
-                    this.textures.set(node, texture);
-                    this.redraw();
-                }
-            });
+                        const texture = this.context.createTexture(imageData);
+                        texture.setRepeat(node instanceof TextureNode);
+                        this.textures.set(node, texture);
+                        this.redraw();
+                    }
+                });
+            }
         }
 
         return texture;

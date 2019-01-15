@@ -20,6 +20,7 @@ import * as type from "./support/type.js";
 import * as map from "./map/map.js";
 import * as app from "./app.js";
 import * as editor from "./editor.js";
+import * as editor_commands from "./editor.commands.js";
 import * as selection from "./selection.js";
 import * as file from "./file.js";
 import * as render from "./render.js";
@@ -34,10 +35,7 @@ import * as explorer from "./explorer.js";
 import * as map_explorer from "./map.explorer.js";
 import * as map_properties from "./map.properties.js";
 
-// Note: Polywonks namespace is made global merely to aid debugging. It's only ever
-// use at entry point in index.html
-
-window.Polywonks = { PMS, Geometry, Gfx, fmt, img, math, ui, cmd };
+const Polywonks = { PMS, Geometry, Gfx, fmt, img, math, ui, cmd };
 
 const modules = [
     app,
@@ -45,6 +43,7 @@ const modules = [
     buffer_writer,
     color,
     editor,
+    editor_commands,
     selection,
     path,
     file,
@@ -70,6 +69,9 @@ const modules = [
 
 modules.forEach(module => {
     Object.keys(module).forEach(key => {
-        window.Polywonks[key] = module[key];
+        Polywonks[key] = module[key];
     });
 });
+
+window.Polywonks = Polywonks;
+Polywonks.App.launch();

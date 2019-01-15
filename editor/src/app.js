@@ -69,10 +69,12 @@ export class App extends ui.Panel {
         const menus = [
             ["File", [
                 ["New Map", "new-map"],
-                ["Save"],
-                ["Save As..."],
                 [],
-                ["Settings"],
+                ["Save", "save"],
+                ["Save As...", "save-as"],
+                [],
+                ["Export", "export"],
+                ["Export As...", "export-as"],
             ]],
             ["Edit", [
                 ["Undo", "undo"],
@@ -126,10 +128,9 @@ export class App extends ui.Panel {
         if (ext === ".pms" || ext === ".polywonks") {
             const activePanel = this.tabs.activePanel;
             const activeEditor = this.editor;
-            const title = Path.filename(path);
 
             Editor.loadFile(this.renderer, path, editor => {
-                const panel = this.tabs.addPanel(new ui.TabPanel(title, editor));
+                const panel = this.tabs.addPanel(new ui.TabPanel(Path.filename(editor.saveName), editor));
                 editor.on("change", () => this.onEditorChange({editor, panel}));
 
                 if (activePanel && activeEditor.openedAsDefault && !activeEditor.modified) {
@@ -141,8 +142,8 @@ export class App extends ui.Panel {
         }
     }
 
-    openEditor(editor = new Editor(this.renderer), title = "Untitled") {
-        const panel = this.tabs.addPanel(new ui.TabPanel(title, editor));
+    openEditor(editor = new Editor(this.renderer)) {
+        const panel = this.tabs.addPanel(new ui.TabPanel(Path.filename(editor.saveName), editor));
         editor.on("change", () => this.onEditorChange({editor, panel}));
         return editor;
     }
@@ -202,6 +203,7 @@ export class App extends ui.Panel {
     }
 
     onEditorChange(event) {
+        event.panel.title = Path.filename(event.editor.saveName);
         event.panel.modified = event.editor.modified;
     }
 
@@ -233,9 +235,9 @@ export class App extends ui.Panel {
 
                 reader.addEventListener("load", () => {
                     if (ext === ".pms") {
-                        this.open(Editor.loadPms(this.renderer, reader.result), file.name);
+                        this.open(Editor.loadPms(this.renderer, reader.result, file.name));
                     } else {
-                        this.open(Editor.loadPolywonks(this.renderer, reader.result), file.name);
+                        this.open(Editor.loadPolywonks(this.renderer, reader.result, file.name));
                     }
                 });
 
