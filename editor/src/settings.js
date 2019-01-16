@@ -39,6 +39,7 @@ const defaultSettings = {
     "app.library-url": "//urraka.github.io/soldat-map/data/",
     "app.library-index": "filelist",
     "app.github": "https://github.com/urraka/polywonks",
+    "app.export-location": "/soldat/maps/",
 };
 
 const settings = Object.assign({}, defaultSettings);

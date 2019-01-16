@@ -73,14 +73,14 @@ export class Editor extends ui.Panel {
                 } else {
                     this.saveAs();
                 }
-            })
+            });
         } else {
             this.saveAs();
         }
     }
 
     saveAs() {
-        const dialog = new SaveDialog(Path.filename(this.saveName), Path.dir(this.saveName) || "/polydrive/");
+        const dialog = new SaveDialog("Save as...", Path.filename(this.saveName), Path.dir(this.saveName) || "/polydrive/");
 
         this.onDeactivate();
         dialog.on("close", () => this.onActivate());
@@ -102,9 +102,42 @@ export class Editor extends ui.Panel {
     }
 
     export() {
+        const filename = Path.replaceExtension(Path.filename(this.saveName), ".pms");
+        const path = Path.resolve(cfg("app.export-location"), filename);
+        const mount = path.substring(1).split("/").shift();
+
+        File.refresh(mount, () => {
+            if (File.exists(path)) {
+                File.write(path, this.map.toPMS().toArrayBuffer(), ok => {
+                    if (!ok) {
+                        this.onDeactivate();
+                        ui.msgbox("Export", "Failed to write file " + path, () => this.onActivate());
+                    }
+                });
+            } else {
+                this.exportAs();
+            }
+        });
     }
 
     exportAs() {
+        const filename = Path.replaceExtension(Path.filename(this.saveName), ".pms");
+        const path = Path.resolve(cfg("app.export-location"), filename);
+        const dialog = new SaveDialog("Export as...", Path.filename(path), Path.dir(path));
+
+        this.onDeactivate();
+        dialog.on("close", () => this.onActivate());
+
+        dialog.on("save", event => {
+            File.write(event.path, this.map.toPMS().toArrayBuffer(), ok => {
+                if (!ok) {
+                    this.onDeactivate();
+                    ui.msgbox("Export as...", "Failed to write file " + event.path, () => this.onActivate());
+                }
+            });
+        });
+
+        dialog.show();
     }
 
     do(command) {

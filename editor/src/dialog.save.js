@@ -4,9 +4,9 @@ import { Path } from "./support/path.js";
 import { File } from "./file.js";
 
 export class SaveDialog extends ui.Dialog {
-    constructor(filename = "", location = "") {
+    constructor(title, filename = "", location = "") {
         super();
-        this.header.textContent = "Save as...";
+        this.header.textContent = title;
         this.element.style.display = "none";
         this.sheet = new ui.PropertySheet();
         this.addButton("save", "Save", true);
@@ -33,7 +33,7 @@ export class SaveDialog extends ui.Dialog {
 
             if (File.exists(path)) {
                 const message = Path.filename(path) + " already exists. Do you want to replace it?";
-                ui.confirm("Save as...", message, "no", result => {
+                ui.confirm(this.header.textContent, message, "no", result => {
                     if (result === "yes") {
                         this.close();
                         this.emit(new Event("save", { path }));
