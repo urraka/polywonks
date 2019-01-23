@@ -254,12 +254,20 @@ export class Editor extends ui.Panel {
     }
 
     static loadPms(renderer, buffer, path = "") {
-        const pms = PMS.Map.fromArrayBuffer(buffer);
-        return new Editor(renderer, MapDocument.fromPMS(pms, path));
+        try {
+            const pms = PMS.Map.fromArrayBuffer(buffer);
+            return new Editor(renderer, MapDocument.fromPMS(pms, path));
+        } catch (e) {
+            return null;
+        }
     }
 
     static loadPolywonks(renderer, text, path = "") {
-        const map = MapDocument.unserialize(text, path);
-        return new Editor(renderer, map);
+        try {
+            const map = MapDocument.unserialize(text, path);
+            return new Editor(renderer, map);
+        } catch (e) {
+            return null;
+        }
     }
 }

@@ -132,15 +132,19 @@ export class App extends ui.Panel {
             const activeEditor = this.editor;
 
             Editor.loadFile(this.renderer, path, editor => {
-                const panel = this.tabs.addPanel(new ui.TabPanel(Path.filename(editor.saveName), editor));
-                editor.on("change", () => this.onEditorChange({editor, panel}));
-                this.sidebar.setActiveTab("sidebar-tools");
+                if (editor) {
+                    const panel = this.tabs.addPanel(new ui.TabPanel(Path.filename(editor.saveName), editor));
+                    editor.on("change", () => this.onEditorChange({editor, panel}));
+                    this.sidebar.setActiveTab("sidebar-tools");
 
-                if (activePanel && activeEditor.openedAsDefault && !activeEditor.modified) {
-                    activePanel.close();
+                    if (activePanel && activeEditor.openedAsDefault && !activeEditor.modified) {
+                        activePanel.close();
+                    }
+
+                    if (fn) fn(editor);
+                } else {
+                    ui.msgbox("Polywonks", "Invalid map format.");
                 }
-
-                if (fn) fn(editor);
             });
         }
     }
@@ -238,10 +242,13 @@ export class App extends ui.Panel {
                 const reader = new FileReader();
 
                 reader.addEventListener("load", () => {
-                    if (ext === ".pms") {
-                        this.open(Editor.loadPms(this.renderer, reader.result, file.name));
+                    const editor = ext === ".pms" ?
+                        Editor.loadPms(this.renderer, reader.result, file.name) :
+                        Editor.loadPolywonks(this.renderer, reader.result, file.name);
+                    if (editor) {
+                        this.open(editor);
                     } else {
-                        this.open(Editor.loadPolywonks(this.renderer, reader.result, file.name));
+                        ui.msgbox("Polywonks", "Invalid map format.");
                     }
                 });
 
