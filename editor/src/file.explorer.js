@@ -18,7 +18,7 @@ export class FileExplorer extends ui.Panel {
     }
 
     onItemDblClick(path) {
-        app.open(path);
+        ui.Command.find("open-file").execute({ path });
     }
 
     refresh() {

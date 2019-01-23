@@ -49,7 +49,7 @@ export class Editor extends ui.Panel {
         this.currentTool.on("change", e => this.emit(new Event("toolchange", { status: e.status })));
         this.element.addEventListener("mousemove", e => this.onMouseMove(e));
 
-        setTimeout(() => this.onSelectionChange());
+        this.onSelectionChange();
     }
 
     get modified() {

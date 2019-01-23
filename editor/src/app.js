@@ -8,18 +8,13 @@ import { Sidebar } from "./sidebar.js";
 
 export class App extends ui.Panel {
     static launch() {
-        Object.keys(cmd).forEach(cmdType => {
-            if (cmdType.endsWith("Command")) {
-                const cmdName = fmt.pascalToDash(cmdType.replace(/Command$/, ""));
-                ui.Command.add(cmdName, new cmd[cmdType]());
-            }
-        });
-
-        window.app = new App();
+        App.instance = new App();
     }
 
     constructor() {
         super("app");
+
+        this.registerCommands();
 
         this.tabs = null;
         this.sidebar = null;
@@ -29,6 +24,15 @@ export class App extends ui.Panel {
         this.createUserInterface();
         this.setupEvents();
         this.openDefault();
+    }
+
+    registerCommands() {
+        Object.keys(cmd).forEach(cmdType => {
+            if (cmdType.endsWith("Command")) {
+                const cmdName = fmt.pascalToDash(cmdType.replace(/Command$/, ""));
+                ui.Command.add(cmdName, new cmd[cmdType](this));
+            }
+        });
     }
 
     setupEvents() {

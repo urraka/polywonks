@@ -1,4 +1,8 @@
 export class Command {
+    constructor(app) {
+        this.app = app;
+    }
+
     execute() {}
     get enabled() { return true; }
     get checked() { return false; }
