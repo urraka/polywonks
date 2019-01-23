@@ -70,6 +70,8 @@ export class App extends ui.Panel {
             ["File", [
                 ["New Map", "new-map"],
                 [],
+                ["Open Map...", "show-explorer"],
+                [],
                 ["Save", "save"],
                 ["Save As...", "save-as"],
                 [],

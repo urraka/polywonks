@@ -7,6 +7,12 @@ export class NewMapCommand extends ui.Command {
     }
 }
 
+export class ShowExplorerCommand extends ui.Command {
+    execute() {
+        app.sidebar.setActiveTab("sidebar-explorer");
+    }
+}
+
 export class SaveCommand extends ui.Command {
     execute() {
         app.editor.save();
