@@ -160,11 +160,11 @@ export class App extends ui.Panel {
         this.statusbar.set(name, value);
     }
 
-    onCursorChange(event) {
+    onCursorChange() {
         this.status("cursor", `${Math.round(this.editor.cursor.x)}, ${Math.round(this.editor.cursor.y)}`);
     }
 
-    onViewChange(event) {
+    onViewChange() {
         this.status("cursor", `${Math.round(this.editor.cursor.x)}, ${Math.round(this.editor.cursor.y)}`);
         this.status("zoom", Math.round(100 * this.editor.view.scale) + "%");
     }
@@ -177,7 +177,7 @@ export class App extends ui.Panel {
         const editor = this.editor;
 
         if (editor) {
-            editor.onDeactivate();
+            editor.deactivate();
             editor.off("cursorchange", this.onCursorChange);
             editor.off("viewchange", this.onViewChange);
             editor.off("toolchange", this.onToolChange);
@@ -189,7 +189,7 @@ export class App extends ui.Panel {
         editor.on("cursorchange", this.onCursorChange);
         editor.on("viewchange", this.onViewChange);
         editor.on("toolchange", this.onToolChange);
-        editor.onActivate();
+        editor.activate();
         this.sidebar.editor = editor;
     }
 

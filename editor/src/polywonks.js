@@ -31,7 +31,7 @@ import * as tool_select from "./tool.select.js";
 import * as tool_pan from "./tool.pan.js";
 import * as tool_zoom from "./tool.zoom.js";
 import * as sidebar from "./sidebar.js";
-import * as explorer from "./explorer.js";
+import * as file_explorer from "./file.explorer.js";
 import * as map_explorer from "./map.explorer.js";
 import * as map_properties from "./map.properties.js";
 
@@ -62,7 +62,7 @@ const modules = [
     event,
     pointer,
     sidebar,
-    explorer,
+    file_explorer,
     map_explorer,
     map_properties,
 ];

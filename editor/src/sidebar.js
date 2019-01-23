@@ -1,5 +1,5 @@
 import * as ui from "./ui/ui.js";
-import { Explorer } from "./explorer.js";
+import { FileExplorer } from "./file.explorer.js";
 
 export class Sidebar extends ui.Panel {
     constructor() {
@@ -8,7 +8,7 @@ export class Sidebar extends ui.Panel {
         this.explorers = [];
         this.append(this.createTabs());
         this.append(this.createTools());
-        this.append(this.createExplorers());
+        this.append(this.createFileExplorers());
         this.setActiveTab("sidebar-tools");
     }
 
@@ -53,7 +53,7 @@ export class Sidebar extends ui.Panel {
         return container;
     }
 
-    createExplorers() {
+    createFileExplorers() {
         const container = new ui.Panel("sidebar-panel");
         const header = container.append(new ui.Panel("sidebar-header"));
         const panels = container.append(new ui.MultiPanelView());
@@ -62,7 +62,7 @@ export class Sidebar extends ui.Panel {
         header.element.textContent = "Explorer";
 
         for (const mount of ["polydrive", "soldat", "library"]) {
-            const explorer = new Explorer(mount);
+            const explorer = new FileExplorer(mount);
             const panel = panels.addPanel(mount, explorer.tree);
             panel.header.addButton("refresh-icon", "Refresh", "refresh-explorer", { mount });
             this.explorers.push(explorer);

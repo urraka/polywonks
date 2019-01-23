@@ -1,7 +1,7 @@
 import * as ui from "./ui/ui.js";
 import { File } from "./file.js";
 
-export class Explorer extends ui.Panel {
+export class FileExplorer extends ui.Panel {
     constructor(root) {
         super("explorer");
         this.root = root;
