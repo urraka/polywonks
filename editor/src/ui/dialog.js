@@ -90,7 +90,7 @@ export class Dialog extends Panel {
             if (this.previousModal) {
                 this.previousModal.deactivate();
             } else {
-                Dialog.emitter.emit(new Event("modalstart"));
+                Dialog.emitter.emit("modalstart");
             }
 
             this.overlay = elem("div", "dialog-overlay");
@@ -124,15 +124,15 @@ export class Dialog extends Panel {
                 }
                 this.previousModal = null;
             } else {
-                Dialog.emitter.emit(new Event("modalend"));
+                Dialog.emitter.emit("modalend");
             }
 
-            this.emit(new Event("close"));
+            this.emit("close");
         }
     }
 
     onButtonClick(key) {
-        this.emit(new Event("buttonclick", { button: key }));
+        this.emit("buttonclick", { button: key });
     }
 
     get focusableElements() {
@@ -176,10 +176,10 @@ export class Dialog extends Panel {
         if (event.key === "Enter") {
             const active = [...this.buttons.children].find(element => element === document.activeElement);
             if (this.defaultButton && !active) {
-                this.emit(new Event("buttonclick", { button: this.defaultButton.key }));
+                this.emit("buttonclick", { button: this.defaultButton.key });
             }
         } else if (event.key === "Escape") {
-            if (this.emit(new Event("cancel"))) {
+            if (this.emit("cancel")) {
                 this.close();
             }
         }

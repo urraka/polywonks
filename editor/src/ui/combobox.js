@@ -1,6 +1,5 @@
 import { elem } from "./common.js";
 import { Select } from "./select.js";
-import { Event } from "../support/event.js";
 
 export class ComboBox extends Select {
     constructor() {
@@ -13,7 +12,7 @@ export class ComboBox extends Select {
         this.onTextInput = this.onTextInput.bind(this);
         this.input.addEventListener("keydown", e => this.onInputKeyDown(e));
         this.input.addEventListener("input", this.onTextInput);
-        this.input.addEventListener("change", () => this.emit(new Event("change")));
+        this.input.addEventListener("change", () => this.emit("change"));
     }
 
     set value(v) {

@@ -1,7 +1,7 @@
 export class Event {
-    constructor(type, data = null) {
+    constructor(type, data, target) {
         this.type = type;
-        this.target = null;
+        this.target = target;
         this.defaultPrevented = false;
         Object.assign(this, data);
     }
@@ -37,13 +37,25 @@ export class EventEmitter {
         }
     }
 
-    emit(event) {
-        if (this.emitterLockCount > 0) return;
-        event.target = event.target || this;
-        if (this.listeners[event.type]) {
-            [...this.listeners[event.type]].forEach(listener => listener.call(this, event));
+    /**
+     * emit(event: Event)
+     * emit(type, data = null, target = this)
+     */
+    emit(...args) {
+        if (this.emitterLockCount > 0) {
+            return;
         }
-        return !event.defaultPrevented;
+
+        if (args[0] instanceof Event) {
+            const event = args[0];
+            if (this.listeners[event.type]) {
+                [...this.listeners[event.type]].forEach(listener => listener.call(this, event));
+            }
+            return !event.defaultPrevented;
+        } else {
+            const [type, data = null, target = this] = args;
+            this.emit(new Event(type, data, target));
+        }
     }
 
     lockEmitter() {

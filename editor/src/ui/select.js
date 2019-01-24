@@ -1,4 +1,4 @@
-import { EventEmitter, Event } from "../support/event.js";
+import { EventEmitter } from "../support/event.js";
 import { elem } from "./common.js";
 
 export class Select extends EventEmitter {
@@ -33,12 +33,12 @@ export class Select extends EventEmitter {
             if (option.value !== this.val) {
                 this.val = option.value;
                 this.setText(option.text);
-                this.emit(new Event("change"));
+                this.emit("change");
             }
         } else if (this.val !== undefined) {
             this.val = undefined;
             this.setText("");
-            this.emit(new Event("change"));
+            this.emit("change");
         }
     }
 

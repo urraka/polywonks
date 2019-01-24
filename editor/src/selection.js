@@ -16,7 +16,7 @@ export class Selection extends EventEmitter {
             }
         }
 
-        if (changed) this.emit(new Event("change"));
+        if (changed) this.emit("change");
         return changed;
     }
 
@@ -29,14 +29,14 @@ export class Selection extends EventEmitter {
             }
         }
 
-        if (changed) this.emit(new Event("change"));
+        if (changed) this.emit("change");
         return changed;
     }
 
     replace(nodes) {
         if (nodes.size !== this.nodes.size || [...nodes].some(node => !this.nodes.has(node))) {
             this.nodes = new Set([...nodes]);
-            this.emit(new Event("change"));
+            this.emit("change");
             return true;
         }
         return false;
@@ -45,7 +45,7 @@ export class Selection extends EventEmitter {
     clear() {
         if (this.nodes.size === 0) return false;
         this.nodes.clear();
-        this.emit(new Event("change"));
+        this.emit("change");
         return true;
     }
 

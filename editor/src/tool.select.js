@@ -40,7 +40,7 @@ export class SelectTool extends Tool {
         this.editor.element.addEventListener("mouseleave", this.onMouseLeave);
         document.addEventListener("keyup", this.onKey);
         document.addEventListener("keydown", this.onKey);
-        this.emit(new Event("change", { status: "Select" }));
+        this.emit("change", { status: "Select" });
     }
 
     onDeactivate() {
@@ -50,7 +50,7 @@ export class SelectTool extends Tool {
         this.pointer.deactivate();
         this.editor.previewNodes.clear();
         this.editor.redraw();
-        this.emit(new Event("change", { status: "" }));
+        this.emit("change", { status: "" });
     }
 
     updatePreviewNodes() {
@@ -110,13 +110,13 @@ export class SelectTool extends Tool {
 
         switch (this.mode) {
             case "replace":
-                this.emit(new Event("change", { status: "Select" }));
+                this.emit("change", { status: "Select" });
                 break;
             case "add":
-                this.emit(new Event("change", { status: "Select (+)" }));
+                this.emit("change", { status: "Select (+)" });
                 break;
             case "subtract":
-                this.emit(new Event("change", { status: "Select (-)" }));
+                this.emit("change", { status: "Select (-)" });
                 break;
         }
     }

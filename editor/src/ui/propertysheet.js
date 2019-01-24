@@ -1,5 +1,5 @@
 import { Panel, elem } from "./common.js";
-import { EventEmitter, Event } from "../support/event.js";
+import { EventEmitter } from "../support/event.js";
 import { ValueType } from "../support/type.js";
 import { Select } from "./select.js";
 import { ComboBox } from "./combobox.js";
@@ -16,7 +16,7 @@ export class PropertySheet extends Panel {
         this.properties[key] = property;
         this.columns[0].append(property.label);
         this.columns[1].append(property.control.element || property.control);
-        property.on("change", () => this.emit(new Event("propertychange", { property })));
+        property.on("change", () => this.emit("propertychange", { property }));
     }
 
     clear() {
@@ -73,7 +73,7 @@ export class PropertyItem extends EventEmitter {
 
     onSelectChange() {
         this.value = this.control.value;
-        this.emit(new Event("change"));
+        this.emit("change");
     }
 
     onTextInput() {
@@ -127,7 +127,7 @@ export class PropertyItem extends EventEmitter {
                 this.control.value = ValueType.toString(this.type, this.value);
                 this.input.addEventListener("change", this.onTextChange);
                 if (force || !ValueType.equals(this.type, val, this.value)) {
-                    this.emit(new Event("change"));
+                    this.emit("change");
                 }
             } catch (e) {
                 this.toggleState("invalid", true);

@@ -1,4 +1,4 @@
-import { EventEmitter, Event } from "../support/event.js";
+import { EventEmitter } from "../support/event.js";
 import { ValueType } from "../support/type.js";
 import { Attribute } from "./attribute.js";
 
@@ -41,7 +41,7 @@ export class Node extends EventEmitter {
             attribute.value = value;
 
             if (!ValueType.equals(attribute.dataType, val, attribute.value)) {
-                this.emit(new Event("attributechange", { attribute: name }));
+                this.emit("attributechange", { attribute: name });
             }
         }
     }

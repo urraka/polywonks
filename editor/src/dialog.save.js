@@ -36,12 +36,12 @@ export class SaveDialog extends ui.Dialog {
                 ui.confirm(this.header.textContent, message, "no", result => {
                     if (result === "yes") {
                         this.close();
-                        this.emit(new Event("save", { path }));
+                        this.emit("save", { path });
                     }
                 });
             } else {
                 this.close();
-                this.emit(new Event("save", { path }));
+                this.emit("save", { path });
             }
         } else {
             this.close();

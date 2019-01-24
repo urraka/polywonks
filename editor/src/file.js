@@ -72,7 +72,7 @@ export class File {
         req.addEventListener("abort", () => callback && callback(false));
         req.addEventListener("load", () => {
             if (callback) callback(true);
-            File.emitter.emit(new Event("write", { path }));
+            File.emitter.emit("write", { path });
         });
         req.open("PUT", "/api/write" + path);
         req.send(data);

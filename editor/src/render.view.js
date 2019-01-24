@@ -17,24 +17,24 @@ export class RenderView extends EventEmitter {
 
     set x(value) {
         this._x = value;
-        this.emit(new Event("change"));
+        this.emit("change");
     }
 
     set y(value) {
         this._y = value;
-        this.emit(new Event("change"));
+        this.emit("change");
     }
 
     set scale(value) {
         this._scale = value;
-        this.emit(new Event("change"));
+        this.emit("change");
     }
 
     reset() {
         this.x = 0;
         this.y = 0;
         this.scale = 1;
-        this.emit(new Event("change"));
+        this.emit("change");
     }
 
     get width() {

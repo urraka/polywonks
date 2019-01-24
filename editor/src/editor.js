@@ -47,7 +47,7 @@ export class Editor extends ui.Panel {
         this.map.on("attributechange", e => this.onMapAttrChange(e));
         this.view.on("change", () => this.onViewChange());
         this.selection.on("change", () => this.onSelectionChange());
-        this.currentTool.on("change", e => this.emit(new Event("toolchange", { status: e.status })));
+        this.currentTool.on("change", e => this.emit("toolchange", { status: e.status }));
         this.element.addEventListener("mousemove", e => this.onMouseMove(e));
 
         this.onSelectionChange();
@@ -65,7 +65,7 @@ export class Editor extends ui.Panel {
                     File.write(this.saveName, this.map.serialize(), ok => {
                         if (ok) {
                             this.saveIndex = this.undone;
-                            this.emit(new Event("change"));
+                            this.emit("change");
                         } else {
                             ui.msgbox("Save", "Failed to write file " + this.saveName);
                         }
@@ -87,7 +87,7 @@ export class Editor extends ui.Panel {
                 if (ok) {
                     this.saveName = event.path;
                     this.saveIndex = this.undone;
-                    this.emit(new Event("change"));
+                    this.emit("change");
                 } else {
                     ui.msgbox("Save as...", "Failed to write file " + event.path);
                 }
@@ -145,21 +145,21 @@ export class Editor extends ui.Panel {
         }
 
         command.do();
-        this.emit(new Event("change"));
+        this.emit("change");
         return command;
     }
 
     redo() {
         if (this.undone > 0) {
             this.commandHistory[--this.undone].do();
-            this.emit(new Event("change"));
+            this.emit("change");
         }
     }
 
     undo() {
         if (this.commandHistory.length > this.undone) {
             this.commandHistory[this.undone++].undo();
-            this.emit(new Event("change"));
+            this.emit("change");
         }
     }
 
@@ -173,7 +173,7 @@ export class Editor extends ui.Panel {
             this.panTool.activate(this);
             this.zoomTool.activate(this);
             this.currentTool.activate(this);
-            this.emit(new Event("viewchange"));
+            this.emit("viewchange");
             this.redraw();
         }
     }
@@ -206,12 +206,12 @@ export class Editor extends ui.Panel {
     }
 
     onViewChange() {
-        this.emit(new Event("viewchange"));
+        this.emit("viewchange");
         this.redraw();
     }
 
     onSelectionChange() {
-        this.emit(new Event("selectionchange"));
+        this.emit("selectionchange");
         this.redraw();
     }
 
@@ -220,7 +220,7 @@ export class Editor extends ui.Panel {
         const pos = this.view.canvasToMap(event.clientX - rect.left, event.clientY - rect.top);
         this.cursor.x = pos.x;
         this.cursor.y = pos.y;
-        this.emit(new Event("cursorchange"));
+        this.emit("cursorchange");
     }
 
     static loadFile(renderer, path, fn) {

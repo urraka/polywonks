@@ -48,14 +48,14 @@ export class Pointer extends EventEmitter {
 
         if (this.dragging) {
             this.dragging = false;
-            this.emit(new Event("end", { mouseEvent: event }));
+            this.emit("end", { mouseEvent: event });
         }
     }
 
     onMouseDown(event) {
         if (event.button === this.button) {
             this.dragging = true;
-            this.emit(new Event("begin", { mouseEvent: event }));
+            this.emit("begin", { mouseEvent: event });
         }
     }
 
@@ -66,7 +66,7 @@ export class Pointer extends EventEmitter {
     }
 
     onMouseMove(event) {
-        this.emit(new Event("move", { mouseEvent: event }));
+        this.emit("move", { mouseEvent: event });
     }
 
     onPointerDown(event) {

@@ -1,5 +1,4 @@
 import { Panel, elem } from "./common.js";
-import { Event } from "../support/event.js";
 
 export class TabView extends Panel {
     constructor() {
@@ -17,7 +16,7 @@ export class TabView extends Panel {
     }
 
     closePanel(panel) {
-        if (this.emit(new Event("close", { panel }))) {
+        if (this.emit("close", { panel })) {
             const activePanel = this.activePanel;
             if (panel === activePanel) {
                 const nextPanel = TabPanel.from(panel.tab.previousSibling || panel.tab.nextSibling);
@@ -84,11 +83,11 @@ export class TabPanel extends Panel {
             const activePanel = this.tabView.activePanel;
 
             if (activePanel !== this) {
-                this.tabView.emit(new Event("willchange"));
+                this.tabView.emit("willchange");
                 if (activePanel) activePanel.active = false;
                 this.element.classList.add("active");
                 this.tab.classList.add("active");
-                this.tabView.emit(new Event("change"));
+                this.tabView.emit("change");
             }
         } else {
             this.element.classList.remove("active");
