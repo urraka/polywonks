@@ -19,6 +19,7 @@ export class Editor extends ui.Panel {
         super("editor");
 
         this.renderer = renderer;
+        this.activated = false;
         this.openedAsDefault = false;
         this.view = new RenderView(renderer);
         this.map = map;
@@ -66,8 +67,7 @@ export class Editor extends ui.Panel {
                             this.saveIndex = this.undone;
                             this.emit(new Event("change"));
                         } else {
-                            this.deactivate();
-                            ui.msgbox("Save", "Failed to write file " + this.saveName, () => this.activate());
+                            ui.msgbox("Save", "Failed to write file " + this.saveName);
                         }
                     });
                 } else {
@@ -82,9 +82,6 @@ export class Editor extends ui.Panel {
     saveAs() {
         const dialog = new SaveDialog("Save as...", Path.filename(this.saveName), Path.dir(this.saveName) || "/polydrive/");
 
-        this.deactivate();
-        dialog.on("close", () => this.activate());
-
         dialog.on("save", event => {
             File.write(event.path, this.map.serialize(), ok => {
                 if (ok) {
@@ -92,8 +89,7 @@ export class Editor extends ui.Panel {
                     this.saveIndex = this.undone;
                     this.emit(new Event("change"));
                 } else {
-                    this.deactivate();
-                    ui.msgbox("Save as...", "Failed to write file " + event.path, () => this.activate());
+                    ui.msgbox("Save as...", "Failed to write file " + event.path);
                 }
             });
         });
@@ -110,8 +106,7 @@ export class Editor extends ui.Panel {
             if (File.exists(path)) {
                 File.write(path, this.map.toPMS().toArrayBuffer(), ok => {
                     if (!ok) {
-                        this.deactivate();
-                        ui.msgbox("Export", "Failed to write file " + path, () => this.activate());
+                        ui.msgbox("Export", "Failed to write file " + path);
                     }
                 });
             } else {
@@ -125,14 +120,10 @@ export class Editor extends ui.Panel {
         const path = Path.resolve(cfg("app.export-location"), filename);
         const dialog = new SaveDialog("Export as...", Path.filename(path), Path.dir(path));
 
-        this.deactivate();
-        dialog.on("close", () => this.activate());
-
         dialog.on("save", event => {
             File.write(event.path, this.map.toPMS().toArrayBuffer(), ok => {
                 if (!ok) {
-                    this.deactivate();
-                    ui.msgbox("Export as...", "Failed to write file " + event.path, () => this.activate());
+                    ui.msgbox("Export as...", "Failed to write file " + event.path);
                 }
             });
         });
@@ -177,26 +168,29 @@ export class Editor extends ui.Panel {
     }
 
     activate() {
-        this.panTool.activate(this);
-        this.zoomTool.activate(this);
-        this.currentTool.activate(this);
-        this.emit(new Event("viewchange"));
-        this.redraw();
+        if (!this.activated) {
+            this.activated = true;
+            this.panTool.activate(this);
+            this.zoomTool.activate(this);
+            this.currentTool.activate(this);
+            this.emit(new Event("viewchange"));
+            this.redraw();
+        }
     }
 
     deactivate() {
-        this.currentTool.deactivate();
-        this.zoomTool.deactivate();
-        this.panTool.deactivate();
+        if (this.activated) {
+            this.activated = false;
+            this.currentTool.deactivate();
+            this.zoomTool.deactivate();
+            this.panTool.deactivate();
+        }
     }
 
     onClose(event) {
         if (this.modified) {
             event.preventDefault();
-            this.deactivate();
-            const message = `Save changes to ${Path.filename(this.saveName)}?`;
-            ui.confirm("Closing", message, "yes", result => {
-                this.activate();
+            ui.confirm("Closing", `Save changes to ${Path.filename(this.saveName)}?`, "yes", result => {
                 if (result === "no") {
                     this.saveIndex = this.undone;
                     event.panel.close();

@@ -1,5 +1,5 @@
 import { Panel, elem } from "./common.js";
-import { Event } from "../support/event.js";
+import { Event, EventEmitter } from "../support/event.js";
 
 export function msgbox(title, message, onclose) {
     const dialog = new Dialog();
@@ -85,11 +85,12 @@ export class Dialog extends Panel {
 
     show() {
         if (!this.overlay) {
-            const elementToDialog = Dialog.elementToDialog || (Dialog.elementToDialog = new WeakMap());
-            this.previousModal = elementToDialog.get(document.querySelector("body > .dialog-overlay.active"));
+            this.previousModal = Dialog.activeDialog;
 
             if (this.previousModal) {
                 this.previousModal.deactivate();
+            } else {
+                Dialog.emitter.emit(new Event("modalstart"));
             }
 
             this.overlay = elem("div", "dialog-overlay");
@@ -97,7 +98,7 @@ export class Dialog extends Panel {
             this.overlay.append(this.element);
             this.overlay.addEventListener("keydown", e => this.onKeyDown(e));
             this.overlay.addEventListener("mousedown", e => this.onOverlayMouseDown(e));
-            elementToDialog.set(this.overlay, this);
+            Dialog.dialogs.set(this.overlay, this);
             document.body.append(this.overlay);
 
             if (this.defaultButton) {
@@ -122,6 +123,8 @@ export class Dialog extends Panel {
                     this.previousModal.activate();
                 }
                 this.previousModal = null;
+            } else {
+                Dialog.emitter.emit(new Event("modalend"));
             }
 
             this.emit(new Event("close"));
@@ -190,5 +193,21 @@ export class Dialog extends Panel {
                 setTimeout(() => this.element.classList.remove("shake"), 400);
             }
         }
+    }
+
+    static get dialogs() {
+        return Dialog._dialogs || (Dialog._dialogs = new WeakMap());
+    }
+
+    static get activeDialog() {
+        return Dialog.dialogs.get(document.querySelector("body > .dialog-overlay.active"));
+    }
+
+    static get emitter() {
+        return Dialog._emitter || (Dialog._emitter = new EventEmitter());
+    }
+
+    static on(...args) {
+        Dialog.emitter.on(...args);
     }
 }

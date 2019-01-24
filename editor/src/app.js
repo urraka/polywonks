@@ -43,6 +43,8 @@ export class App extends ui.Panel {
         this.tabs.on("change", e => this.onTabChange(e));
         this.tabs.on("willchange", e => this.onTabWillChange(e));
         this.tabs.on("close", e => this.onTabClose(e));
+        ui.Dialog.on("modalstart", () => this.onModalStart());
+        ui.Dialog.on("modalend", () => this.onModalEnd());
         window.addEventListener("beforeunload", e => this.onBeforeUnload(e));
         window.addEventListener("resize", e => this.onResize(e));
         document.addEventListener("drop", e => this.onDrop(e));
@@ -201,7 +203,9 @@ export class App extends ui.Panel {
         editor.on("cursorchange", this.onCursorChange);
         editor.on("viewchange", this.onViewChange);
         editor.on("toolchange", this.onToolChange);
-        editor.activate();
+        if (App.hasFocus) {
+            editor.activate();
+        }
         this.sidebar.editor = editor;
     }
 
@@ -217,6 +221,18 @@ export class App extends ui.Panel {
     onEditorChange(event) {
         event.panel.title = Path.filename(event.editor.saveName);
         event.panel.modified = event.editor.modified;
+    }
+
+    static get hasFocus() {
+        return !ui.Dialog.activeDialog;
+    }
+
+    onModalStart() {
+        this.editor.deactivate();
+    }
+
+    onModalEnd() {
+        this.editor.activate();
     }
 
     onBeforeUnload(event) {
