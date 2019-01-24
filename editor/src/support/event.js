@@ -54,7 +54,7 @@ export class EventEmitter {
             return !event.defaultPrevented;
         } else {
             const [type, data = null, target = this] = args;
-            this.emit(new Event(type, data, target));
+            return this.emit(new Event(type, data, target));
         }
     }
 
