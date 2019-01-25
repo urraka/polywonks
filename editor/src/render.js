@@ -154,6 +154,10 @@ export class Renderer {
 
         this.drawNode(this.editor.map, node => !(node instanceof WaypointNode) && !(node instanceof ConnectionNode));
 
+        if (cfg("view.wireframe")) {
+            this.drawWireframe();
+        }
+
         if (cfg("view.grid")) {
             this.drawGrid();
         }
@@ -327,10 +331,6 @@ export class Renderer {
                     } else if (cfg("view.polygons") === "plain") {
                         this.batch.add(Gfx.Triangles, this.context.whiteTexture, vertices);
                     }
-
-                    if (cfg("view.wireframe")) {
-                        this.drawLineLoop(vertices);
-                    }
                 }
                 break;
             }
@@ -384,6 +384,16 @@ export class Renderer {
         for (const childNode of node.children()) {
             if ((childNode instanceof LayerNode) || filter(childNode)) {
                 this.drawNode(childNode, filter);
+            }
+        }
+    }
+
+    drawWireframe() {
+        for (const node of this.editor.map.descendants()) {
+            if (node instanceof TriangleNode) {
+                const vertices = this.nodeVertices(node);
+                vertices.forEach(v => v.color.a = 255);
+                this.drawLineLoop(vertices);
             }
         }
     }
