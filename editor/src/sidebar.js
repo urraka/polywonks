@@ -1,5 +1,6 @@
 import * as ui from "./ui/ui.js";
 import { FileExplorer } from "./file.explorer.js";
+import { Settings } from "./settings.js";
 
 export class Sidebar extends ui.Panel {
     constructor() {
@@ -9,6 +10,7 @@ export class Sidebar extends ui.Panel {
         this.append(this.createTabs());
         this.append(this.createTools());
         this.append(this.createFileExplorers());
+        this.append(this.createSettings());
         this.setActiveTab("sidebar-tools");
     }
 
@@ -31,11 +33,20 @@ export class Sidebar extends ui.Panel {
 
     createTabs() {
         const tabs = new ui.Panel("sidebar-toolbar");
-        const tools = tabs.append(ui.elem("button", "tools-icon"));
-        const explorer = tabs.append(ui.elem("button", "explorer-icon"));
-        tools.setAttribute("for", "sidebar-tools");
-        explorer.setAttribute("for", "sidebar-explorer");
         tabs.element.addEventListener("click", e => this.setActiveTab(e.target.getAttribute("for")));
+
+        const tools = tabs.append(ui.elem("button", "tools-icon"));
+        tools.setAttribute("for", "sidebar-tools");
+        tools.setAttribute("title", "Tools");
+
+        const explorer = tabs.append(ui.elem("button", "explorer-icon"));
+        explorer.setAttribute("for", "sidebar-explorer");
+        explorer.setAttribute("title", "Explorer");
+
+        const settings = tabs.append(ui.elem("button", "settings-icon"));
+        settings.setAttribute("for", "sidebar-settings");
+        settings.setAttribute("title", "Settings");
+
         return tabs;
     }
 
@@ -68,6 +79,15 @@ export class Sidebar extends ui.Panel {
             this.explorers.push(explorer);
         }
 
+        return container;
+    }
+
+    createSettings() {
+        const container = new ui.Panel("sidebar-panel");
+        const header = container.append(new ui.Panel("sidebar-header"));
+        container.append(new Settings());
+        container.element.setAttribute("id", "sidebar-settings");
+        header.element.textContent = "Settings";
         return container;
     }
 }

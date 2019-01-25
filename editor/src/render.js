@@ -56,7 +56,7 @@ export class Renderer {
         for (const key of Settings.list()) {
             if (key.startsWith("theme.")) {
                 const propertyName = dashToCamel(key.substring("theme.".length));
-                this.theme[propertyName] = Color.parse(cfg(key), cfgDefault(key));
+                this.theme[propertyName] = cfg(key);
             }
         }
     }

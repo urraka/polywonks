@@ -43,6 +43,7 @@ export class ValueType {
             case "node": throw new Error("Invalid type conversion");
             case "color": return new Color(value);
             case "enum": return ValueType.sanitize(type, value);
+            case "number":
             case "int8": case "uint8":
             case "int16": case "uint16":
             case "int32": case "uint32":
@@ -66,6 +67,7 @@ export class ValueType {
             case "node": return null;
             case "color": return new Color();
             case "enum": return type.defaultName();
+            case "number":
             case "int8": case "uint8":
             case "int16": case "uint16":
             case "int32": case "uint32":
@@ -103,6 +105,7 @@ export class ValueType {
                 return value;
             }
 
+            case "number":
             case "int8": case "uint8":
             case "int16": case "uint16":
             case "int32": case "uint32":
@@ -110,6 +113,7 @@ export class ValueType {
                 if (typeof value !== "number" || Number.isNaN(value) || !Number.isFinite(value)) {
                     throw new Error("Value must be a valid number");
                 } else switch (type) {
+                    case "number": return value;
                     case "int8": return clamp(Math.trunc(value), -0x80, 0x7f);
                     case "int16": return clamp(Math.trunc(value), -0x8000, 0x7fff);
                     case "int32": return clamp(Math.trunc(value), -0x80000000, 0x7fffffff);

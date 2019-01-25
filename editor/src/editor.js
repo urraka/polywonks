@@ -1,11 +1,10 @@
 import * as PMS from "./pms/pms.js";
 import * as ui from "./ui/ui.js";
 import { Path } from "./support/path.js";
-import { Event } from "./support/event.js";
 import { MapDocument } from "./map/map.js";
 import { File } from "./file.js";
 import { RenderView } from "./render.view.js";
-import { cfg } from "./settings.js";
+import { cfg, Settings } from "./settings.js";
 import { SelectTool } from "./tool.select.js";
 import { PanTool } from "./tool.pan.js";
 import { ZoomTool } from "./tool.zoom.js";
@@ -49,6 +48,7 @@ export class Editor extends ui.Panel {
         this.selection.on("change", () => this.onSelectionChange());
         this.currentTool.on("change", e => this.emit("toolchange", { status: e.status }));
         this.element.addEventListener("mousemove", e => this.onMouseMove(e));
+        Settings.on("change", e => this.onSettingChange(e.setting));
 
         this.onSelectionChange();
     }
@@ -221,6 +221,10 @@ export class Editor extends ui.Panel {
         this.cursor.x = pos.x;
         this.cursor.y = pos.y;
         this.emit("cursorchange");
+    }
+
+    onSettingChange() {
+        this.redraw();
     }
 
     static loadFile(renderer, path, fn) {
