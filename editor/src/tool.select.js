@@ -1,5 +1,4 @@
 import { Rect } from "./support/rect.js";
-import { Event } from "./support/event.js";
 import { mod } from "./support/math.js";
 import { Pointer } from "./support/pointer.js";
 import { Tool } from "./tool.js";

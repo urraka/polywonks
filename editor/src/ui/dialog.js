@@ -1,5 +1,5 @@
 import { Panel, elem } from "./common.js";
-import { Event, EventEmitter } from "../support/event.js";
+import { EventEmitter } from "../support/event.js";
 
 export function msgbox(title, message, onclose) {
     const dialog = new Dialog();

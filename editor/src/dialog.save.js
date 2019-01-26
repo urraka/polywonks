@@ -1,5 +1,4 @@
 import * as ui from "./ui/ui.js";
-import { Event } from "./support/event.js";
 import { Path } from "./support/path.js";
 import { File } from "./file.js";
 

@@ -165,7 +165,7 @@ export class Editor extends ui.Panel {
     }
 
     redraw() {
-        this.renderer.redraw(this);
+        this.emit("redraw");
     }
 
     activate() {
@@ -175,7 +175,6 @@ export class Editor extends ui.Panel {
             this.zoomTool.activate(this);
             this.currentTool.activate(this);
             this.emit("viewchange");
-            this.redraw();
         }
     }
 
@@ -198,11 +197,14 @@ export class Editor extends ui.Panel {
                 }
             });
         } else {
-            this.renderer.disposeMapResources(this.map);
+            this.renderer.disposeNodeResources(this.map);
         }
     }
 
-    onMapAttrChange() {
+    onMapAttrChange(event) {
+        if (event.attribute === "src") {
+            this.renderer.disposeNodeResources(event.target);
+        }
         this.redraw();
     }
 
@@ -228,8 +230,13 @@ export class Editor extends ui.Panel {
         this.emit("cursorchange");
     }
 
-    onSettingChange() {
-        this.redraw();
+    onSettingChange(setting) {
+        if (setting === "editor.zoom-min" || setting === "editor.zoom-max") {
+            const zoom = new ZoomTool();
+            zoom.activate(this);
+            zoom.zoom(1, this.renderer.width / 2, this.renderer.height / 2);
+            zoom.deactivate();
+        }
     }
 
     static loadFile(renderer, path, fn) {

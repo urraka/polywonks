@@ -7,7 +7,7 @@ import { dashToCamel } from "./support/format.js";
 import { Rect } from "./support/rect.js";
 import { SpawnTeam } from "./pms/pms.js";
 import { File } from "./file.js";
-import { cfg, cfgDefault, Settings } from "./settings.js";
+import { cfg, Settings } from "./settings.js";
 import { SelectTool } from "./tool.select.js";
 
 import {
@@ -34,13 +34,25 @@ export class Renderer {
         this.icons = {};
         this.iconsInfo = {};
         this.animFrameId = null;
-        this.editor = null;
         this.selectionNodes = null;
         this.theme = null;
+        this._editor = null;
+        this.onEditorRedraw = () => this.redraw();
 
         for (const spawnType of SpawnTeam.names()) {
             this.loadIcon("spawn-" + spawnType);
         }
+    }
+
+    get editor() {
+        return this._editor;
+    }
+
+    set editor(value) {
+        if (this._editor) this._editor.off("redraw", this.onEditorRedraw);
+        this._editor = value;
+        this._editor.on("redraw", this.onEditorRedraw);
+        this.redraw();
     }
 
     get width() {
@@ -78,13 +90,14 @@ export class Renderer {
         });
     }
 
-    disposeMapResources(map) {
-        for (const node of map.tree()) {
-            const texture = this.textures.get(node);
-            if (texture && texture !== this.context.defaultTexture) {
-                texture.dispose();
-                this.textures.delete(node);
-            }
+    disposeNodeResources(node) {
+        const texture = this.textures.get(node);
+        if (texture && texture !== this.context.defaultTexture) {
+            texture.dispose();
+            this.textures.delete(node);
+        }
+        for (const childNode of node.children()) {
+            this.disposeNodeResources(childNode);
         }
     }
 
@@ -122,10 +135,8 @@ export class Renderer {
         return texture;
     }
 
-    redraw(editor = this.editor) {
-        this.editor = editor;
-
-        if (this.editor && this.animFrameId === null) {
+    redraw() {
+        if (this.animFrameId === null) {
             this.animFrameId = window.requestAnimationFrame(() => {
                 this.animFrameId = null;
                 this.draw();
@@ -143,6 +154,10 @@ export class Renderer {
     }
 
     draw() {
+        if (!this.editor) {
+            return;
+        }
+
         this.selectionNodes = [];
         this.loadThemeColors();
         this.updateCanvasSize();

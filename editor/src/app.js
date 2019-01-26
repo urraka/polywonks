@@ -5,6 +5,7 @@ import { Path } from "./support/path.js";
 import { Renderer } from "./render.js";
 import { Editor } from "./editor.js";
 import { Sidebar } from "./sidebar.js";
+import { Settings } from "./settings.js";
 
 export class App extends ui.Panel {
     static launch() {
@@ -52,6 +53,7 @@ export class App extends ui.Panel {
         document.addEventListener("dragenter", e => this.onDragEnter(e));
         document.addEventListener("keydown", e => this.onKeyDown(e));
         document.addEventListener("contextmenu", e => e.preventDefault());
+        Settings.on("change", e => this.onSettingChange(e.setting));
     }
 
     createUserInterface() {
@@ -74,9 +76,9 @@ export class App extends ui.Panel {
     createMenus(menubar) {
         const menus = [
             ["File", [
-                ["New Map", "new-map"],
+                ["New", "new-map"],
                 [],
-                ["Open Map...", "show-explorer"],
+                ["Open...", "show-explorer"],
                 [],
                 ["Save", "save"],
                 ["Save As...", "save-as"],
@@ -174,6 +176,27 @@ export class App extends ui.Panel {
         this.statusbar.set(name, value);
     }
 
+    onSettingChange(setting) {
+        if (setting === "app.library-url" || setting === "app.library-index") {
+            for (const panel of this.tabs.panels()) {
+                const map = panel.content.map;
+                const dir = Path.dir(map.path);
+                for (const node of map.resources) {
+                    if (node.attributes.has("src")) {
+                        const src = node.attr("src");
+                        if (src && (dir.startsWith("/") || src.startsWith("/"))) {
+                            if (Path.resolve(dir, src).startsWith("/library/")) {
+                                this.renderer.disposeNodeResources(node);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        this.renderer.redraw();
+    }
+
     onCursorChange() {
         this.status("cursor", `${Math.round(this.editor.cursor.x)}, ${Math.round(this.editor.cursor.y)}`);
     }
@@ -203,10 +226,11 @@ export class App extends ui.Panel {
         editor.on("cursorchange", this.onCursorChange);
         editor.on("viewchange", this.onViewChange);
         editor.on("toolchange", this.onToolChange);
+        this.renderer.editor = editor;
+        this.sidebar.editor = editor;
         if (App.hasFocus) {
             editor.activate();
         }
-        this.sidebar.editor = editor;
     }
 
     onTabClose(event) {
@@ -248,7 +272,7 @@ export class App extends ui.Panel {
     }
 
     onResize() {
-        this.editor.redraw();
+        this.renderer.redraw();
     }
 
     onDrop(event) {

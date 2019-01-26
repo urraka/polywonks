@@ -29,6 +29,12 @@ export class TabView extends Panel {
         }
     }
 
+    *panels() {
+        for (const tab of this.tabs.element.children) {
+            yield TabPanel.from(tab);
+        }
+    }
+
     get activePanel() {
         return TabPanel.from(this.tabs.element.querySelector(".tab.active"));
     }

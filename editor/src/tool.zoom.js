@@ -41,7 +41,6 @@ export class ZoomTool extends Tool {
         this.editor.view.scale = Math.max(z0, Math.min(z1, this.editor.view.scale * factor));
         this.editor.view.x -= dx / this.editor.view.scale - dx / s;
         this.editor.view.y -= dy / this.editor.view.scale - dy / s;
-        this.editor.redraw();
 
         if (this.moveEvent) {
             this.editor.element.dispatchEvent(this.moveEvent);

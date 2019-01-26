@@ -58,7 +58,6 @@ export class ResetViewportCommand extends ui.Command {
 export class ToggleGridCommand extends ui.Command {
     execute() {
         cfg("view.grid", !cfg("view.grid"));
-        this.app.editor.redraw();
     }
 
     get checked() {
@@ -69,7 +68,6 @@ export class ToggleGridCommand extends ui.Command {
 export class ToggleBackgroundCommand extends ui.Command {
     execute() {
         cfg("view.background", !cfg("view.background"));
-        this.app.editor.redraw();
     }
 
     get checked() {
@@ -80,7 +78,6 @@ export class ToggleBackgroundCommand extends ui.Command {
 export class ShowPolygonTextureCommand extends ui.Command {
     execute() {
         cfg("view.polygons", "texture");
-        this.app.editor.redraw();
     }
 
     get checked() {
@@ -91,7 +88,6 @@ export class ShowPolygonTextureCommand extends ui.Command {
 export class ShowPolygonPlainCommand extends ui.Command {
     execute() {
         cfg("view.polygons", "plain");
-        this.app.editor.redraw();
     }
 
     get checked() {
@@ -102,7 +98,6 @@ export class ShowPolygonPlainCommand extends ui.Command {
 export class ShowPolygonNoneCommand extends ui.Command {
     execute() {
         cfg("view.polygons", "none");
-        this.app.editor.redraw();
     }
 
     get checked() {
@@ -113,7 +108,6 @@ export class ShowPolygonNoneCommand extends ui.Command {
 export class ToggleWireframeCommand extends ui.Command {
     execute() {
         cfg("view.wireframe", !cfg("view.wireframe"));
-        this.app.editor.redraw();
     }
 
     get checked() {
