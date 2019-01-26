@@ -202,7 +202,7 @@ export class Editor extends ui.Panel {
     }
 
     onMapAttrChange(event) {
-        if (event.attribute === "src") {
+        if (event.attribute === "src" || event.attribute === "color-key") {
             this.renderer.disposeNodeResources(event.target);
         }
         this.redraw();
