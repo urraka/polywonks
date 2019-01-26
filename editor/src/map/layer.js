@@ -19,5 +19,35 @@ export class LayerNode extends Node {
         super("layer");
         this.attributes.get("text").value = name;
         this.attributes.set("type", new Attribute(LayerType, type));
+        this._visible = true;
+    }
+
+    get visible() {
+        return this._visible;
+    }
+
+    set visible(value) {
+        if (this._visible !== value) {
+            this._visible = value;
+            this.emit("visibilitychange");
+        }
+    }
+
+    *nodesAt(...args) {
+        if (this.visible) {
+            yield *super.nodesAt(...args);
+        }
+    }
+
+    *nodesIntersectingRect(...args) {
+        if (this.visible) {
+            yield *super.nodesIntersectingRect(...args);
+        }
+    }
+
+    *nodesContainedByRect(...args) {
+        if (this.visible) {
+            yield *super.nodesContainedByRect(...args);
+        }
     }
 }

@@ -5,6 +5,16 @@ export class Selection extends EventEmitter {
         super();
         this.editor = editor;
         this.nodes = new Set();
+        this.editor.map.on("visibilitychange", e => this.onMapVisibilityChange(e));
+    }
+
+    onMapVisibilityChange(event) {
+        const node = event.target;
+        const filtered = [...this.nodes].filter(n => !node.contains(n));
+        if (filtered.length !== this.nodes.size) {
+            this.nodes = new Set([...filtered]);
+            this.emit("change");
+        }
     }
 
     add(nodes) {

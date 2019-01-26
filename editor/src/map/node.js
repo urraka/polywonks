@@ -1,4 +1,4 @@
-import { EventEmitter } from "../support/event.js";
+import { EventEmitter, Event } from "../support/event.js";
 import { ValueType } from "../support/type.js";
 import { Attribute } from "./attribute.js";
 
@@ -20,7 +20,13 @@ export class Node extends EventEmitter {
         return this.attr("text");
     }
 
-    emit(event) {
+    emit(...args) {
+        let event = args[0];
+        if (!(event instanceof Event)) {
+            const [type, data = null, target = this] = args;
+            event = new Event(type, data, target);
+        }
+
         super.emit(event);
         if (this.parentNode) {
             this.parentNode.emit(event);
@@ -102,6 +108,13 @@ export class Node extends EventEmitter {
 
     appendTo(node) {
         node.append(this);
+    }
+
+    contains(node) {
+        for (; node; node = node.parentNode) {
+            if (node === this) return true;
+        }
+        return false;
     }
 
     *children() {
@@ -201,5 +214,9 @@ export class Node extends EventEmitter {
             node = node.parentNode;
         }
         return node;
+    }
+
+    get visible() {
+        return true;
     }
 }

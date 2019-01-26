@@ -108,6 +108,10 @@ input:focus, .select:focus, .select:focus-within, .select.active, .select-option
     background-color: #e8e8e8;
 }
 
+.tree-view span[class*="icon"] {
+    background-color: #e8e8e8;
+}
+
 .tab-view > .tab-container {
     background-color: #252526;
 }

@@ -47,9 +47,10 @@ export class TreeView extends Panel {
         if (event.button === 0) {
             if (event.target.tagName === "LI") {
                 event.target.classList.toggle("collapsed");
-                this.selectItem(event.target);
             } else if (event.target.tagName === "LABEL") {
                 this.selectItem(event.target.parentElement);
+            } else if (event.target.tagName === "SPAN") {
+                this.emit("iconclick", { data: dataMap.get(event.target.parentElement) });
             } else {
                 this.clearSelected();
                 this.emit("itemselect", { data: null });
@@ -82,6 +83,14 @@ export class TreeItem {
         if (subitems) {
             this.element.classList.add("with-subitems");
             this.element.classList.add("collapsed");
+        }
+    }
+
+    set icon(value) {
+        if (this.element.firstElementChild.tagName !== "SPAN") {
+            this.element.prepend(elem("span", value));
+        } else {
+            this.element.firstElementChild.className = value;
         }
     }
 

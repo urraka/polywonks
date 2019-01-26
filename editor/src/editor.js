@@ -44,6 +44,7 @@ export class Editor extends ui.Panel {
         }
 
         this.map.on("attributechange", e => this.onMapAttrChange(e));
+        this.map.on("visibilitychange", e => this.onMapVisibilityChange(e));
         this.view.on("change", () => this.onViewChange());
         this.selection.on("change", () => this.onSelectionChange());
         this.currentTool.on("change", e => this.emit("toolchange", { status: e.status }));
@@ -202,6 +203,10 @@ export class Editor extends ui.Panel {
     }
 
     onMapAttrChange() {
+        this.redraw();
+    }
+
+    onMapVisibilityChange() {
         this.redraw();
     }
 

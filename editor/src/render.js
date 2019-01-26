@@ -318,6 +318,10 @@ export class Renderer {
     }
 
     drawNode(node, filter) {
+        if (!node.visible) {
+            return;
+        }
+
         if (filter(node) && (this.editor.selection.has(node) || this.editor.previewNodes.has(node))) {
             this.selectionNodes.push(node);
         }
