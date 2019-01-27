@@ -29,7 +29,7 @@ export class SceneryNode extends Node {
         // an offset of 1 unit on Y axis. Polyworks doesn't know about it
         // so rotated scenery has been off by about 1px all along.
         const offset = Matrix.translate(0, 1)
-            .multiply(Matrix.rotate(-prop.rotation))
+            .multiply(Matrix.rotate(prop.rotation))
             .multiply(Matrix.translate(0, -1))
             .multiply({ x: 0, y: 0 });
 
@@ -41,7 +41,7 @@ export class SceneryNode extends Node {
         node.attr("height", prop.height);
         node.attr("scaleX", prop.scaleX);
         node.attr("scaleY", prop.scaleY);
-        node.attr("rotation", -prop.rotation);
+        node.attr("rotation", prop.rotation);
         node.attr("color", new Color(prop.color, prop.alpha));
         return node;
     }
@@ -80,7 +80,7 @@ export class SceneryNode extends Node {
         prop.height = this.attr("height");
         prop.x = topleft.x - offset.x;
         prop.y = topleft.y - offset.y;
-        prop.rotation = -this.attr("rotation");
+        prop.rotation = this.attr("rotation");
         prop.scaleX = this.attr("scaleX");
         prop.scaleY = this.attr("scaleY");
         prop.alpha = this.attr("color").a;

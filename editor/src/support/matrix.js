@@ -56,8 +56,8 @@ export class Matrix extends Float32Array {
 
     static transform(x, y, cx, cy, sx, sy, r) {
         const m = new Matrix();
-        const s = Math.sin(r);
-        const c = Math.cos(r);
+        const s = Math.sin(-r);
+        const c = Math.cos(-r);
         m[0] = c * sx; m[3] = -s * sy; m[6] = x - cy * m[3] - cx * m[0];
         m[1] = s * sx; m[4] = c * sy; m[7] = y - cy * m[4] - cx * m[1];
         m[2] = 0; m[5] = 0; m[8] = 1;
@@ -80,8 +80,8 @@ export class Matrix extends Float32Array {
 
     static rotate(r) {
         const m = new Matrix();
-        const s = Math.sin(r);
-        const c = Math.cos(r);
+        const s = Math.sin(-r);
+        const c = Math.cos(-r);
         m[0] = c;
         m[1] = s;
         m[3] = -s;
