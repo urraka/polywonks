@@ -82,8 +82,8 @@ export class File {
         if (typeof mount !== "string") {
             let n = mount.length;
             const result = {};
-            mount.forEach(mnt => File.refresh(mnt, list => {
-                result[mnt] = list;
+            mount.forEach(mnt => File.refresh(mnt, paths => {
+                result[mnt] = paths;
                 if (--n === 0) {
                     callback(mount.flatMap(m => result[m]));
                 }
@@ -95,11 +95,11 @@ export class File {
         let count = 0;
         let total = 0;
 
-        function onload(list, dir) {
-            if (list) {
-                list = list.map(path => dir + path);
-                tree.push(...list);
-                list.forEach(path => path.endsWith("/") && read(path));
+        function onload(paths, dir) {
+            if (paths) {
+                paths = paths.map(path => dir + path);
+                tree.push(...paths);
+                paths.forEach(path => path.endsWith("/") && read(path));
             }
 
             if (++count == total) {
@@ -112,7 +112,7 @@ export class File {
 
         function read(dir) {
             total++;
-            File.read("json", dir, list => onload(list, dir));
+            File.read("json", dir, paths => onload(paths, dir));
         }
 
         if (mount === "soldat" || mount === "polydrive") {
@@ -120,8 +120,8 @@ export class File {
         } else if (mount === "library") {
             total++;
             File.read("text", "/library/" + cfg("app.library-index"), data => {
-                const list = data ? data.split(/\r?\n/).filter(path => path !== "" && !path.endsWith("/")) : [];
-                onload(list, "/library/");
+                const paths = data ? data.split(/\r?\n/).filter(path => path !== "" && !path.endsWith("/")) : [];
+                onload(paths, "/library/");
             });
         } else {
             throw new Error("Invalid mount");
@@ -136,6 +136,26 @@ export class File {
         const mount = path.substring(1).split("/").shift();
         path = path.toLowerCase();
         return File.tree && File.tree[mount] && File.tree[mount].find(entry => entry.toLowerCase() === path);
+    }
+
+    static sort(paths) {
+        return paths.map(path => Path.split(path)).sort((a, b) => {
+            const n = Math.min(a.length, b.length);
+            for (let i = 0; i < n; i++) {
+                if (a[i] !== b[i]) {
+                    const adir = +!a[i].endsWith("/");
+                    const bdir = +!b[i].endsWith("/");
+                    if (adir !== bdir) {
+                        return adir - bdir;
+                    } else {
+                        const name1 = a[i].replace("/", "");
+                        const name2 = b[i].replace("/", "");
+                        return name1.localeCompare(name2);
+                    }
+                }
+            }
+            return a.length - b.length;
+        }).map(path => path.join(""));
     }
 
     static get emitter() { return File._emitter || (File._emitter = new EventEmitter()); }

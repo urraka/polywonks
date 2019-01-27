@@ -43,4 +43,17 @@ export class Path {
         const i = path.lastIndexOf(".");
         return i >= 0 ? path.substring(0, i) + ext : path + ext;
     }
+
+    // split("/root/dir/file") -> ["/", "dir/", "file"]
+    static split(path) {
+        if (!path || typeof path !== "string") {
+            throw new Error("Path.split() - Invalid path.");
+        }
+
+        const result = path.split("/").map((s, i, arr) => {
+            return i < arr.length - 1 ? s + "/" : s;
+        });
+
+        return path.endsWith("/") ? result.slice(0, -1) : result;
+    }
 }

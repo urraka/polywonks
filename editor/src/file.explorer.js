@@ -1,5 +1,6 @@
 import * as ui from "./ui/ui.js";
 import { File } from "./file.js";
+import { Path } from "./support/path.js";
 
 export class FileExplorer extends ui.Panel {
     constructor(root) {
@@ -22,42 +23,15 @@ export class FileExplorer extends ui.Panel {
     }
 
     refresh() {
-        File.refresh(this.root, list => {
+        File.refresh(this.root, paths => {
             this.tree.clear();
-
-            list = list.map(path => {
-                return path.split("/").slice(2).map((s, i, arr) => {
-                    if (i < arr.length - 1) {
-                        return s + "/";
-                    }
-                    return s;
-                }).filter(s => s !== null);
-            });
-
-            list.sort((a, b) => {
-                const n = Math.min(a.length, b.length);
-                for (let i = 0; i < n; i++) {
-                    if (a[i] !== b[i]) {
-                        const adir = +!a[i].endsWith("/");
-                        const bdir = +!b[i].endsWith("/");
-                        if (adir !== bdir) {
-                            return adir - bdir;
-                        } else {
-                            const name1 = a[i].replace("/", "");
-                            const name2 = b[i].replace("/", "");
-                            return name1.localeCompare(name2);
-                        }
-                    }
-                }
-                return a.length - b.length;
-            });
 
             const items = new Map();
             items.set("/", this.tree);
 
-            list.forEach(path => {
+            File.sort(paths).forEach(path => {
                 let full = "/";
-                for (const part of path) {
+                for (const part of Path.split(path).slice(2)) {
                     const parent = items.get(full);
                     let item = items.get(full = full + part);
                     if (!item) {

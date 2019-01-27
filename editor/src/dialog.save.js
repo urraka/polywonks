@@ -11,8 +11,8 @@ export class SaveDialog extends ui.Dialog {
         this.addButton("save", "Save", true);
         this.addButton("cancel", "Cancel");
 
-        File.refresh(["polydrive", "soldat"], list => {
-            const dirs = list.filter(f => f.endsWith("/"));
+        File.refresh(["polydrive", "soldat"], paths => {
+            const dirs = File.sort(paths.filter(f => f.endsWith("/")).concat(["/polydrive/", "/soldat/"]));
             this.sheet.addProperty("location", location, "string", "Location", dirs);
             this.sheet.addProperty("filename", filename, "string", "File name");
             this.body.append(this.sheet.element);
