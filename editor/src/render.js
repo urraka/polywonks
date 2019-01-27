@@ -92,9 +92,11 @@ export class Renderer {
 
     disposeNodeResources(node) {
         const texture = this.textures.get(node);
-        if (texture && texture !== this.context.defaultTexture) {
-            texture.dispose();
+        if (texture) {
             this.textures.delete(node);
+            if (texture !== this.context.defaultTexture) {
+                texture.dispose();
+            }
         }
         for (const childNode of node.children()) {
             this.disposeNodeResources(childNode);
