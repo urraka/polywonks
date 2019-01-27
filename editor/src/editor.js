@@ -37,10 +37,12 @@ export class Editor extends ui.Panel {
         this.explorer = new MapExplorer(this);
         this.properties = new MapProperties(this);
 
-        if (Path.ext(map.path).toLowerCase() === ".pms") {
-            this.saveName = this.saveName.slice(0, -4) + ".polywonks";
-        } else if (map.path === "") {
+        if (map.path === "") {
             this.saveName = "Untitled.polywonks";
+        } else if (map.path.startsWith("/library/")) {
+            this.saveName = Path.replaceExtension(Path.filename(map.path), ".polywonks");
+        } else if (Path.ext(map.path).toLowerCase() === ".pms") {
+            this.saveName = this.saveName.slice(0, -4) + ".polywonks";
         }
 
         this.map.on("attributechange", e => this.onMapAttrChange(e));
