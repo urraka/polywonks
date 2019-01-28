@@ -1,5 +1,5 @@
 import * as PMS from "../pms/pms.js";
-import { cfg } from "../settings.js";
+import { cfg, ExportMode } from "../settings.js";
 import { Rect } from "../support/rect.js";
 import { Color } from "../support/color.js";
 import { Attribute } from "./attribute.js";
@@ -107,7 +107,7 @@ export class MapDocument extends Node {
         pms.props.filter(prop => {
             return prop.active && sceneryLayers[prop.level] && imageNodes[prop.style - 1];
         }).forEach(prop => {
-            sceneryLayers[prop.level].append(SceneryNode.fromPMS(prop, imageNodes));
+            sceneryLayers[prop.level].append(SceneryNode.fromPMS(prop, imageNodes, pms.version));
         });
 
         const colliders = pms.colliders.map(collider => ColliderNode.fromPMS(collider));
@@ -153,7 +153,7 @@ export class MapDocument extends Node {
         }
         imageNodes = [...imageNodes];
 
-        pms.version = 11;
+        pms.version = ExportMode.value(cfg("app.export-mode"));
         pms.name = this.attr("description");
         pms.backgroundColorTop = new Color(this.attr("color-top"));
         pms.backgroundColorBottom = new Color(this.attr("color-bottom"));
@@ -162,11 +162,16 @@ export class MapDocument extends Node {
         pms.medikits = this.attr("medikits");
         pms.weather = PMS.WeatherType.value(this.attr("weather"));
         pms.steps = PMS.StepsType.value(this.attr("steps"));
-        pms.randId = Math.trunc(Math.random() * 0xffffffff);
+
+        if (pms.version === ExportMode.Soldat171) {
+            pms.randId = -0x80000000 + Math.trunc(Math.random() * 0x80000000);
+        } else {
+            pms.randId = Math.trunc(Math.random() * 0x80000000);
+        }
 
         pms.polygons = [...this.filter(this.descendants(), TriangleNode)].map(node => node.toPMS());
         pms.scenery = imageNodes.map(node => node.toPMS());
-        pms.props = [...this.filter(this.descendants(), SceneryNode)].map(node => node.toPMS(imageNodes));
+        pms.props = [...this.filter(this.descendants(), SceneryNode)].map(node => node.toPMS(imageNodes, pms.version));
         pms.colliders = [...this.filter(this.descendants(), ColliderNode)].map(node => node.toPMS());
         pms.spawns = [...this.filter(this.descendants(), SpawnNode)].map(node => node.toPMS());
 

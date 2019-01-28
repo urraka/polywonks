@@ -139,5 +139,10 @@ export function pms_write(map) {
         w.skip(4 * Math.max(0, 20 - waypoint.connections.length));
     }
 
+    // this will prevent polyworks from opening this map
+    if (map.randId < 0 && map.version === 12) {
+        w.i32(-0x80000000);
+    }
+
     return w.truncate();
 }

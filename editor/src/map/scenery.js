@@ -6,6 +6,7 @@ import { Sprite } from "../gfx/gfx.js";
 import { Node } from "./node.js";
 import { LayerType, LayerNode } from "./layer.js";
 import { Attribute } from "./attribute.js";
+import { ExportMode } from "../settings.js";
 
 export class SceneryNode extends Node {
     constructor() {
@@ -24,14 +25,15 @@ export class SceneryNode extends Node {
         this.attributes.set("color", new Attribute("color", new Color(255, 255, 255)));
     }
 
-    static fromPMS(prop, imageNodes) {
-        // It is very unfortunate but soldat does rotation of scenery with
-        // an offset of 1 unit on Y axis. Polyworks doesn't know about it
-        // so rotated scenery has been off by about 1px all along.
-        const offset = Matrix.translate(0, 1)
-            .multiply(Matrix.rotate(prop.rotation))
-            .multiply(Matrix.translate(0, -1))
-            .multiply({ x: 0, y: 0 });
+    static fromPMS(prop, imageNodes, version) {
+        let offset = { x: 0, y: 0 };
+
+        if (version === ExportMode.Soldat171) {
+            offset = Matrix.translate(0, 1)
+                .multiply(Matrix.rotate(prop.rotation))
+                .multiply(Matrix.translate(0, -1))
+                .multiply({ x: 0, y: 0 });
+        }
 
         const node = new SceneryNode();
         node.attr("image", imageNodes[prop.style - 1]);
@@ -46,23 +48,25 @@ export class SceneryNode extends Node {
         return node;
     }
 
-    toPMS(imageNodes) {
-        const transform = Matrix.transform(
-            this.attr("x"),
-            this.attr("y"),
-            this.attr("centerX"),
-            this.attr("centerY"),
-            this.attr("scaleX"),
-            this.attr("scaleY"),
-            this.attr("rotation")
-        );
+    toPMS(imageNodes, version) {
+        const topleft = Matrix.transform(
+                this.attr("x"),
+                this.attr("y"),
+                this.attr("centerX"),
+                this.attr("centerY"),
+                this.attr("scaleX"),
+                this.attr("scaleY"),
+                this.attr("rotation")
+            ).multiply({ x: 0, y: 0 });
 
-        const topleft = transform.multiply({ x: 0, y: 0 });
+        let offset = { x: 0, y: 0 };
 
-        const offset = Matrix.translate(0, 1)
-            .multiply(Matrix.rotate(this.attr("rotation")))
-            .multiply(Matrix.translate(0, -1))
-            .multiply({ x: 0, y: 0 });
+        if (version === ExportMode.Soldat171) {
+            offset = Matrix.translate(0, 1)
+                .multiply(Matrix.rotate(this.attr("rotation")))
+                .multiply(Matrix.translate(0, -1))
+                .multiply({ x: 0, y: 0 });
+        }
 
         const layerTypes = [
             LayerType.SceneryBack,

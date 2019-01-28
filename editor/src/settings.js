@@ -5,10 +5,15 @@ import { EventEmitter } from "./support/event.js";
 import { Enum } from "./support/enum.js";
 import { Color } from "./support/color.js";
 
-const PolygonMode = new Enum({
+export const PolygonMode = new Enum({
     None: 0,
     Plain: 1,
     Texture: 2,
+});
+
+export const ExportMode = new Enum({
+    Polyworks: 11,
+    Soldat171: 12,
 });
 
 const defaultSettings = {
@@ -51,6 +56,7 @@ const defaultSettings = {
     "app.library-index": "filelist",
     "app.github": "https://github.com/urraka/polywonks",
     "app.export-location": "/soldat/maps/",
+    "app.export-mode": "soldat-171",
 };
 
 const settings = Object.assign({}, defaultSettings);
@@ -136,6 +142,7 @@ export class Settings extends ui.MultiPanelView {
             case "map.medikits": return "uint8";
             case "map.weather": return PMS.WeatherType;
             case "map.steps": return PMS.StepsType;
+            case "app.export-mode": return ExportMode;
             default: {
                 if (Settings.getDefault(key) instanceof Color) {
                     return "color";
