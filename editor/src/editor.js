@@ -40,10 +40,8 @@ export class Editor extends ui.Panel {
 
         if (map.path === "") {
             this.saveName = "Untitled.polywonks";
-        } else if (map.path.startsWith("/library/")) {
+        } else if (map.path.startsWith("/library/") || Path.ext(map.path).toLowerCase() === ".pms") {
             this.saveName = Path.replaceExtension(Path.filename(map.path), ".polywonks");
-        } else if (Path.ext(map.path).toLowerCase() === ".pms") {
-            this.saveName = this.saveName.slice(0, -4) + ".polywonks";
         }
 
         this.map.on("attributechange", e => this.onMapAttrChange(e));
