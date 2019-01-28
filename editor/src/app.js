@@ -143,7 +143,7 @@ export class App extends ui.Panel {
                 if (editor) {
                     const panel = this.tabs.addPanel(new ui.TabPanel(Path.filename(editor.saveName), editor));
                     editor.on("change", () => this.onEditorChange({editor, panel}));
-                    this.sidebar.setActiveTab("sidebar-tools");
+                    this.sidebar.activeTab = "sidebar-tools";
 
                     if (activePanel && activeEditor.openedAsDefault && !activeEditor.modified) {
                         activePanel.close();
@@ -160,7 +160,6 @@ export class App extends ui.Panel {
     openEditor(editor = new Editor(this.renderer)) {
         const panel = this.tabs.addPanel(new ui.TabPanel(Path.filename(editor.saveName), editor));
         editor.on("change", () => this.onEditorChange({editor, panel}));
-        this.sidebar.setActiveTab("sidebar-tools");
         return editor;
     }
 
@@ -284,6 +283,7 @@ export class App extends ui.Panel {
                         Editor.loadPolywonks(this.renderer, reader.result, file.name);
                     if (editor) {
                         this.open(editor);
+                        this.sidebar.activeTab = "sidebar-tools";
                     } else {
                         ui.msgbox("Polywonks", "Invalid map format.");
                     }

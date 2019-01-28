@@ -4,12 +4,13 @@ import { cfg } from "./settings.js";
 export class NewMapCommand extends ui.Command {
     execute() {
         this.app.open();
+        this.app.sidebar.activeTab = "sidebar-tools";
     }
 }
 
 export class ShowExplorerCommand extends ui.Command {
     execute() {
-        this.app.sidebar.setActiveTab("sidebar-explorer");
+        this.app.sidebar.activeTab = "sidebar-explorer";
     }
 }
 

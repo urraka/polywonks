@@ -11,7 +11,7 @@ export class Sidebar extends ui.Panel {
         this.append(this.createTools());
         this.append(this.createFileExplorers());
         this.append(this.createSettings());
-        this.setActiveTab("sidebar-tools");
+        this.activeTab = "sidebar-tools";
     }
 
     set editor(editor) {
@@ -21,7 +21,12 @@ export class Sidebar extends ui.Panel {
         properties.replaceWith(editor.properties.element);
     }
 
-    setActiveTab(id) {
+    get activeTab() {
+        const tab = this.element.querySelector(":scope > .sidebar-toolbar > .active");
+        return tab ? tab.getAttribute("for") : null;
+    }
+
+    set activeTab(id) {
         if (!id) return;
         const tabs = this.element.querySelectorAll(":scope > .sidebar-toolbar > .active");
         const panels = this.element.querySelectorAll(":scope > .sidebar-panel.active");
@@ -33,7 +38,7 @@ export class Sidebar extends ui.Panel {
 
     createTabs() {
         const tabs = new ui.Panel("sidebar-toolbar");
-        tabs.element.addEventListener("click", e => this.setActiveTab(e.target.getAttribute("for")));
+        tabs.element.addEventListener("click", e => this.activeTab = e.target.getAttribute("for"));
 
         const tools = tabs.append(ui.elem("button", "tools-icon"));
         tools.setAttribute("for", "sidebar-tools");
