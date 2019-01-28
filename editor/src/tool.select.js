@@ -99,7 +99,6 @@ export class SelectTool extends Tool {
                         this.cycle = this.cycle % nodes.length;
                         this.editor.reactiveNode = nodes[mod(index - this.cycle, nodes.length)];
                         this.editor.previewNodes = new Set(nodes);
-                        console.log(`cycle: ${this.cycle}, index: ${index}, length: ${nodes.length}, mod: ${mod(index - this.cycle, nodes.length)}`);
                     }
                 }
             }
