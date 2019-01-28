@@ -68,9 +68,9 @@ export class MapProperties extends ui.PropertySheet {
                 const map = this.editor.map;
 
                 if (key === "image") {
-                    dataType = [...map.resources.children()].filter(node => node instanceof ImageNode);
+                    dataType = [...map.resources.descendants()].filter(node => node instanceof ImageNode);
                 } else if (key === "texture") {
-                    dataType = [...map.resources.children()].filter(node => node instanceof TextureNode);
+                    dataType = [...map.resources.descendants()].filter(node => node instanceof TextureNode);
                 } else if (key === "waypoint") {
                     dataType = [...map.waypoints.children()].filter(node => node instanceof WaypointNode);
                 }

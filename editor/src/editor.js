@@ -12,6 +12,7 @@ import { MapExplorer } from "./map.explorer.js";
 import { Selection } from "./selection.js";
 import { MapProperties } from "./map.properties.js";
 import { SaveDialog } from "./dialog.save.js";
+import { RelocateMapCommand } from "./editor.commands.js";
 
 export class Editor extends ui.Panel {
     constructor(renderer, map = MapDocument.default()) {
@@ -60,10 +61,34 @@ export class Editor extends ui.Panel {
         return this.saveIndex !== this.undone;
     }
 
+    relocateMap(newPath) {
+        if (!newPath.startsWith("/")) {
+            throw new Error("Editor.relocateMap() - directory must be absolute");
+        }
+
+        const command = new RelocateMapCommand(this, newPath);
+        const mount = Path.mount(newPath);
+        const dir = Path.dir(newPath);
+
+        for (const node of this.map.resources.descendants()) {
+            if (node.attributes.has("src")) {
+                const path = node.path;
+                if (path) {
+                    if (Path.mount(path) === mount) {
+                        command.attr(node, "src", Path.relative(dir, path));
+                    } else {
+                        command.attr(node, "src", path);
+                    }
+                }
+            }
+        }
+
+        this.do(command);
+    }
+
     save() {
         if (this.saveName.startsWith("/")) {
-            const mount = this.saveName.substring(1).split("/").shift();
-            File.refresh(mount, () => {
+            File.refresh(Path.mount(this.saveName), () => {
                 if (File.exists(this.saveName)) {
                     File.write(this.saveName, this.map.serialize(), ok => {
                         if (ok) {
@@ -86,8 +111,12 @@ export class Editor extends ui.Panel {
         const dialog = new SaveDialog("Save as...", Path.filename(this.saveName), Path.dir(this.saveName) || "/polydrive/");
 
         dialog.on("save", event => {
-            File.write(event.path, this.map.serialize(), ok => {
+            const editor = new Editor(this.renderer, this.map.clone());
+            editor.relocateMap(event.path);
+
+            File.write(event.path, editor.map.serialize(), ok => {
                 if (ok) {
+                    this.relocateMap(event.path);
                     this.saveName = event.path;
                     this.saveIndex = this.undone;
                     this.emit("change");
@@ -103,9 +132,8 @@ export class Editor extends ui.Panel {
     export() {
         const filename = Path.replaceExtension(Path.filename(this.saveName), ".pms");
         const path = Path.resolve(cfg("app.export-location"), filename);
-        const mount = path.substring(1).split("/").shift();
 
-        File.refresh(mount, () => {
+        File.refresh(Path.mount(path), () => {
             if (File.exists(path)) {
                 File.write(path, this.map.toPMS().toArrayBuffer(), ok => {
                     if (!ok) {
@@ -252,7 +280,7 @@ export class Editor extends ui.Panel {
             throw new Error("Editor.loadFile() - file must be either .pms or .polywonks.");
         }
 
-        File.refresh(path.substring(1).split("/").shift(), () => {
+        File.refresh(Path.mount(path), () => {
             if (ext === ".pms") {
                 File.readBuffer(path, buffer => {
                     fn(buffer ? Editor.loadPms(renderer, buffer, path) : null);

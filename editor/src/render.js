@@ -112,11 +112,10 @@ export class Renderer {
 
         if (!texture) {
             this.textures.set(node, texture = this.context.defaultTexture);
-            const dir = Path.dir(node.owner.path);
-            const src = node.attr("src");
+            const path = node.path;
 
-            if (src && (dir.startsWith("/") || src.startsWith("/"))) {
-                File.readImage(Path.resolve(dir, src), image => {
+            if (path) {
+                File.readImage(path, image => {
                     if (image) {
                         const imageData = processImage(image, {
                             premultiply: true,

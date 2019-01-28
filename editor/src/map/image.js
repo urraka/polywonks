@@ -36,4 +36,11 @@ export class ImageNode extends Node {
         scenery.name = this.attr("export-name") || this.attr("src").split("/").pop();
         return scenery;
     }
+
+    get path() {
+        const src = this.attr("src");
+        if (!src || src.startsWith("/")) return src;
+        if (this.owner) return Path.resolve(Path.dir(this.owner.path), src);
+        return "";
+    }
 }

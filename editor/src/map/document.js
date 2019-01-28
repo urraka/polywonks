@@ -211,6 +211,10 @@ export class MapDocument extends Node {
         return new Rect(bounds.centerX - d, bounds.centerY - d, 2 * d, 2 * d);
     }
 
+    clone() {
+        return MapDocument.unserialize(this.serialize(), this.path);
+    }
+
     serialize() {
         const nodeId = new Map();
         const nodeTypeCount = {};

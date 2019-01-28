@@ -10,9 +10,10 @@ export class ComboBox extends Select {
         this.input = elem("input");
         this.element.append(this.input);
         this.onTextInput = this.onTextInput.bind(this);
+        this.onTextChange = this.onTextChange.bind(this);
         this.input.addEventListener("keydown", e => this.onInputKeyDown(e));
         this.input.addEventListener("input", this.onTextInput);
-        this.input.addEventListener("change", () => this.emit("change"));
+        this.input.addEventListener("change", this.onTextChange);
     }
 
     set value(v) {
@@ -38,9 +39,9 @@ export class ComboBox extends Select {
     }
 
     selectOption(option) {
-        this.lockEmitter();
+        this.input.removeEventListener("change", this.onTextChange);
         super.selectOption(option);
-        this.unlockEmitter();
+        this.input.addEventListener("change", this.onTextChange);
     }
 
     filterOptions() {
@@ -91,5 +92,10 @@ export class ComboBox extends Select {
         if (!this.list) {
             this.open();
         }
+    }
+
+    onTextChange() {
+        this.val = this.input.value;
+        this.emit("change");
     }
 }

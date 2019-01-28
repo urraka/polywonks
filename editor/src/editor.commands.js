@@ -33,3 +33,21 @@ export class AttributeChangeCommand {
         this.editor.selection.replace(this.selection);
     }
 }
+
+export class RelocateMapCommand extends AttributeChangeCommand {
+    constructor(editor, newPath) {
+        super(editor);
+        this.oldPath = editor.map.path;
+        this.newPath = newPath;
+    }
+
+    do() {
+        this.editor.map.path = this.newPath;
+        super.do();
+    }
+
+    undo() {
+        super.undo();
+        this.editor.map.path = this.oldPath;
+    }
+}

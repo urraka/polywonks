@@ -29,4 +29,11 @@ export class TextureNode extends Node {
 
         return node;
     }
+
+    get path() {
+        const src = this.attr("src");
+        if (!src || src.startsWith("/")) return src;
+        if (this.owner) return Path.resolve(Path.dir(this.owner.path), src);
+        return "";
+    }
 }

@@ -179,16 +179,9 @@ export class App extends ui.Panel {
     onSettingChange(setting) {
         if (setting === "app.library-url" || setting === "app.library-index") {
             for (const panel of this.tabs.panels()) {
-                const map = panel.content.map;
-                const dir = Path.dir(map.path);
-                for (const node of map.resources) {
-                    if (node.attributes.has("src")) {
-                        const src = node.attr("src");
-                        if (src && (dir.startsWith("/") || src.startsWith("/"))) {
-                            if (Path.resolve(dir, src).startsWith("/library/")) {
-                                this.renderer.disposeNodeResources(node);
-                            }
-                        }
+                for (const node of panel.content.map.resources.descendants()) {
+                    if (node.attributes.has("src") && Path.mount(node.path) === "library") {
+                        this.renderer.disposeNodeResources(node);
                     }
                 }
             }

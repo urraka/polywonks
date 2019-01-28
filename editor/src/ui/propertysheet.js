@@ -58,7 +58,7 @@ export class PropertyItem extends EventEmitter {
                     this.control = new ComboBox();
                     autocomplete.forEach(item => this.control.addOption(item, item));
                     this.control.value = value;
-                    this.control.input.addEventListener("change", this.onTextChange);
+                    this.control.on("change", this.onTextChange);
                     this.control.input.addEventListener("input", () => this.onTextInput());
                 } else {
                     this.control = elem("input");
@@ -101,14 +101,20 @@ export class PropertyItem extends EventEmitter {
     reset(value) {
         this.value = value;
 
-        if (this.control instanceof Select) {
-            this.control.off("change");
+        if (this.control instanceof ComboBox) {
+            this.control.off("change", this.onTextChange);
+            this.control.value = value;
+            this.control.on("change", this.onTextChange);
+            this.toggleState("modified", false);
+            this.toggleState("invalid", false);
+        } else if (this.control instanceof Select) {
+            this.control.off("change", this.onSelectChange);
             this.control.value = value;
             this.control.on("change", this.onSelectChange);
         } else {
-            this.input.removeEventListener("change", this.onTextChange);
+            this.control.removeEventListener("change", this.onTextChange);
             this.control.value = ValueType.toString(this.type, value);
-            this.input.addEventListener("change", this.onTextChange);
+            this.control.addEventListener("change", this.onTextChange);
             this.toggleState("modified", false);
             this.toggleState("invalid", false);
         }
@@ -121,11 +127,7 @@ export class PropertyItem extends EventEmitter {
         if (force || this.control.value !== strval) {
             try {
                 const val = this.value;
-                this.value = ValueType.fromString(this.type, this.control.value);
-                this.toggleState("modified", false);
-                this.input.removeEventListener("change", this.onTextChange);
-                this.control.value = ValueType.toString(this.type, this.value);
-                this.input.addEventListener("change", this.onTextChange);
+                this.reset(ValueType.fromString(this.type, this.control.value));
                 if (force || !ValueType.equals(this.type, val, this.value)) {
                     this.emit("change");
                 }
@@ -141,9 +143,5 @@ export class PropertyItem extends EventEmitter {
 
     hasState(state) {
         (this.control.classList || this.control.element.classList).contains(state);
-    }
-
-    get input() {
-        return this.control instanceof ComboBox ? this.control.input : this.control;
     }
 }
