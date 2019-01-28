@@ -85,14 +85,22 @@ export class SelectTool extends Tool {
                     nodes = nodes.filter(node => !this.selection.has(node));
                 }
 
-                this.editor.previewNodes = new Set(nodes);
+                this.editor.reactiveNode = null;
+                this.editor.previewNodes = new Set();
 
-                if (nodes.length === 0) {
-                    this.editor.reactiveNode = null;
-                } else {
-                    this.cycle = this.cycle % nodes.length;
-                    const index = Math.max(-1, nodes.indexOf(this.affectedNode) - 1);
-                    this.editor.reactiveNode = nodes[mod(index - this.cycle, nodes.length)];
+                if (nodes.length > 0) {
+                    let index = nodes.indexOf(this.affectedNode);
+
+                    if (index >= 0) {
+                        nodes.splice(index--, 1);
+                    }
+
+                    if (nodes.length > 0) {
+                        this.cycle = this.cycle % nodes.length;
+                        this.editor.reactiveNode = nodes[mod(index - this.cycle, nodes.length)];
+                        this.editor.previewNodes = new Set(nodes);
+                        console.log(`cycle: ${this.cycle}, index: ${index}, length: ${nodes.length}, mod: ${mod(index - this.cycle, nodes.length)}`);
+                    }
                 }
             }
         }
@@ -155,6 +163,7 @@ export class SelectTool extends Tool {
         this.revertNodes = this.selection.clone();
         const affected = this.affectedNode ? new Set([this.affectedNode]) : new Set();
         changed = this.selection[this.mode](affected) || changed;
+        this.cycle = 0;
 
         if (!this.affectedNode) {
             this.revertNodes = null;
