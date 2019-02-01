@@ -5,9 +5,13 @@ import { Attribute } from "./attribute.js";
 
 export class ConnectionNode extends Node {
     constructor(waypoint = null) {
-        super("connection");
+        super();
         this.attributes.get("text").value = "Connection";
         this.attributes.set("waypoint", new Attribute("node", waypoint));
+    }
+
+    get nodeName() {
+        return "connection";
     }
 
     intersectsPoint(x, y, scale) {

@@ -37,7 +37,7 @@ function createDefaultLayers() {
 
 export class MapDocument extends Node {
     constructor() {
-        super("map");
+        super();
 
         this.owner = this;
         this.path = "";
@@ -52,6 +52,10 @@ export class MapDocument extends Node {
         this.attributes.set("medikits", new Attribute("uint8", cfg("map.medikits")));
         this.attributes.set("weather", new Attribute(PMS.WeatherType, cfg("map.weather")));
         this.attributes.set("steps", new Attribute(PMS.StepsType, cfg("map.steps")));
+    }
+
+    get nodeName() {
+        return "map";
     }
 
     get resources() {

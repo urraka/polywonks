@@ -7,13 +7,17 @@ import { Attribute } from "./attribute.js";
 
 export class VertexNode extends Node {
     constructor() {
-        super("vertex");
+        super();
         this.attributes.get("text").value = "Vertex";
         this.attributes.set("x", new Attribute("float", 0));
         this.attributes.set("y", new Attribute("float", 0));
         this.attributes.set("u", new Attribute("float", 0));
         this.attributes.set("v", new Attribute("float", 0));
         this.attributes.set("color", new Attribute("color", new Color(255, 255, 255, 255)));
+    }
+
+    get nodeName() {
+        return "vertex";
     }
 
     static fromPMS(vertex) {

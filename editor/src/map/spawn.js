@@ -6,11 +6,15 @@ import { Attribute } from "./attribute.js";
 
 export class SpawnNode extends Node {
     constructor() {
-        super("spawn");
+        super();
         this.attributes.get("text").value = "Spawn";
         this.attributes.set("x", new Attribute("float", 0));
         this.attributes.set("y", new Attribute("float", 0));
         this.attributes.set("type", new Attribute(PMS.SpawnTeam, PMS.SpawnTeam.General));
+    }
+
+    get nodeName() {
+        return "spawn";
     }
 
     static fromPMS(spawn) {

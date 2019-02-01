@@ -8,7 +8,7 @@ import { Attribute } from "./attribute.js";
 
 export class WaypointNode extends Node {
     constructor() {
-        super("waypoint");
+        super();
         this.attributes.get("text").value = "Waypoint";
         this.attributes.set("x", new Attribute("float", 0));
         this.attributes.set("y", new Attribute("float", 0));
@@ -19,6 +19,10 @@ export class WaypointNode extends Node {
         this.attributes.set("jet", new Attribute("boolean", false));
         this.attributes.set("path", new Attribute(PMS.PathType, PMS.PathType.Path1));
         this.attributes.set("action", new Attribute(PMS.ActionType, PMS.ActionType.None));
+    }
+
+    get nodeName() {
+        return "waypoint";
     }
 
     fromPMS(waypoint, waypointNodes) {

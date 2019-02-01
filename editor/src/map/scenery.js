@@ -10,7 +10,7 @@ import { ExportMode } from "../settings.js";
 
 export class SceneryNode extends Node {
     constructor() {
-        super("scenery");
+        super();
         this.attributes.get("text").value = "Scenery";
         this.attributes.set("image", new Attribute("node", null));
         this.attributes.set("x", new Attribute("float", 0));
@@ -23,6 +23,10 @@ export class SceneryNode extends Node {
         this.attributes.set("scaleY", new Attribute("float", 0));
         this.attributes.set("rotation", new Attribute("angle", 0));
         this.attributes.set("color", new Attribute("color", new Color(255, 255, 255)));
+    }
+
+    get nodeName() {
+        return "scenery";
     }
 
     static fromPMS(prop, imageNodes, version) {

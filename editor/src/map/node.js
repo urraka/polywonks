@@ -3,10 +3,9 @@ import { ValueType } from "../support/type.js";
 import { Attribute } from "./attribute.js";
 
 export class Node extends EventEmitter {
-    constructor(nodeName) {
+    constructor() {
         super();
         this.owner = null;
-        this.nodeName = nodeName;
         this.parentNode = null;
         this.firstChild = null;
         this.lastChild = null;
@@ -14,6 +13,10 @@ export class Node extends EventEmitter {
         this.previousSibling = null;
         this.attributes = new Map();
         this.attributes.set("text", new Attribute("string", ""));
+    }
+
+    get nodeName() {
+        return "#node";
     }
 
     toString() {

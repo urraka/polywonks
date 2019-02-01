@@ -7,11 +7,15 @@ import { Attribute } from "./attribute.js";
 
 export class ColliderNode extends Node {
     constructor() {
-        super("collider");
+        super();
         this.attributes.get("text").value = "Collider";
         this.attributes.set("x", new Attribute("float", 0));
         this.attributes.set("y", new Attribute("float", 0));
         this.attributes.set("radius", new Attribute("float", cfg("map.collider-radius")));
+    }
+
+    get nodeName() {
+        return "collider";
     }
 
     static fromPMS(collider) {

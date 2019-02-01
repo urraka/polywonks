@@ -6,11 +6,15 @@ import { Attribute } from "./attribute.js";
 
 export class TextureNode extends Node {
     constructor() {
-        super("texture");
+        super();
         this.attributes.get("text").value = "Texture";
         this.attributes.set("src", new Attribute("string", ""));
         this.attributes.set("export-name", new Attribute("string", ""));
         this.attributes.set("color-key", new Attribute("color", new Color()));
+    }
+
+    get nodeName() {
+        return "texture";
     }
 
     static fromPMS(pms, path) {

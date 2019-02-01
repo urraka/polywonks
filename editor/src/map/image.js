@@ -7,11 +7,15 @@ import { Attribute } from "./attribute.js";
 
 export class ImageNode extends Node {
     constructor() {
-        super("image");
+        super();
         this.attributes.get("text").value = "Image";
         this.attributes.set("src", new Attribute("string", ""));
         this.attributes.set("export-name", new Attribute("string", ""));
         this.attributes.set("color-key", new Attribute("color", new Color()));
+    }
+
+    get nodeName() {
+        return "image";
     }
 
     static fromPMS(scenery, path) {
