@@ -4,6 +4,7 @@ import { Rect } from "../support/rect.js";
 import { Color } from "../support/color.js";
 import { Attribute } from "./attribute.js";
 import { Node } from "./node.js";
+import { ResourcesNode } from "./resources.js";
 import { LayerNode, LayerType } from "./layer.js";
 import { TriangleNode } from "./triangle.js";
 import { TextureNode } from "./texture.js";
@@ -23,7 +24,7 @@ function createDefaultLayers() {
         layers[Symbol.iterator] = Array.prototype[Symbol.iterator].bind(list.map(([,layer]) => layer));
         return layers;
     })([
-        ["resources", new LayerNode("Resources", LayerType.Resources)],
+        ["resources", new ResourcesNode()],
         ["backgroundPolygons", new LayerNode("Background polygons", LayerType.PolygonsBack)],
         ["backgroundScenery", new LayerNode("Background scenery", LayerType.SceneryBack)],
         ["middleScenery", new LayerNode("Middle scenery", LayerType.SceneryMiddle)],
@@ -59,7 +60,7 @@ export class MapDocument extends Node {
     }
 
     get resources() {
-        return [...this.children()].find(node => (node instanceof LayerNode) && node.attr("type") === "resources");
+        return [...this.children()].find(node => node instanceof ResourcesNode);
     }
 
     get waypoints() {
@@ -273,6 +274,7 @@ export class MapDocument extends Node {
         const constructNode = element => {
             switch (element.tagName) {
                 case "map": return new MapDocument();
+                case "resources": return new ResourcesNode();
                 case "texture": return new TextureNode();
                 case "image": return new ImageNode();
                 case "layer": return new LayerNode();

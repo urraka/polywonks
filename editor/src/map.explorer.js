@@ -1,5 +1,6 @@
 import * as ui from "./ui/ui.js";
 import { LayerNode } from "./map/layer.js";
+import { ResourcesNode } from "./map/resources.js";
 
 export class MapExplorer extends ui.TreeView {
     constructor(editor) {
@@ -27,7 +28,9 @@ export class MapExplorer extends ui.TreeView {
     }
 
     onIconClick(node) {
-        node.visible = !node.visible;
+        if (node instanceof LayerNode) {
+            node.visible = !node.visible;
+        }
     }
 
     onEditorSelectionChange() {
@@ -45,6 +48,8 @@ export class MapExplorer extends ui.TreeView {
 
         if (node instanceof LayerNode) {
             item.icon = node.visible ? "visible-icon" : "hidden-icon";
+        } else if (node instanceof ResourcesNode) {
+            item.icon = "resources-icon";
         }
 
         for (const childNode of node.children()) {

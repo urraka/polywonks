@@ -3,7 +3,6 @@ import { Node } from "./node.js";
 import { Attribute } from "./attribute.js";
 
 export const LayerType = new Enum({
-    Resources: -1,
     PolygonsBack: 0,
     SceneryBack: 1,
     SceneryMiddle: 2,

@@ -1,5 +1,6 @@
 export * from "./attribute.js";
 export * from "./node.js";
+export * from "./resources.js";
 export * from "./collider.js";
 export * from "./connection.js";
 export * from "./document.js";
