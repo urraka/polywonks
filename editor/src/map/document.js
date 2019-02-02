@@ -43,6 +43,7 @@ export class MapDocument extends Node {
         this.owner = this;
         this.path = "";
         this.iconsInfo = {};
+        this.nextId = {};
 
         this.attributes.get("text").value = "Map";
         this.attributes.set("description", new Attribute("string", ""));
@@ -65,6 +66,11 @@ export class MapDocument extends Node {
 
     get waypoints() {
         return [...this.children()].find(node => (node instanceof LayerNode) && node.attr("type") === "waypoints");
+    }
+
+    generateId(nodeName) {
+        this.nextId[nodeName] = this.nextId[nodeName] || (this.nextId[nodeName] = 0);
+        return `${nodeName}#${this.nextId[nodeName]++}`;
     }
 
     static default() {
@@ -226,28 +232,12 @@ export class MapDocument extends Node {
     }
 
     serialize() {
-        const nodeId = new Map();
-        const nodeTypeCount = {};
-
-        for (const node of this.tree()) {
-            for (const [, {dataType, value}] of node.attributes) {
-                if (dataType === "node" && value !== null) {
-                    if (!nodeId.has(value)) {
-                        const name = value.nodeName;
-                        nodeTypeCount[name] = nodeTypeCount[name] || 0;
-                        nodeId.set(value, name + "#" + nodeTypeCount[name]);
-                        nodeTypeCount[name]++;
-                    }
-                }
-            }
-        }
-
         const serializeNode = (node, level = 0) => {
             return `${"  ".repeat(level)}<` + node.nodeName +
-                (nodeId.has(node) ? ` id="${nodeId.get(node)}"` : "") +
+                (node.id !== null ? ` id="${node.id}"` : "") +
                 [...node.attributes.entries()].reduce((accum, [key, {dataType, value}]) => {
                     if (dataType === "node" && value !== null) {
-                        return accum + " " + `${key}="${nodeId.get(value)}"`;
+                        return accum + " " + `${key}="${value.id}"`;
                     } else {
                         return accum + " " + `${key}="${ValueType.toString(dataType, value)
                             .replace(/&/g, "&amp;")
@@ -293,11 +283,13 @@ export class MapDocument extends Node {
 
         const constructTree = element => {
             const node = constructNode(element);
+            const id = element.getAttribute("id") || null;
             nodesByElement.set(element, node);
-            nodesById.set(element.getAttribute("id"), node);
+            nodesById.set(id, node);
             for (const childElement of element.children) {
                 node.append(constructTree(childElement));
             }
+            node.id = id;
             return node;
         };
 
@@ -324,6 +316,29 @@ export class MapDocument extends Node {
         const doc = constructTree(xml.documentElement);
         readAttributes(xml.documentElement);
         doc.path = path;
+        doc.nextId = {};
+
+        // sort out ids
+
+        let match = null;
+        const reByName = {};
+        const missingIdQueue = [];
+
+        for (const node of doc.descendants()) {
+            const re = reByName[node.nodeName] || (reByName[node.nodeName] = new RegExp(`^${node.nodeName}#(\\d+)$`));
+            if (node.id && (match = re.exec(node.id))) {
+                doc.nextId[node.nodeName] = doc.nextId[node.nodeName] || (doc.nextId[node.nodeName] = 0);
+                doc.nextId[node.nodeName] = Math.max(doc.nextId[node.nodeName], match[1] + 1);
+            } else {
+                node.id = null;
+                missingIdQueue.push(node);
+            }
+        }
+
+        for (const node of missingIdQueue) {
+            node.id = doc.generateId(node.nodeName);
+        }
+
         return doc;
     }
 }

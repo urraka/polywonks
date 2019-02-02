@@ -5,6 +5,7 @@ import { Attribute } from "./attribute.js";
 export class Node extends EventEmitter {
     constructor() {
         super();
+        this.id = null;
         this.owner = null;
         this.parentNode = null;
         this.firstChild = null;
@@ -101,7 +102,10 @@ export class Node extends EventEmitter {
         }
 
         for (const n of node.tree()) {
-            n.owner = this.owner;
+            if (n.owner !== this.owner) {
+                n.id = this.owner ? this.owner.generateId(n.nodeName) : null;
+                n.owner = this.owner;
+            }
         }
     }
 
