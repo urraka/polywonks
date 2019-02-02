@@ -49,7 +49,7 @@ export function triangleContainsPoint(ax, ay, bx, by, cx, cy, x, y) {
     const sign = A < 0 ? -1 : 1;
     const s = (ay * cx - ax * cy + (cy - ay) * x + (ax - cx) * y) * sign;
     const t = (ax * by - ay * bx + (ay - by) * x + (bx - ax) * y) * sign;
-    return s >= 0 && t >= 0 && (s + t) <= (2 * A * sign);
+    return A !== 0 && s >= 0 && t >= 0 && (s + t) <= (2 * A * sign);
 }
 
 export function rectIntersectsTriangle(x, y, w, h, ax, ay, bx, by, cx, cy) {
