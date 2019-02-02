@@ -19,7 +19,7 @@ export class FileExplorer extends ui.Panel {
     }
 
     onItemDblClick(path) {
-        ui.Command.find("open-file").execute({ path });
+        this.emit("open", { path });
     }
 
     refresh() {

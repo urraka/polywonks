@@ -1,5 +1,4 @@
 export * from "./common.js";
-export * from "./command.js";
 export * from "./statusbar.js";
 export * from "./multipanel.js";
 export * from "./propertysheet.js";

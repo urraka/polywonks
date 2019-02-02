@@ -1,22 +1,17 @@
 import * as ui from "./ui/ui.js";
-import * as fmt from "./support/format.js";
-import * as cmd from "./commands.js";
 import { Path } from "./support/path.js";
 import { Renderer } from "./render.js";
 import { Editor } from "./editor.js";
 import { Sidebar } from "./sidebar.js";
-import { Settings } from "./settings.js";
+import { Settings, cfg } from "./settings.js";
 
 export class App extends ui.Panel {
-    static launch() {
-        App.instance = new App();
-    }
-
     constructor() {
         super("app");
 
-        this.registerCommands();
-
+        this.titlebar = null;
+        this.menuItems = null;
+        this.commands = null;
         this.tabs = null;
         this.sidebar = null;
         this.statusbar = null;
@@ -25,15 +20,7 @@ export class App extends ui.Panel {
         this.createUserInterface();
         this.setupEvents();
         this.openDefault();
-    }
-
-    registerCommands() {
-        Object.keys(cmd).forEach(cmdType => {
-            if (cmdType.endsWith("Command")) {
-                const cmdName = fmt.pascalToDash(cmdType.replace(/Command$/, ""));
-                ui.Command.add(cmdName, new cmd[cmdType](this));
-            }
-        });
+        this.updateMenuItems();
     }
 
     setupEvents() {
@@ -41,24 +28,30 @@ export class App extends ui.Panel {
         this.onViewChange = this.onViewChange.bind(this);
         this.onToolChange = this.onToolChange.bind(this);
 
+        this.titlebar.menu.on("itemclick", e => this.onCommand(e.item.key));
         this.tabs.on("change", e => this.onTabChange(e));
         this.tabs.on("willchange", e => this.onTabWillChange(e));
         this.tabs.on("close", e => this.onTabClose(e));
+        this.sidebar.explorers.forEach(explorer => explorer.on("open", e => this.onExplorerOpen(e.path)));
+
         ui.Dialog.on("modalstart", () => this.onModalStart());
         ui.Dialog.on("modalend", () => this.onModalEnd());
+
         window.addEventListener("beforeunload", e => this.onBeforeUnload(e));
         window.addEventListener("resize", e => this.onResize(e));
+
         document.addEventListener("drop", e => this.onDrop(e));
         document.addEventListener("dragover", e => this.onDragOver(e));
         document.addEventListener("dragenter", e => this.onDragEnter(e));
         document.addEventListener("keydown", e => this.onKeyDown(e));
         document.addEventListener("contextmenu", e => e.preventDefault());
+
         Settings.on("change", e => this.onSettingChange(e.setting));
     }
 
     createUserInterface() {
-        const titlebar = this.append(new ui.TitleBar());
-        this.createMenus(titlebar.menu);
+        this.titlebar = this.append(new ui.TitleBar());
+        this.menuItems = this.createMenus(this.titlebar.menu);
 
         const clientArea = this.append(new ui.Panel("client-area"));
         this.sidebar = clientArea.append(new Sidebar());
@@ -107,12 +100,15 @@ export class App extends ui.Panel {
             ]],
         ];
 
+        const menuItems = {};
+
         const create = (menu, submenu) => {
             for (const item of submenu) {
                 if (item.length === 0) {
                     menu.addItem(new ui.MenuSeparator());
                 } else if (item.length === 1 || typeof item[1] === "string") {
-                    menu.addItem(new ui.MenuItem(item[0], item[1]));
+                    const menuItem = menu.addItem(new ui.MenuItem(item[0], item[1]));
+                    if (item[1]) menuItems[item[1]] = menuItem;
                 } else {
                     create(menu.addItem(new ui.MenuItem(item[0])), item[1]);
                 }
@@ -120,6 +116,7 @@ export class App extends ui.Panel {
         };
 
         create(menubar, menus);
+        return menuItems;
     }
 
     get editor() {
@@ -175,6 +172,10 @@ export class App extends ui.Panel {
         this.statusbar.set(name, value);
     }
 
+    onExplorerOpen(path) {
+        this.openFile(path);
+    }
+
     onSettingChange(setting) {
         if (setting === "app.library-url" || setting === "app.library-index") {
             for (const panel of this.tabs.panels()) {
@@ -186,6 +187,7 @@ export class App extends ui.Panel {
             }
         }
 
+        this.updateMenuItems();
         this.renderer.redraw();
     }
 
@@ -237,6 +239,8 @@ export class App extends ui.Panel {
     onEditorChange(event) {
         event.panel.title = Path.filename(event.editor.saveName);
         event.panel.modified = event.editor.modified;
+        this.updateMenuItem(this.menuItems["undo"]);
+        this.updateMenuItem(this.menuItems["redo"]);
     }
 
     static get hasFocus() {
@@ -310,5 +314,62 @@ export class App extends ui.Panel {
         if (event.ctrlKey && (event.key === "z") || event.key === "ContextMenu") {
             event.preventDefault();
         }
+    }
+
+    isMenuItemEnabled(item) {
+        switch (item.key) {
+            case "undo": return this.editor && this.editor.commandHistory.length > this.editor.undone;
+            case "redo": return this.editor && this.editor.undone > 0;
+            default: return true;
+        }
+    }
+
+    isMenuItemChecked(item) {
+        switch (item.key) {
+            case "toggle-grid": return cfg("view.grid");
+            case "toggle-background": return cfg("view.background");
+            case "toggle-wireframe": return cfg("view.wireframe");
+            case "show-polygon-texture": return cfg("view.polygons") === "texture";
+            case "show-polygon-plain": return cfg("view.polygons") === "plain";
+            case "show-polygon-none": return cfg("view.polygons") === "none";
+            default: return false;
+        }
+    }
+
+    updateMenuItem(item) {
+        item.enabled = this.isMenuItemEnabled(item);
+        item.checked = this.isMenuItemChecked(item);
+    }
+
+    updateMenuItems() {
+        for (const item of Object.values(this.menuItems)) {
+            this.updateMenuItem(item);
+        }
+    }
+
+    onCommand(command) {
+        const commands = this.commands || (this.commands = {
+            "new-map": () => {
+                this.open();
+                this.sidebar.activeTab = "sidebar-tools";
+            },
+            "show-explorer": () => this.sidebar.activeTab = "sidebar-explorer",
+            "save": () => this.editor.save(),
+            "save-as": () => this.editor.saveAs(),
+            "export": () => this.editor.export(),
+            "export-as": () => this.editor.exportAs(),
+            "undo": () => this.editor.undo(),
+            "redo": () => this.editor.redo(),
+            "reset-viewport": () => this.editor.view.reset(),
+            "toggle-grid": () => cfg("view.grid", !cfg("view.grid")),
+            "toggle-background": () => cfg("view.background", !cfg("view.background")),
+            "toggle-wireframe": () => cfg("view.wireframe", !cfg("view.wireframe")),
+            "show-polygon-texture": () => cfg("view.polygons", "texture"),
+            "show-polygon-plain": () => cfg("view.polygons", "plain"),
+            "show-polygon-none": () => cfg("view.polygons", "none"),
+            "browse-to-github": () => window.open(cfg("app.github")),
+        });
+
+        commands[command]();
     }
 }

@@ -1,6 +1,5 @@
 import * as ui from "./ui/ui.js";
 import { LayerNode } from "./map/layer.js";
-import { ResourcesNode } from "./map/resources.js";
 
 export class MapExplorer extends ui.TreeView {
     constructor(editor) {

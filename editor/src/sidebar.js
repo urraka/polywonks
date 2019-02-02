@@ -80,11 +80,18 @@ export class Sidebar extends ui.Panel {
         for (const mount of ["polydrive", "soldat", "library"]) {
             const explorer = new FileExplorer(mount);
             const panel = panels.addPanel(mount, explorer.tree);
-            panel.header.addButton("refresh-icon", "Refresh", "refresh-explorer", { mount });
+            panel.header.addButton("refresh", "refresh-icon", "Refresh");
+            panel.on("buttonclick", e => this.onExplorerButtonClick(explorer, e.button));
             this.explorers.push(explorer);
         }
 
         return container;
+    }
+
+    onExplorerButtonClick(explorer, button) {
+        if (button === "refresh") {
+            explorer.refresh();
+        }
     }
 
     createSettings() {

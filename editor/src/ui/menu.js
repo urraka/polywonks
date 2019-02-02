@@ -1,5 +1,4 @@
 import { Panel, elem } from "./common.js";
-import { Command } from "./command.js";
 
 export class TitleBar extends Panel {
     constructor() {
@@ -91,6 +90,10 @@ export class MenuBar extends Panel {
         this.append(item.element);
         return item;
     }
+
+    onItemClick(item) {
+        this.emit("itemclick", { item });
+    }
 }
 
 export class Menu {
@@ -118,12 +121,6 @@ export class Menu {
         this.element.addEventListener("mouseout", this.onMouseOut);
         this.element.addEventListener("mousedown", this.onMouseDown);
         this.element.addEventListener("mouseup", this.onMouseUp);
-
-        [...this.element.children].map(e => MenuItem.from(e)).forEach(menuItem => {
-            const command = Command.find(menuItem.command);
-            menuItem.enabled = command.enabled;
-            menuItem.checked = command.checked;
-        });
     }
 
     onClose() {
@@ -180,13 +177,13 @@ export class Menu {
             if (menuItem.hasSubmenu) {
                 Menu.timeout(null);
                 this.onShowSubmenu(menuItem);
-            } else if (menuItem.enabled) {
-                let menu = this;
-                while (menu instanceof Menu) {
-                    menu = menu.ownerItem.ownerMenu;
+            } else if (event.button === 0 && menuItem.enabled) {
+                let root = this;
+                while (root instanceof Menu) {
+                    root = root.ownerItem.ownerMenu;
                 }
-                menu.close();
-                Command.find(menuItem.command).execute();
+                root.close();
+                root.onItemClick(menuItem);
             }
         }
     }
@@ -249,11 +246,11 @@ export class Menu {
 }
 
 export class MenuItem {
-    constructor(title, command) {
+    constructor(title, key) {
         this.element = elem("div", "menu-item");
         this.ownerMenu = null;
         this.submenu = null;
-        this.command = command;
+        this.key = key;
 
         if (title) {
             const label = elem("label");
@@ -280,10 +277,10 @@ export class MenuItem {
     get checked() { return this.element.classList.contains("checked"); }
     get enabled() { return !this.element.classList.contains("disabled"); }
     get hasSubmenu() { return this.element.classList.contains("has-submenu"); }
-    set active(value) { this.element.classList[value ? "add" : "remove"]("active"); }
-    set checked(value) { this.element.classList[value ? "add" : "remove"]("checked"); }
-    set enabled(value) { this.element.classList[!value ? "add" : "remove"]("disabled"); }
-    set hasSubmenu(value) { this.element.classList[value ? "add" : "remove"]("has-submenu"); }
+    set active(value) { this.element.classList.toggle("active", value); }
+    set checked(value) { this.element.classList.toggle("checked", value); }
+    set enabled(value) { this.element.classList.toggle("disabled", !value); }
+    set hasSubmenu(value) { this.element.classList.toggle("has-submenu", value); }
 
     static from(object) {
         const items = MenuItem.itemByElement || (MenuItem.itemByElement = new WeakMap());

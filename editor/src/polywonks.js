@@ -5,7 +5,6 @@ import * as fmt from "./support/format.js";
 import * as img from "./support/image.js";
 import * as math from "./support/math.js";
 import * as ui from "./ui/ui.js";
-import * as cmd from "./commands.js";
 
 import * as buffer_reader from "./support/buffer.reader.js";
 import * as buffer_writer from "./support/buffer.writer.js";
@@ -35,43 +34,52 @@ import * as file_explorer from "./file.explorer.js";
 import * as map_explorer from "./map.explorer.js";
 import * as map_properties from "./map.properties.js";
 
-const Polywonks = { PMS, Geometry, Gfx, fmt, img, math, ui, cmd };
+export const Polywonks = (() => {
+    const namespace = {
+        PMS,
+        Geometry,
+        Gfx,
+        fmt,
+        img,
+        math,
+        ui,
+    };
 
-const modules = [
-    app,
-    buffer_reader,
-    buffer_writer,
-    color,
-    editor,
-    editor_commands,
-    selection,
-    path,
-    file,
-    map,
-    matrix,
-    render,
-    render_view,
-    enm,
-    rect,
-    type,
-    settings,
-    tool,
-    tool_select,
-    tool_pan,
-    tool_zoom,
-    event,
-    pointer,
-    sidebar,
-    file_explorer,
-    map_explorer,
-    map_properties,
-];
+    const modules = [
+        app,
+        buffer_reader,
+        buffer_writer,
+        color,
+        editor,
+        editor_commands,
+        selection,
+        path,
+        file,
+        map,
+        matrix,
+        render,
+        render_view,
+        enm,
+        rect,
+        type,
+        settings,
+        tool,
+        tool_select,
+        tool_pan,
+        tool_zoom,
+        event,
+        pointer,
+        sidebar,
+        file_explorer,
+        map_explorer,
+        map_properties,
+    ];
 
-modules.forEach(module => {
-    Object.keys(module).forEach(key => {
-        Polywonks[key] = module[key];
+    modules.forEach(module => {
+        Object.keys(module).forEach(key => {
+            namespace[key] = module[key];
+        });
     });
-});
 
-window.Polywonks = Polywonks;
-Polywonks.App.launch();
+    return namespace;
+})();

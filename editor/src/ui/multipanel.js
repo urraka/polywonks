@@ -1,5 +1,4 @@
 import { Panel, elem } from "./common.js";
-import { Command } from "./command.js";
 
 export class MultiPanelView extends Panel {
     constructor() {
@@ -7,37 +6,48 @@ export class MultiPanelView extends Panel {
     }
 
     addPanel(title, content) {
-        const panelView = this.append(new Panel("panel-view"));
-        panelView.header = panelView.append(new PanelHeader(title));
-        panelView.content = panelView.append(content);
-        panelView.header.element.addEventListener("mousedown", e => this.onHeaderMouseDown(e, panelView));
-        return panelView;
+        return this.append(new PanelView(title, content));
+    }
+}
+
+export class PanelView extends Panel {
+    constructor(title, content) {
+        super("panel-view");
+        this.header = this.append(new PanelHeader(this, title));
+        this.content = this.append(content);
+        this.header.element.addEventListener("mousedown", e => this.onHeaderMouseDown(e));
     }
 
-    onHeaderMouseDown(event, panelView) {
-        if (event.button === 0 && event.target.tagName !== "BUTTON") {
-            panelView.element.classList.toggle("collapsed");
+    onHeaderMouseDown(event) {
+        if (event.button === 0) {
+            this.element.classList.toggle("collapsed");
         }
+    }
+
+    onHeaderButtonClick(button) {
+        this.emit("buttonclick", { button });
     }
 }
 
 export class PanelHeader {
-    constructor(text) {
+    constructor(panel, text) {
+        this.parentPanel = panel;
         this.element = elem("div", "panel-header");
         this.element.append(elem("label"));
         this.element.querySelector("label").textContent = text;
         this.toolbar = null;
     }
 
-    addButton(icon, title, command, params) {
+    addButton(key, icon, title) {
         if (!this.toolbar) {
             this.toolbar = elem("div", "toolbar");
             this.element.append(this.toolbar);
         }
 
         const button = elem("button", icon);
-        button.addEventListener("click", () => Command.find(command).execute(params));
         button.setAttribute("title", title);
+        button.addEventListener("click", () => this.parentPanel.onHeaderButtonClick(key));
+        button.addEventListener("mousedown", e => e.stopPropagation());
         this.toolbar.append(button);
     }
 }

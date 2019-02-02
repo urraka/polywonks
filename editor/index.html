@@ -10,6 +10,10 @@
 </head>
 <body>
     <div class="startup-loading"><div></div></div>
-    <script src="src/polywonks.js" type="module"></script>
+    <script type="module">
+        import { Polywonks } from "./src/polywonks.js";
+        window.Polywonks = Polywonks;
+        window.app = new Polywonks.App();
+    </script>
 </body>
 </html>
