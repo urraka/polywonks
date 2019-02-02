@@ -9,7 +9,6 @@ import { Attribute } from "./attribute.js";
 export class WaypointNode extends Node {
     constructor() {
         super();
-        this.attributes.get("text").value = "Waypoint";
         this.attributes.set("x", new Attribute("float", 0));
         this.attributes.set("y", new Attribute("float", 0));
         this.attributes.set("left", new Attribute("boolean", false));

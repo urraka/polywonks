@@ -13,3 +13,7 @@ export function dashToCamel(str) {
 export function isPascalCase(str) {
     return /^[A-Z][A-z0-9]*$/.test(str);
 }
+
+export function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}

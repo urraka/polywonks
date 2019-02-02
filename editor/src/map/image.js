@@ -8,7 +8,6 @@ import { Attribute } from "./attribute.js";
 export class ImageNode extends Node {
     constructor() {
         super();
-        this.attributes.get("text").value = "Image";
         this.attributes.set("src", new Attribute("string", ""));
         this.attributes.set("export-name", new Attribute("string", ""));
         this.attributes.set("color-key", new Attribute("color", new Color()));
@@ -20,7 +19,6 @@ export class ImageNode extends Node {
 
     static fromPMS(scenery, path) {
         const node = new ImageNode();
-        node.attr("text", scenery.name);
         node.attr("src", "../scenery-gfx/" + scenery.name);
         node.attr("export-name", scenery.name);
         node.attr("color-key", new Color(0, 255, 0));
@@ -32,6 +30,7 @@ export class ImageNode extends Node {
             }
         }
 
+        node.attr("text", Path.filename(node.attr("src")));
         return node;
     }
 

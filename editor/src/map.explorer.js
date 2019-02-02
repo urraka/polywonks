@@ -12,7 +12,15 @@ export class MapExplorer extends ui.TreeView {
         this.on("itemselect", e => this.onItemSelect(e.data));
         this.on("iconclick", e => this.onIconClick(e.data));
         this.editor.on("selectionchange", () => this.onEditorSelectionChange());
+        this.editor.map.on("attributechange", e => this.onMapAttrChange(e));
         this.editor.map.on("visibilitychange", e => this.onVisibilityChange(e.target));
+    }
+
+    onMapAttrChange(event) {
+        if (event.attribute === "text") {
+            const node = event.target;
+            this.itemsByNode.get(node).label.textContent = node.toString();
+        }
     }
 
     onVisibilityChange(node) {
@@ -43,13 +51,13 @@ export class MapExplorer extends ui.TreeView {
     }
 
     addNode(parentItem, node) {
-        const item = parentItem.addItem(new ui.TreeItem(node.attr("text") || node.nodeName, node));
+        const item = parentItem.addItem(new ui.TreeItem(node.toString(), node));
         this.itemsByNode.set(node, item);
 
         if (node instanceof LayerNode) {
             item.icon = node.visible ? "visible-icon" : "hidden-icon";
-        } else if (node instanceof ResourcesNode) {
-            item.icon = "resources-icon";
+        } else if (["resources", "texture", "image"].includes(node.nodeName)) {
+            item.icon = node.nodeName + "-icon";
         }
 
         for (const childNode of node.children()) {

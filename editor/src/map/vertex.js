@@ -8,7 +8,6 @@ import { Attribute } from "./attribute.js";
 export class VertexNode extends Node {
     constructor() {
         super();
-        this.attributes.get("text").value = "Vertex";
         this.attributes.set("x", new Attribute("float", 0));
         this.attributes.set("y", new Attribute("float", 0));
         this.attributes.set("u", new Attribute("float", 0));

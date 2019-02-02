@@ -1,7 +1,10 @@
 import * as PMS from "../pms/pms.js";
+import * as fmt from "../support/format.js";
 import { cfg, ExportMode } from "../settings.js";
 import { Rect } from "../support/rect.js";
 import { Color } from "../support/color.js";
+import { ValueType } from "../support/type.js";
+import { Path } from "../support/path.js";
 import { Attribute } from "./attribute.js";
 import { Node } from "./node.js";
 import { ResourcesNode } from "./resources.js";
@@ -15,16 +18,18 @@ import { SpawnNode } from "./spawn.js";
 import { WaypointNode } from "./waypoint.js";
 import { VertexNode } from "./vertex.js";
 import { ConnectionNode } from "./connection.js";
-import { ValueType } from "../support/type.js";
 
 function createDefaultLayers() {
+    const resources = new ResourcesNode();
+    resources.attr("text", "Resources");
+
     return (list => {
         const layers = {};
         list.forEach(([key, layer]) => layers[key] = layer);
         layers[Symbol.iterator] = Array.prototype[Symbol.iterator].bind(list.map(([,layer]) => layer));
         return layers;
     })([
-        ["resources", new ResourcesNode()],
+        ["resources", resources],
         ["backgroundPolygons", new LayerNode("Background polygons", LayerType.PolygonsBack)],
         ["backgroundScenery", new LayerNode("Background scenery", LayerType.SceneryBack)],
         ["middleScenery", new LayerNode("Middle scenery", LayerType.SceneryMiddle)],
@@ -45,7 +50,6 @@ export class MapDocument extends Node {
         this.iconsInfo = {};
         this.nextId = {};
 
-        this.attributes.get("text").value = "Map";
         this.attributes.set("description", new Attribute("string", ""));
         this.attributes.set("color-top", new Attribute("color", new Color(cfg("map.color-top"))));
         this.attributes.set("color-bottom", new Attribute("color", new Color(cfg("map.color-bottom"))));
@@ -75,6 +79,7 @@ export class MapDocument extends Node {
 
     static default() {
         const doc = new MapDocument();
+        doc.attr("text", "Untitled");
         [...createDefaultLayers()].forEach(layer => doc.append(layer));
         return doc;
     }
@@ -82,7 +87,7 @@ export class MapDocument extends Node {
     static fromPMS(pms, path = "") {
         const doc = new MapDocument();
         doc.path = path;
-        doc.attr("text", pms.name.split(" ")[0]);
+        doc.attr("text", Path.replaceExtension(Path.filename(path), "") || pms.name || "Map");
         doc.attr("description", pms.name);
         doc.attr("color-top", new Color(pms.backgroundColorTop));
         doc.attr("color-bottom", new Color(pms.backgroundColorBottom));
@@ -130,6 +135,13 @@ export class MapDocument extends Node {
         const waypoints = pms.waypoints.map(() => new WaypointNode());
         waypoints.forEach((node, i) => node.fromPMS(pms.waypoints[i], waypoints));
         waypoints.forEach(node => node.appendTo(layers.waypoints));
+
+        for (const node of doc.descendants()) {
+            if (!node.attr("text")) {
+                const index = node.id.indexOf("#") + 1;
+                node.attr("text", `${fmt.capitalize(node.nodeName)} #${node.id.slice(index)}`);
+            }
+        }
 
         return doc;
     }

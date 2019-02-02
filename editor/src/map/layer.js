@@ -14,7 +14,7 @@ export const LayerType = new Enum({
 });
 
 export class LayerNode extends Node {
-    constructor(name = "Layer", type = LayerType.PolygonsBack) {
+    constructor(name = "", type = LayerType.PolygonsBack) {
         super();
         this.attributes.get("text").value = name;
         this.attributes.set("type", new Attribute(LayerType, type));

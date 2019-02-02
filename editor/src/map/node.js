@@ -21,7 +21,7 @@ export class Node extends EventEmitter {
     }
 
     toString() {
-        return this.attr("text");
+        return this.attr("text") || this.id || this.nodeName;
     }
 
     emit(...args) {

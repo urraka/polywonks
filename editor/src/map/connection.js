@@ -6,7 +6,6 @@ import { Attribute } from "./attribute.js";
 export class ConnectionNode extends Node {
     constructor(waypoint = null) {
         super();
-        this.attributes.get("text").value = "Connection";
         this.attributes.set("waypoint", new Attribute("node", waypoint));
     }
 

@@ -8,7 +8,6 @@ import { Attribute } from "./attribute.js";
 export class ColliderNode extends Node {
     constructor() {
         super();
-        this.attributes.get("text").value = "Collider";
         this.attributes.set("x", new Attribute("float", 0));
         this.attributes.set("y", new Attribute("float", 0));
         this.attributes.set("radius", new Attribute("float", cfg("map.collider-radius")));

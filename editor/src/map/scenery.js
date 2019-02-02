@@ -11,7 +11,6 @@ import { ExportMode } from "../settings.js";
 export class SceneryNode extends Node {
     constructor() {
         super();
-        this.attributes.get("text").value = "Scenery";
         this.attributes.set("image", new Attribute("node", null));
         this.attributes.set("x", new Attribute("float", 0));
         this.attributes.set("y", new Attribute("float", 0));
