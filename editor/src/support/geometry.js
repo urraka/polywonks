@@ -44,22 +44,27 @@ export function segmentsIntersect(ax, ay, bx, by, cx, cy, dx, dy) {
         ccw(ax, ay, bx, by, cx, cy) !== ccw(ax, ay, bx, by, dx, dy);
 }
 
-export function triangleContainsPoint(ax, ay, bx, by, cx, cy, x, y) {
-    const A = 0.5 * (-by * cx + ay * (-bx + cx) + ax * (by - cy) + bx * cy);
+export function signedTriangleArea(ax, ay, bx, by, cx, cy) {
+    return 0.5 * (-by * cx + ay * (-bx + cx) + ax * (by - cy) + bx * cy);
+}
+
+export function triangleContainsPoint(ax, ay, bx, by, cx, cy, x, y, A = signedTriangleArea(ax, ay, bx, by, cx, cy)) {
+    if (A === 0) return false;
     const sign = A < 0 ? -1 : 1;
     const s = (ay * cx - ax * cy + (cy - ay) * x + (ax - cx) * y) * sign;
     const t = (ax * by - ay * bx + (ay - by) * x + (bx - ax) * y) * sign;
-    return A !== 0 && s >= 0 && t >= 0 && (s + t) <= (2 * A * sign);
+    return s >= 0 && t >= 0 && (s + t) <= (2 * A * sign);
 }
 
 export function rectIntersectsTriangle(x, y, w, h, ax, ay, bx, by, cx, cy) {
+    const A = signedTriangleArea(ax, ay, bx, by, cx, cy);
     return rectContainsPoint(x, y, w, h, ax, ay) ||
         rectContainsPoint(x, y, w, h, bx, by) ||
         rectContainsPoint(x, y, w, h, cx, cy) ||
-        triangleContainsPoint(ax, ay, bx, by, cx, cy, x + 0, y + 0) ||
-        triangleContainsPoint(ax, ay, bx, by, cx, cy, x + w, y + 0) ||
-        triangleContainsPoint(ax, ay, bx, by, cx, cy, x + w, y + h) ||
-        triangleContainsPoint(ax, ay, bx, by, cx, cy, x + 0, y + h) ||
+        triangleContainsPoint(ax, ay, bx, by, cx, cy, x + 0, y + 0, A) ||
+        triangleContainsPoint(ax, ay, bx, by, cx, cy, x + w, y + 0, A) ||
+        triangleContainsPoint(ax, ay, bx, by, cx, cy, x + w, y + h, A) ||
+        triangleContainsPoint(ax, ay, bx, by, cx, cy, x + 0, y + h, A) ||
         segmentsIntersect(x + 0, y + 0, x + w, y + 0, ax, ay, bx, by) ||
         segmentsIntersect(x + 0, y + 0, x + w, y + 0, bx, by, cx, cy) ||
         segmentsIntersect(x + 0, y + 0, x + w, y + 0, cx, cy, ax, ay) ||

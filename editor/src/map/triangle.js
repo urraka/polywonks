@@ -3,6 +3,7 @@ import * as Geometry from "../support/geometry.js";
 import { Node } from "./node.js";
 import { VertexNode } from "./vertex.js";
 import { Attribute } from "./attribute.js";
+import { cfg } from "../settings.js";
 
 export class TriangleNode extends Node {
     constructor() {
@@ -54,12 +55,23 @@ export class TriangleNode extends Node {
         return polygon;
     }
 
-    intersectsPoint(x, y) {
-        const triangle = [];
+    intersectsPoint(x, y, scale) {
+        const tri = [];
         for (const childNode of this.children()) {
-            triangle.push(childNode.attr("x"), childNode.attr("y"));
+            tri.push(childNode.attr("x"), childNode.attr("y"));
         }
-        return triangle.length === 6 && Geometry.triangleContainsPoint(...triangle, x, y);
+        if (tri.length === 6) {
+            let d = cfg("editor.vertex-size") / scale;
+            const A = Geometry.signedTriangleArea(...tri);
+            if (Math.abs(A * (scale * scale)) < (d * d)) {
+                d = 0.25 * d * d;
+                return Geometry.pointToSegmentDistance2(x, y, tri[0], tri[1], tri[2], tri[3]) <= d ||
+                    Geometry.pointToSegmentDistance2(x, y, tri[0], tri[1], tri[4], tri[5]) <= d ||
+                    Geometry.pointToSegmentDistance2(x, y, tri[2], tri[3], tri[4], tri[5]) <= d;
+            } else {
+                return Geometry.triangleContainsPoint(...tri, x, y, A);
+            }
+        }
     }
 
     intersectsRect(x, y, w, h) {

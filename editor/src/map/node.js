@@ -190,28 +190,28 @@ export class Node extends EventEmitter {
 
     *nodesAt(x, y, scale) {
         for (const childNode of this.children()) {
-            if (childNode.intersectsPoint(x, y, scale)) {
-                yield childNode;
-            }
             yield *childNode.nodesAt(x, y, scale);
+        }
+        if (this.intersectsPoint(x, y, scale)) {
+            yield this;
         }
     }
 
     *nodesIntersectingRect(x, y, w, h, scale) {
         for (const childNode of this.children()) {
-            if (childNode.intersectsRect(x, y, w, h, scale)) {
-                yield childNode;
-            }
             yield *childNode.nodesIntersectingRect(x, y, w, h, scale);
+        }
+        if (this.intersectsRect(x, y, w, h, scale)) {
+            yield this;
         }
     }
 
     *nodesContainedByRect(x, y, w, h, scale) {
         for (const childNode of this.children()) {
-            if (childNode.containedByRect(x, y, w, h, scale)) {
-                yield childNode;
-            }
             yield *childNode.nodesContainedByRect(x, y, w, h, scale);
+        }
+        if (this.containedByRect(x, y, w, h, scale)) {
+            yield this;
         }
     }
 

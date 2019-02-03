@@ -29,7 +29,6 @@ export class SelectTool extends Tool {
         this.cycle = 0;
         this.affectedNode = null;
         this.revertNodes = null;
-        this.command = null;
         this.selecting = false;
         this.mode = "replace";
         this.rect = null;
@@ -93,6 +92,8 @@ export class SelectTool extends Tool {
 
                     if (index >= 0) {
                         nodes.splice(index--, 1);
+                    } else {
+                        index = 0;
                     }
 
                     if (nodes.length > 0) {
@@ -186,7 +187,6 @@ export class SelectTool extends Tool {
         this.clickPosition.y = event.clientY;
 
         this.selecting = false;
-        this.command = null;
 
         if (this.rect) {
             this.rect.x1 = this.editor.cursor.x;
