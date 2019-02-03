@@ -231,8 +231,11 @@ export class App extends ui.Panel {
         const editor = event.panel.content;
         editor.onClose(event);
 
-        if (!event.defaultPrevented && this.tabs.count === 1) {
-            this.openDefault();
+        if (!event.defaultPrevented) {
+            this.sidebar.onEditorClose(editor);
+            if (this.tabs.count === 1) {
+                this.openDefault();
+            }
         }
     }
 

@@ -35,8 +35,11 @@ export class Editor extends ui.Panel {
         this.currentTool = new SelectTool();
         this.panTool = new PanTool();
         this.zoomTool = new ZoomTool();
-        this.explorer = new MapExplorer(this);
-        this.properties = new MapProperties(this);
+
+        this.sidebarPanels = new ui.MultiPanelView();
+        this.sidebarPanels.element.classList.add("editor-sidebar-panels");
+        this.explorer = this.sidebarPanels.addPanel("Map", new MapExplorer(this));
+        this.properties = this.sidebarPanels.addPanel("Properties", new MapProperties(this));
 
         if (map.path === "") {
             this.saveName = "Untitled.polywonks";
@@ -44,6 +47,7 @@ export class Editor extends ui.Panel {
             this.saveName = Path.replaceExtension(Path.filename(map.path), ".polywonks");
         }
 
+        this.properties.content.on("nodechange", () => this.onPropertiesNodeChange());
         this.map.on("attributechange", e => this.onMapAttrChange(e));
         this.map.on("visibilitychange", e => this.onMapVisibilityChange(e));
         this.view.on("change", () => this.onViewChange());
@@ -227,6 +231,10 @@ export class Editor extends ui.Panel {
         } else {
             this.renderer.disposeNodeResources(this.map);
         }
+    }
+
+    onPropertiesNodeChange() {
+        this.properties.header.title = this.properties.content.node.nodeName + " properties";
     }
 
     onMapAttrChange(event) {

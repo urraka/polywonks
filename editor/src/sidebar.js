@@ -8,17 +8,21 @@ export class Sidebar extends ui.Panel {
         this.panels = new Map();
         this.explorers = [];
         this.append(this.createTabs());
-        this.append(this.createTools());
+        this.tools = this.append(this.createTools());
         this.append(this.createFileExplorers());
         this.append(this.createSettings());
         this.activeTab = "sidebar-tools";
     }
 
+    onEditorClose(editor) {
+        editor.sidebarPanels.element.remove();
+    }
+
     set editor(editor) {
-        const explorer = this.element.querySelector(".map-explorer");
-        const properties = this.element.querySelector(".map-properties");
-        explorer.replaceWith(editor.explorer.element);
-        properties.replaceWith(editor.properties.element);
+        const panels = this.tools.element.querySelector(".editor-sidebar-panels.active");
+        if (panels) panels.classList.remove("active");
+        if (!editor.sidebarPanels.element.parentElement) this.tools.append(editor.sidebarPanels);
+        editor.sidebarPanels.element.classList.add("active");
     }
 
     get activeTab() {
@@ -58,14 +62,8 @@ export class Sidebar extends ui.Panel {
     createTools() {
         const container = new ui.Panel("sidebar-panel");
         const header = container.append(new ui.Panel("sidebar-header"));
-        const panels = container.append(new ui.MultiPanelView());
-
         container.element.setAttribute("id", "sidebar-tools");
         header.element.textContent = "Tools";
-
-        panels.addPanel("Map", new ui.Panel("map-explorer"));
-        panels.addPanel("Properties", new ui.Panel("map-properties"));
-
         return container;
     }
 

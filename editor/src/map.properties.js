@@ -1,22 +1,25 @@
 import * as PMS from "./pms/pms.js";
 import * as ui from "./ui/ui.js";
+import { EventEmitter } from "./support/event.js";
 import { LayerNode, ImageNode, TextureNode, WaypointNode } from "./map/map.js";
 import { AttributeChangeCommand } from "./editor.commands.js";
 
-export class MapProperties extends ui.PropertySheet {
+export class MapProperties extends EventEmitter {
     constructor(editor) {
         super();
+        this.sheet = new ui.PropertySheet();
+        this.element = this.sheet.element;
         this.element.classList.add("map-properties");
         this.editor = editor;
         this.node = null;
-        this.on("propertychange", e => this.onPropertyChange(e));
+        this.sheet.on("propertychange", e => this.onPropertyChange(e));
         this.editor.on("selectionchange", () => this.onSelectionChange());
         this.editor.map.on("attributechange", e => this.onAttributeChange(e));
     }
 
     onAttributeChange(event) {
-        if (event.target === this.node && this.properties[event.attribute]) {
-            this.properties[event.attribute].reset(this.node.attr(event.attribute));
+        if (event.target === this.node && this.sheet.properties[event.attribute]) {
+            this.sheet.properties[event.attribute].reset(this.node.attr(event.attribute));
         }
     }
 
@@ -47,7 +50,7 @@ export class MapProperties extends ui.PropertySheet {
     }
 
     onSelectionChange() {
-        this.clear();
+        this.sheet.clear();
         this.node = this.editor.selection.nodes.values().next().value || this.editor.map;
         const layer = this.node.filter(this.node.ancestors(), LayerNode).next().value;
 
@@ -76,7 +79,9 @@ export class MapProperties extends ui.PropertySheet {
                 }
             }
 
-            this.addProperty(key, attr.value, dataType);
+            this.sheet.addProperty(key, attr.value, dataType);
         }
+
+        this.emit("nodechange");
     }
 }

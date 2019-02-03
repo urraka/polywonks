@@ -33,9 +33,18 @@ export class PanelHeader {
     constructor(panel, text) {
         this.parentPanel = panel;
         this.element = elem("div", "panel-header");
-        this.element.append(elem("label"));
-        this.element.querySelector("label").textContent = text;
+        this.label = elem("label");
+        this.element.append(this.label);
+        this.title = text;
         this.toolbar = null;
+    }
+
+    get title() {
+        return this.label.textContent;
+    }
+
+    set title(value) {
+        this.label.textContent = value;
     }
 
     addButton(key, icon, title) {

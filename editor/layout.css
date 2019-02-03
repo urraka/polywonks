@@ -574,6 +574,10 @@ body {
     text-transform: uppercase;
 }
 
+.editor-sidebar-panels:not(.active) {
+    display: none;
+}
+
 .tools-icon {
     mask-image: var(--icon-tools);
     -webkit-mask-image: var(--icon-tools);
