@@ -71,9 +71,12 @@ export class Node extends EventEmitter {
                 this.nextSibling.previousSibling = this.previousSibling;
             }
 
+            const parent = this.parentNode;
             this.parentNode = null;
             this.nextSibling = null;
             this.previousSibling = null;
+
+            parent.emit("remove", { node: this });
         }
     }
 
@@ -107,6 +110,8 @@ export class Node extends EventEmitter {
                 n.owner = this.owner;
             }
         }
+
+        this.emit("insert", { node });
     }
 
     append(node) {

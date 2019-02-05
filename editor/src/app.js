@@ -377,6 +377,7 @@ export class App extends ui.Panel {
             "export-as": () => this.editor.exportAs(),
             "undo": () => this.editor.undo(),
             "redo": () => this.editor.redo(),
+            "delete": () => this.editor.delete(),
             "reset-viewport": () => this.editor.view.reset(),
             "toggle-grid": () => cfg("view.grid", !cfg("view.grid")),
             "toggle-background": () => cfg("view.background", !cfg("view.background")),

@@ -11,9 +11,15 @@ export class TreeView extends Panel {
         this.element.addEventListener("dblclick", e => this.onDoubleClick(e));
     }
 
-    addItem(item) {
-        this.list.append(item.element);
+    addItem(item, beforeItem = null) {
+        this.list.insertBefore(item.element, beforeItem ? beforeItem.element || beforeItem : null);
         return item;
+    }
+
+    removeItem(item) {
+        const li = item.element || item;
+        li.remove();
+        dataMap.delete(li);
     }
 
     clear() {
@@ -98,7 +104,7 @@ export class TreeItem {
         this.element.classList.toggle("collapsed", !value);
     }
 
-    addItem(item) {
+    addItem(item, beforeItem = null) {
         if (!this.subitems) {
             this.subitems = elem("ul");
             this.element.append(this.subitems);
@@ -106,7 +112,7 @@ export class TreeItem {
             this.element.classList.add("collapsed");
         }
 
-        this.subitems.append(item.element);
+        this.subitems.insertBefore(item.element, beforeItem ? beforeItem.element || beforeItem : null);
         return item;
     }
 }

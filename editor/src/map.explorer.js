@@ -11,8 +11,21 @@ export class MapExplorer extends ui.TreeView {
         this.on("itemselect", e => this.onItemSelect(e.data));
         this.on("iconclick", e => this.onIconClick(e.data));
         this.editor.on("selectionchange", () => this.onEditorSelectionChange());
+        this.editor.map.on("insert", e => this.onNodeInsert(e));
+        this.editor.map.on("remove", e => this.onNodeRemove(e));
         this.editor.map.on("attributechange", e => this.onMapAttrChange(e));
         this.editor.map.on("visibilitychange", e => this.onVisibilityChange(e.target));
+    }
+
+    onNodeInsert(event) {
+        const parentItem = this.itemsByNode.get(event.target);
+        const beforeItem = this.itemsByNode.get(event.node.nextSibling);
+        this.addNode(parentItem, event.node, beforeItem);
+    }
+
+    onNodeRemove(event) {
+        this.removeItem(this.itemsByNode.get(event.node));
+        this.itemsByNode.delete(event.node);
     }
 
     onMapAttrChange(event) {
@@ -49,8 +62,8 @@ export class MapExplorer extends ui.TreeView {
         }
     }
 
-    addNode(parentItem, node) {
-        const item = parentItem.addItem(new ui.TreeItem(node.toString(), node));
+    addNode(parentItem, node, beforeItem = null) {
+        const item = parentItem.addItem(new ui.TreeItem(node.toString(), node), beforeItem);
         this.itemsByNode.set(node, item);
 
         if (node instanceof LayerNode) {

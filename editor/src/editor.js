@@ -12,7 +12,7 @@ import { MapExplorer } from "./map.explorer.js";
 import { Selection } from "./selection.js";
 import { MapProperties } from "./map.properties.js";
 import { SaveDialog } from "./dialog.save.js";
-import { RelocateMapCommand } from "./editor.commands.js";
+import { RelocateMapCommand, RemoveNodesCommand } from "./editor.commands.js";
 
 export class Editor extends ui.Panel {
     constructor(renderer, map = MapDocument.default()) {
@@ -165,6 +165,10 @@ export class Editor extends ui.Panel {
     }
 
     do(command) {
+        if (!command.hasChanges) {
+            return;
+        }
+
         if (this.saveIndex >= 0) {
             this.saveIndex = this.saveIndex - this.undone + 1;
         }
@@ -217,6 +221,18 @@ export class Editor extends ui.Panel {
             this.zoomTool.deactivate();
             this.panTool.deactivate();
         }
+    }
+
+    delete() {
+        const command = new RemoveNodesCommand(this);
+        for (const node of this.selection.nodes) {
+            if (node !== this.map && node.parentNode !== this.map &&
+                [...node.ancestors()].every(n => !this.selection.nodes.has(n))
+            ) {
+                command.remove(node);
+            }
+        }
+        this.do(command);
     }
 
     onCommand(command) {

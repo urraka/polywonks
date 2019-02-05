@@ -44,9 +44,7 @@ export class MapProperties extends EventEmitter {
             }
         }
 
-        if (command.hasChanges) {
-            this.editor.do(command);
-        }
+        this.editor.do(command);
     }
 
     onSelectionChange() {

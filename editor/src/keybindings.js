@@ -11,6 +11,7 @@ const DefaultBindings = {
     "F9": "export",
     "Ctrl+F9": "export-as",
     "Ctrl+Shift+S": "save-as",
+    "Delete": "delete",
     "Ctrl+0": "reset-viewport",
     "Ctrl": "select.cycle",
     "Shift+Ctrl": "select.cycle",
