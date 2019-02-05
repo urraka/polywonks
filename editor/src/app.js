@@ -4,6 +4,7 @@ import { Renderer } from "./render.js";
 import { Editor } from "./editor.js";
 import { Sidebar } from "./sidebar.js";
 import { Settings, cfg } from "./settings.js";
+import { KeyBindings } from "./keybindings.js";
 
 export class App extends ui.Panel {
     constructor() {
@@ -16,6 +17,7 @@ export class App extends ui.Panel {
         this.sidebar = null;
         this.statusbar = null;
         this.renderer = new Renderer();
+        this.keybindings = new KeyBindings();
 
         this.createUserInterface();
         this.setupEvents();
@@ -27,7 +29,9 @@ export class App extends ui.Panel {
         this.onCursorChange = this.onCursorChange.bind(this);
         this.onViewChange = this.onViewChange.bind(this);
         this.onToolChange = this.onToolChange.bind(this);
+        this.onKeyBindingsCommand = e => this.onCommand(e.command);
 
+        this.keybindings.on("command", this.onKeyBindingsCommand);
         this.titlebar.menu.on("itemclick", e => this.onCommand(e.item.key));
         this.tabs.on("change", e => this.onTabChange(e));
         this.tabs.on("willchange", e => this.onTabWillChange(e));
@@ -44,6 +48,7 @@ export class App extends ui.Panel {
         document.addEventListener("dragover", e => this.onDragOver(e));
         document.addEventListener("dragenter", e => this.onDragEnter(e));
         document.addEventListener("keydown", e => this.onKeyDown(e));
+        document.addEventListener("keyup", e => this.onKeyUp(e));
         document.addEventListener("contextmenu", e => e.preventDefault());
 
         Settings.on("change", e => this.onSettingChange(e.setting));
@@ -251,11 +256,13 @@ export class App extends ui.Panel {
     }
 
     onModalStart() {
+        this.keybindings.off("command", this.onKeyBindingsCommand);
         this.editor.deactivate();
     }
 
     onModalEnd() {
         this.editor.activate();
+        this.keybindings.on("command", this.onKeyBindingsCommand);
     }
 
     onBeforeUnload(event) {
@@ -317,6 +324,12 @@ export class App extends ui.Panel {
         if (event.ctrlKey && (event.key === "z") || event.key === "ContextMenu") {
             event.preventDefault();
         }
+
+        this.keybindings.onKeyDown(event);
+    }
+
+    onKeyUp(event) {
+        this.keybindings.onKeyUp(event);
     }
 
     isMenuItemEnabled(item) {
@@ -342,6 +355,7 @@ export class App extends ui.Panel {
     updateMenuItem(item) {
         item.enabled = this.isMenuItemEnabled(item);
         item.checked = this.isMenuItemChecked(item);
+        item.keyBinding = this.keybindings.find(item.key);
     }
 
     updateMenuItems() {
@@ -373,6 +387,10 @@ export class App extends ui.Panel {
             "browse-to-github": () => window.open(cfg("app.github")),
         });
 
-        commands[command]();
+        if (commands[command]) {
+            commands[command]();
+        } else if (this.editor) {
+            this.editor.onCommand(command);
+        }
     }
 }

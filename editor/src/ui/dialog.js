@@ -60,6 +60,14 @@ export class Dialog extends Panel {
         this.overlay.addEventListener("focusout", this.onOverlayFocusOut);
         document.addEventListener("focusin", this.onDocumentFocusIn);
         this.overlay.classList.add("active");
+
+        setTimeout(() => {
+            if (this.defaultButton) {
+                this.defaultButton.element.focus();
+            } else {
+                this.overlay.focus();
+            }
+        }, 200);
     }
 
     deactivate() {
@@ -100,13 +108,6 @@ export class Dialog extends Panel {
             this.overlay.addEventListener("mousedown", e => this.onOverlayMouseDown(e));
             Dialog.dialogs.set(this.overlay, this);
             document.body.append(this.overlay);
-
-            if (this.defaultButton) {
-                this.defaultButton.element.focus();
-            } else {
-                this.overlay.focus();
-            }
-
             this.activate();
         }
     }

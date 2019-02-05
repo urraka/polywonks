@@ -16,7 +16,7 @@ export const ExportMode = new Enum({
     Soldat171: 12,
 });
 
-const defaultSettings = {
+const DefaultSettings = {
     "theme.background": new Color("#1e1e1e"),
     "theme.selection-fill": new Color("rgba(200, 200, 0, 0.5)"),
     "theme.selection-border": new Color("#ff0"),
@@ -59,7 +59,7 @@ const defaultSettings = {
     "app.export-mode": "soldat-171",
 };
 
-const settings = Object.assign({}, defaultSettings);
+const settings = Object.assign({}, DefaultSettings);
 
 export function cfg(name, value) {
     if (value !== undefined) {
@@ -109,14 +109,14 @@ export class Settings extends ui.MultiPanelView {
     }
 
     static getDefault(name) {
-        if (!(name in defaultSettings)) {
+        if (!(name in DefaultSettings)) {
             throw new Error("Invalid setting");
         }
-        return defaultSettings[name];
+        return DefaultSettings[name];
     }
 
     static set(name, value) {
-        if (!(name in defaultSettings)) {
+        if (!(name in DefaultSettings)) {
             throw new Error("Invalid setting");
         }
 
@@ -127,7 +127,7 @@ export class Settings extends ui.MultiPanelView {
     }
 
     static list() {
-        return Object.keys(defaultSettings);
+        return Object.keys(DefaultSettings);
     }
 
     static type(key) {

@@ -273,6 +273,19 @@ export class MenuItem {
         return item;
     }
 
+    set keyBinding(value) {
+        if (value) {
+            this._keyBinding = this._keyBinding || (this._keyBinding = elem("label"));
+            this._keyBinding.textContent = value;
+            if (!this._keyBinding.parentElement) {
+                this.element.append(this._keyBinding);
+            }
+        } else if (this._keyBinding) {
+            this._keyBinding.remove();
+            this._keyBinding = null;
+        }
+    }
+
     get active() { return this.element.classList.contains("active"); }
     get checked() { return this.element.classList.contains("checked"); }
     get enabled() { return !this.element.classList.contains("disabled"); }

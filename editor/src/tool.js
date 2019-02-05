@@ -6,6 +6,10 @@ export class Tool extends EventEmitter {
         this.editor = null;
     }
 
+    get activated() {
+        return !!this.editor;
+    }
+
     activate(editor) {
         if (!editor) {
             throw new Error("Undefined editor object in Tool.activate(editor)");

@@ -12,7 +12,7 @@ export class SelectTool extends Tool {
         this.affectedNode = null;
         this.revertNodes = null;
         this.selecting = false;
-        this.mode = "replace";
+        this._mode = "replace";
         this.rect = null;
         this.rectPosition = { x: 0, y: 0 };
         this.clickPosition = { x: 0, y: 0 };
@@ -20,7 +20,6 @@ export class SelectTool extends Tool {
         this.pointer.on("begin", e => this.onPointerBegin(e.mouseEvent));
         this.pointer.on("move", e => this.onPointerMove(e.mouseEvent));
         this.pointer.on("end", e => this.onPointerEnd(e.mouseEvent));
-        this.onKey = this.onKey.bind(this);
         this.onMouseLeave = this.onMouseLeave.bind(this);
     }
 
@@ -30,25 +29,54 @@ export class SelectTool extends Tool {
         this.affectedNode = null;
         this.revertNodes = null;
         this.selecting = false;
-        this.mode = "replace";
+        this._mode = "replace";
         this.rect = null;
         this.rectPosition = { x: 0, y: 0 };
         this.clickPosition = { x: 0, y: 0 };
         this.pointer.activate(this.editor.element, 0);
         this.editor.element.addEventListener("mouseleave", this.onMouseLeave);
-        document.addEventListener("keyup", this.onKey);
-        document.addEventListener("keydown", this.onKey);
         this.emit("change", { status: "Select" });
     }
 
     onDeactivate() {
-        document.removeEventListener("keyup", this.onKey);
-        document.removeEventListener("keydown", this.onKey);
         this.editor.element.removeEventListener("mouseleave", this.onMouseLeave);
         this.pointer.deactivate();
         this.editor.previewNodes.clear();
         this.editor.redraw();
         this.emit("change", { status: "" });
+    }
+
+    get mode() {
+        return this._mode;
+    }
+
+    set mode(value) {
+        if (this._mode !== value) {
+            this._mode = value;
+            const status = {
+                "replace": "Select",
+                "add": "Select (+)",
+                "subtract": "Select (-)",
+            }[value];
+            this.emit("change", { status });
+            this.updatePreviewNodes();
+        }
+    }
+
+    onCommand(command) {
+        if (this.activated) {
+            switch (command) {
+                case "+select.add": this.mode = "add"; break;
+                case "+select.subtract": this.mode = "subtract"; break;
+                case "-select.add": this.mode = "replace"; break;
+                case "-select.subtract": this.mode = "replace"; break;
+                case "select.cycle": {
+                    this.cycle++;
+                    this.updatePreviewNodes();
+                    break;
+                }
+            }
+        }
     }
 
     updatePreviewNodes() {
@@ -108,41 +136,6 @@ export class SelectTool extends Tool {
         this.editor.redraw();
     }
 
-    updateMode(event) {
-        switch ([+event.shiftKey, +event.altKey, +event.ctrlKey, +event.metaKey].join("")) {
-            case "1000": this.mode = "add"; break;
-            case "0100": this.mode = "subtract"; break;
-            default: this.mode = "replace";
-        }
-
-        switch (this.mode) {
-            case "replace":
-                this.emit("change", { status: "Select" });
-                break;
-            case "add":
-                this.emit("change", { status: "Select (+)" });
-                break;
-            case "subtract":
-                this.emit("change", { status: "Select (-)" });
-                break;
-        }
-    }
-
-    onKey(event) {
-        if (event.key === "Shift" || event.key === "Alt") {
-            event.preventDefault();
-            const mode = this.mode;
-            this.updateMode(event)
-            if (this.mode !== mode) {
-                this.updatePreviewNodes();
-            }
-        } else if (event.type === "keydown" && event.key === "Control") {
-            event.preventDefault();
-            this.cycle++;
-            this.updatePreviewNodes();
-        }
-    }
-
     onPointerBegin(event) {
         this.clickPosition.x = event.clientX;
         this.clickPosition.y = event.clientY;
@@ -152,7 +145,6 @@ export class SelectTool extends Tool {
         }
 
         let changed = false;
-        this.updateMode(event);
         this.updatePreviewNodes();
 
         if (this.mode === "replace") {

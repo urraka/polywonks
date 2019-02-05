@@ -172,6 +172,7 @@ body {
 .menu > .menu-item {
     position: relative;
     margin-bottom: 2px;
+    display: flex;
 }
 
 .menu > .menu-item:last-child {
@@ -181,6 +182,11 @@ body {
 .menu > .menu-item > label {
     padding: 0 2em;
     white-space: nowrap;
+    flex: 1;
+}
+
+.menu > .menu-item > label + label {
+    text-align: right;
 }
 
 .menu > .menu-item.separator {

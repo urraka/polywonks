@@ -219,6 +219,10 @@ export class Editor extends ui.Panel {
         }
     }
 
+    onCommand(command) {
+        this.currentTool.onCommand(command);
+    }
+
     onClose(event) {
         if (this.modified) {
             event.preventDefault();
