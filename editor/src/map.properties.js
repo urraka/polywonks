@@ -36,7 +36,7 @@ export class MapProperties extends EventEmitter {
             return nodeLayer && nodeLayer.attr("type") === layer.attr("type");
         };
 
-        for (const node of (selection.nodes.count > 0 ? selection.nodes : [this.node])) {
+        for (const node of (selection.nodes.size > 0 ? selection.nodes : [this.node])) {
             if (node.attributes.has(key) && node.attributes.get(key).dataType === type &&
                 (type !== PMS.PolyType || sameLayerType(node))
             ) {
