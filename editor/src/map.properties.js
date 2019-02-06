@@ -2,7 +2,7 @@ import * as PMS from "./pms/pms.js";
 import * as ui from "./ui/ui.js";
 import { EventEmitter } from "./support/event.js";
 import { LayerNode, ImageNode, TextureNode, WaypointNode } from "./map/map.js";
-import { AttributeChangeCommand } from "./editor.commands.js";
+import { EditorCommand } from "./editor.command.js";
 
 export class MapProperties extends EventEmitter {
     constructor(editor) {
@@ -28,7 +28,7 @@ export class MapProperties extends EventEmitter {
         const value = event.property.value;
         const type = this.node.attributes.get(key).dataType;
         const layer = this.node.filter(this.node.ancestors(), LayerNode).next().value;
-        const command = new AttributeChangeCommand(this.editor);
+        const command = new EditorCommand(this.editor);
         const selection = this.editor.selection;
 
         const sameLayerType = (node) => {

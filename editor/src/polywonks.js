@@ -19,7 +19,7 @@ import * as type from "./support/type.js";
 import * as map from "./map/map.js";
 import * as app from "./app.js";
 import * as editor from "./editor.js";
-import * as editor_commands from "./editor.commands.js";
+import * as editor_command from "./editor.command.js";
 import * as selection from "./selection.js";
 import * as file from "./file.js";
 import * as render from "./render.js";
@@ -51,7 +51,7 @@ export const Polywonks = (() => {
         buffer_writer,
         color,
         editor,
-        editor_commands,
+        editor_command,
         selection,
         path,
         file,

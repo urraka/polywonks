@@ -12,7 +12,7 @@ import { MapExplorer } from "./map.explorer.js";
 import { Selection } from "./selection.js";
 import { MapProperties } from "./map.properties.js";
 import { SaveDialog } from "./dialog.save.js";
-import { RelocateMapCommand, RemoveNodesCommand } from "./editor.commands.js";
+import { EditorCommand } from "./editor.command.js";
 
 export class Editor extends ui.Panel {
     constructor(renderer, map = MapDocument.default()) {
@@ -68,9 +68,11 @@ export class Editor extends ui.Panel {
             throw new Error("Editor.relocateMap() - directory must be absolute");
         }
 
-        const command = new RelocateMapCommand(this, newPath);
+        const command = new EditorCommand(this);
         const mount = Path.mount(newPath);
         const dir = Path.dir(newPath);
+
+        command.relocate(this.map, newPath);
 
         for (const node of this.map.resources.descendants()) {
             if (node.attributes.has("src")) {
@@ -224,7 +226,7 @@ export class Editor extends ui.Panel {
     }
 
     delete() {
-        const command = new RemoveNodesCommand(this);
+        const command = new EditorCommand(this);
         for (const node of this.selection.nodes) {
             if (node !== this.map && node.parentNode !== this.map &&
                 [...node.ancestors()].every(n => !this.selection.nodes.has(n))
