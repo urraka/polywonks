@@ -227,6 +227,7 @@ export class App extends ui.Panel {
         editor.on("toolchange", this.onToolChange);
         this.renderer.editor = editor;
         this.sidebar.editor = editor;
+        this.updateMenuItems();
         if (App.hasFocus) {
             editor.activate();
         }
@@ -247,8 +248,7 @@ export class App extends ui.Panel {
     onEditorChange(event) {
         event.panel.title = Path.filename(event.editor.saveName);
         event.panel.modified = event.editor.modified;
-        this.updateMenuItem(this.menuItems["undo"]);
-        this.updateMenuItem(this.menuItems["redo"]);
+        this.updateMenuItems();
     }
 
     static get hasFocus() {
