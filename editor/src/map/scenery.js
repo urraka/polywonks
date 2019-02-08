@@ -25,6 +25,22 @@ export class SceneryNode extends Node {
         return "scenery";
     }
 
+    get pivotX() {
+        if (this.firstChild) {
+            const value = this.firstChild.attr("offsetX");
+            return this.attr("width") >= 0 ? value : -value;
+        }
+        return 0;
+    }
+
+    get pivotY() {
+        if (this.firstChild) {
+            const value = this.firstChild.attr("offsetY");
+            return this.attr("height") >= 0 ? value : -value;
+        }
+        return 0;
+    }
+
     static fromPMS(prop, imageNodes, version) {
         let offset = { x: 0, y: 0 };
 
@@ -48,13 +64,11 @@ export class SceneryNode extends Node {
     }
 
     toPMS(imageNodes, version) {
-        const pivot = this.firstChild || new PivotNode();
-
         const topleft = Matrix.transform(
                 this.attr("x"),
                 this.attr("y"),
-                pivot.attr("offsetX"),
-                pivot.attr("offsetY"),
+                this.pivotX,
+                this.pivotY,
                 1, 1,
                 this.attr("rotation")
             ).multiply({ x: 0, y: 0 });
@@ -110,13 +124,11 @@ export class SceneryNode extends Node {
             dx, 1 - dx, dy, 1 - dy
         );
 
-        const pivot = this.firstChild || new PivotNode();
-
         const transform = Matrix.transform(
             this.attr("x"),
             this.attr("y"),
-            pivot.attr("offsetX"),
-            pivot.attr("offsetY"),
+            this.pivotX,
+            this.pivotY,
             1, 1,
             this.attr("rotation")
         );
