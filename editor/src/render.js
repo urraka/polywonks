@@ -1,7 +1,6 @@
 import * as Gfx from "./gfx/gfx.js";
 import { Color } from "./support/color.js";
 import { Matrix } from "./support/matrix.js";
-import { Path } from "./support/path.js";
 import { processImage, gradientCircle } from "./support/image.js";
 import { dashToCamel } from "./support/format.js";
 import { Rect } from "./support/rect.js";
@@ -15,6 +14,7 @@ import {
     TextureNode,
     ImageNode,
     SceneryNode,
+    PivotNode,
     TriangleNode,
     VertexNode,
     SpawnNode,
@@ -517,6 +517,27 @@ export class Renderer {
                 } else if (!subtracting) {
                     this.drawRect(rect, vertexFillDim, vertexBorderDim);
                 }
+            } else if (node instanceof SceneryNode) {
+                const pivot = node.firstChild;
+                if (pivot && editor.selection.has(node) && !subtractingNode(node) &&
+                    !editor.selection.has(pivot) && !editor.previewNodes.has(pivot)
+                ) {
+                    if (editor.selection.has(node)) {
+                        this.drawPivot(pivot, this.theme.vertexFill, this.theme.vertexBorder);
+                    } else {
+                        this.drawPivot(pivot, vertexFillDim, vertexBorderDim);
+                    }
+                }
+            } else if (node instanceof PivotNode) {
+                if (editor.selection.has(node) || editor.selection.has(node.parentNode)) {
+                    if (subtractingNode(node)) {
+                        this.drawPivot(node, subtractBorder, this.theme.vertexBorder);
+                    } else {
+                        this.drawPivot(node, this.theme.vertexFill, this.theme.vertexBorder);
+                    }
+                } else {
+                    this.drawPivot(node, vertexFillDim, vertexBorderDim);
+                }
             }
         }
 
@@ -526,6 +547,16 @@ export class Renderer {
             const rc = new Rect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
             this.drawRect(rc, this.theme.selectionRectFill, this.theme.selectionRectBorder);
         }
+    }
+
+    drawPivot(node, fill, border) {
+        let s = this.editor.view.scale;
+        let p = this.editor.view.mapToPixelGrid(node.x, node.y);
+        const vertexSize = cfg("editor.vertex-size");
+        const rect = new Rect(0, 0, vertexSize / s, vertexSize / s);
+        rect.centerX = p.x;
+        rect.centerY = p.y;
+        this.drawRect(rect, fill, border);
     }
 
     drawRect(rect, fill, border) {

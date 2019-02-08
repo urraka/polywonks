@@ -7,6 +7,7 @@ import { Node } from "./node.js";
 import { LayerType, LayerNode } from "./layer.js";
 import { Attribute } from "./attribute.js";
 import { ExportMode } from "../settings.js";
+import { PivotNode } from "./pivot.js";
 
 export class SceneryNode extends Node {
     constructor() {
@@ -16,10 +17,6 @@ export class SceneryNode extends Node {
         this.attributes.set("y", new Attribute("float", 0));
         this.attributes.set("width", new Attribute("float", 0));
         this.attributes.set("height", new Attribute("float", 0));
-        this.attributes.set("centerX", new Attribute("float", 0));
-        this.attributes.set("centerY", new Attribute("float", 0));
-        this.attributes.set("scaleX", new Attribute("float", 0));
-        this.attributes.set("scaleY", new Attribute("float", 0));
         this.attributes.set("rotation", new Attribute("angle", 0));
         this.attributes.set("color", new Attribute("color", new Color(255, 255, 255)));
     }
@@ -39,26 +36,26 @@ export class SceneryNode extends Node {
         }
 
         const node = new SceneryNode();
+        node.append(new PivotNode());
         node.attr("image", imageNodes[prop.style - 1]);
         node.attr("x", prop.x + offset.x);
         node.attr("y", prop.y + offset.y);
-        node.attr("width", prop.width);
-        node.attr("height", prop.height);
-        node.attr("scaleX", prop.scaleX);
-        node.attr("scaleY", prop.scaleY);
+        node.attr("width", prop.width * prop.scaleX);
+        node.attr("height", prop.height * prop.scaleY);
         node.attr("rotation", prop.rotation);
         node.attr("color", new Color(prop.color, prop.alpha));
         return node;
     }
 
     toPMS(imageNodes, version) {
+        const pivot = this.firstChild || new PivotNode();
+
         const topleft = Matrix.transform(
                 this.attr("x"),
                 this.attr("y"),
-                this.attr("centerX"),
-                this.attr("centerY"),
-                this.attr("scaleX"),
-                this.attr("scaleY"),
+                pivot.attr("offsetX"),
+                pivot.attr("offsetY"),
+                1, 1,
                 this.attr("rotation")
             ).multiply({ x: 0, y: 0 });
 
@@ -79,17 +76,19 @@ export class SceneryNode extends Node {
 
         const layer = [...this.filter(this.ancestors(), LayerNode)][0];
         const layerType = layer ? LayerType.value(layer.attr("type")) : -1;
+        const image = this.attr("image");
+        const imageIndex = imageNodes.indexOf(image);
 
         const prop = new PMS.Prop();
         prop.active = true;
-        prop.style = imageNodes.indexOf(this.attr("image")) + 1;
-        prop.width = this.attr("width");
-        prop.height = this.attr("height");
+        prop.style = imageIndex + 1;
+        prop.width = image ? image.attr("width") : this.attr("width");
+        prop.height = image ? image.attr("height") : this.attr("height");
         prop.x = topleft.x - offset.x;
         prop.y = topleft.y - offset.y;
         prop.rotation = this.attr("rotation");
-        prop.scaleX = this.attr("scaleX");
-        prop.scaleY = this.attr("scaleY");
+        prop.scaleX = image ? this.attr("width") / image.attr("width") : 1;
+        prop.scaleY = image ? this.attr("height") / image.attr("height") : 1;
         prop.alpha = this.attr("color").a;
         prop.color = this.attr("color");
         prop.level = layerTypes.indexOf(layerType);
@@ -111,13 +110,14 @@ export class SceneryNode extends Node {
             dx, 1 - dx, dy, 1 - dy
         );
 
+        const pivot = this.firstChild || new PivotNode();
+
         const transform = Matrix.transform(
             this.attr("x"),
             this.attr("y"),
-            this.attr("centerX"),
-            this.attr("centerY"),
-            this.attr("scaleX"),
-            this.attr("scaleY"),
+            pivot.attr("offsetX"),
+            pivot.attr("offsetY"),
+            1, 1,
             this.attr("rotation")
         );
 

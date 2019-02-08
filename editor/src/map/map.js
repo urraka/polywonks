@@ -7,6 +7,7 @@ export * from "./document.js";
 export * from "./image.js";
 export * from "./layer.js";
 export * from "./scenery.js";
+export * from "./pivot.js";
 export * from "./spawn.js";
 export * from "./texture.js";
 export * from "./triangle.js";

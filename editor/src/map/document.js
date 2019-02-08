@@ -13,6 +13,7 @@ import { TriangleNode } from "./triangle.js";
 import { TextureNode } from "./texture.js";
 import { ImageNode } from "./image.js";
 import { SceneryNode } from "./scenery.js";
+import { PivotNode } from "./pivot.js";
 import { ColliderNode } from "./collider.js";
 import { SpawnNode } from "./spawn.js";
 import { WaypointNode } from "./waypoint.js";
@@ -111,8 +112,8 @@ export class MapDocument extends Node {
             }
         }
 
-        const imageNodes = pms.scenery.map(s => ImageNode.fromPMS(s, path));
-        imageNodes.forEach(node => node.appendTo(layers.resources));
+        const imageNodes = pms.scenery.map((s, i) => ImageNode.fromPMS(s, path, i, pms.props));
+        imageNodes.forEach(node => node && node.appendTo(layers.resources));
 
         const sceneryLayers = [
             layers.backgroundScenery,
@@ -283,6 +284,7 @@ export class MapDocument extends Node {
                 case "triangle": return new TriangleNode();
                 case "vertex": return new VertexNode();
                 case "scenery": return new SceneryNode();
+                case "pivot": return new PivotNode();
                 case "collider": return new ColliderNode();
                 case "spawn": return new SpawnNode();
                 case "waypoint": return new WaypointNode();
