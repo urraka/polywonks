@@ -5,6 +5,7 @@ import { Editor } from "./editor.js";
 import { Sidebar } from "./sidebar.js";
 import { Settings, cfg } from "./settings.js";
 import { KeyBindings } from "./keybindings.js";
+import { Clipboard } from "./clipboard.js";
 
 export class App extends ui.Panel {
     constructor() {
@@ -52,6 +53,7 @@ export class App extends ui.Panel {
         document.addEventListener("contextmenu", e => e.preventDefault());
 
         Settings.on("change", e => this.onSettingChange(e.setting));
+        Clipboard.on("change", () => this.onClipboardChange());
     }
 
     createUserInterface() {
@@ -87,6 +89,10 @@ export class App extends ui.Panel {
             ["Edit", [
                 ["Undo", "undo"],
                 ["Redo", "redo"],
+                [],
+                ["Cut", "cut"],
+                ["Copy", "copy"],
+                ["Paste", "paste"],
             ]],
             ["View", [
                 ["Reset Viewport", "reset-viewport"],
@@ -194,6 +200,10 @@ export class App extends ui.Panel {
 
         this.updateMenuItems();
         this.renderer.redraw();
+    }
+
+    onClipboardChange() {
+        this.updateMenuItems();
     }
 
     onCursorChange() {
@@ -336,6 +346,9 @@ export class App extends ui.Panel {
         switch (item.key) {
             case "undo": return this.editor && this.editor.commandHistory.length > this.editor.undone;
             case "redo": return this.editor && this.editor.undone > 0;
+            case "cut": return this.editor && this.editor.selection.nodes.size > 0;
+            case "copy": return this.editor && this.editor.selection.nodes.size > 0;
+            case "paste": return this.editor && this.editor.activeLayer;
             default: return true;
         }
     }
@@ -377,6 +390,9 @@ export class App extends ui.Panel {
             "export-as": () => this.editor.exportAs(),
             "undo": () => this.editor.undo(),
             "redo": () => this.editor.redo(),
+            "cut": () => this.editor.cut(),
+            "copy": () => this.editor.copy(),
+            "paste": () => this.editor.paste(),
             "delete": () => this.editor.delete(),
             "reset-viewport": () => this.editor.view.reset(),
             "toggle-grid": () => cfg("view.grid", !cfg("view.grid")),

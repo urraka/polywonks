@@ -2,10 +2,10 @@ import * as PMS from "../pms/pms.js";
 import { Color } from "../support/color.js";
 import { Path } from "../support/path.js";
 import { File } from "../file.js";
-import { Node } from "./node.js";
+import { ResourceNode } from "./resource.js";
 import { Attribute } from "./attribute.js";
 
-export class ImageNode extends Node {
+export class ImageNode extends ResourceNode {
     constructor() {
         super();
         this.attributes.set("src", new Attribute("string", ""));
@@ -49,12 +49,5 @@ export class ImageNode extends Node {
         const scenery = new PMS.Scenery();
         scenery.name = this.attr("export-name") || this.attr("src").split("/").pop();
         return scenery;
-    }
-
-    get path() {
-        const src = this.attr("src");
-        if (!src || src.startsWith("/")) return src;
-        if (this.owner) return Path.resolve(Path.dir(this.owner.path), src);
-        return "";
     }
 }

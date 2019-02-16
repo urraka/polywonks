@@ -1,7 +1,7 @@
 import * as PMS from "./pms/pms.js";
 import * as ui from "./ui/ui.js";
 import { Path } from "./support/path.js";
-import { MapDocument } from "./map/map.js";
+import { MapDocument, LayerNode, ConnectionNode, ResourceNode, ClonedNodesCollection } from "./map/map.js";
 import { File } from "./file.js";
 import { RenderView } from "./render.view.js";
 import { cfg, Settings } from "./settings.js";
@@ -13,6 +13,7 @@ import { Selection } from "./selection.js";
 import { MapProperties } from "./map.properties.js";
 import { SaveDialog } from "./dialog.save.js";
 import { EditorCommand } from "./editor.command.js";
+import { Clipboard } from "./clipboard.js";
 
 export class Editor extends ui.Panel {
     constructor(renderer, map = MapDocument.default()) {
@@ -25,6 +26,7 @@ export class Editor extends ui.Panel {
         this.map = map;
         this.map.iconsInfo = this.renderer.iconsInfo;
         this.selection = new Selection(this);
+        this.activeLayer = null;
         this.previewNodes = new Set();
         this.reactiveNode = null;
         this.cursor = { x: 0, y: 0 };
@@ -185,6 +187,7 @@ export class Editor extends ui.Panel {
 
         command.do();
         this.emit("change");
+        this.redraw();
         return command;
     }
 
@@ -192,6 +195,7 @@ export class Editor extends ui.Panel {
         if (this.undone > 0) {
             this.commandHistory[--this.undone].do();
             this.emit("change");
+            this.redraw();
         }
     }
 
@@ -199,6 +203,7 @@ export class Editor extends ui.Panel {
         if (this.commandHistory.length > this.undone) {
             this.commandHistory[this.undone++].undo();
             this.emit("change");
+            this.redraw();
         }
     }
 
@@ -235,6 +240,86 @@ export class Editor extends ui.Panel {
             }
         }
         this.do(command);
+    }
+
+    cut() {
+        this.copy();
+        this.delete();
+    }
+
+    copy() {
+        const clonedNodes = new ClonedNodesCollection();
+
+        const clones = [...this.selection.nodes]
+            .filter(node => node.parentNode && (node.parentNode instanceof LayerNode))
+            .map(node => clonedNodes.clone(node));
+
+        clones.forEach(clone => {
+            for (const clonedNode of [...clone.descendants()]) {
+                if (clonedNode instanceof ConnectionNode) {
+                    const originalNode = clonedNodes.cloneToNode.get(clonedNode);
+                    if (!this.selection.has(originalNode) ||
+                        !this.selection.has(originalNode.parentNode) ||
+                        !this.selection.has(originalNode.attr("waypoint"))
+                    ) {
+                        clonedNode.remove();
+                    }
+                }
+            }
+        });
+
+        clonedNodes.resolveReferences();
+
+        Clipboard.save({
+            path: this.map.path,
+            nodes: clones
+        });
+    }
+
+    paste() {
+        if (this.activeLayer && !Clipboard.empty()) {
+            this.selection.clear();
+
+            const data = Clipboard.load();
+            const resources = this.map.resources;
+            const mount = Path.mount(this.map.path);
+            const dir = Path.dir(this.map.path);
+            const command = new EditorCommand(this);
+
+            data.nodes.forEach(root => {
+                for (const node of root.tree()) {
+                    for (const [,attr] of node.attributes) {
+                        if (attr.dataType === "node" && attr.value && (attr.value instanceof ResourceNode)) {
+                            const resourceNode = attr.value;
+                            const path = resourceNode.pathFrom(Path.dir(data.path)).toLowerCase();
+
+                            for (const res of resources.children()) {
+                                if (res.nodeName === resourceNode.nodeName && res.path.toLowerCase() === path) {
+                                    attr.value = res;
+                                    break;
+                                }
+                            }
+
+                            if (attr.value === resourceNode) {
+                                if (path) {
+                                    if (Path.mount(path) === mount) {
+                                        resourceNode.attr("src", Path.relative(dir, path));
+                                    } else {
+                                        resourceNode.attr("src", path);
+                                    }
+                                }
+
+                                command.insert(resources, null, resourceNode);
+                            }
+                        }
+                    }
+                }
+
+                command.insert(this.activeLayer, null, root);
+            });
+
+            this.do(command);
+        }
     }
 
     onCommand(command) {
@@ -276,6 +361,15 @@ export class Editor extends ui.Panel {
     }
 
     onSelectionChange() {
+        for (const node of this.selection.nodes) {
+            if (node instanceof LayerNode) {
+                this.activeLayer = node;
+            } else {
+                this.activeLayer = [...node.filter(node.ancestors(), LayerNode)].shift() || null;
+            }
+            break;
+        }
+
         this.emit("selectionchange");
         this.redraw();
     }

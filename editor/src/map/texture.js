@@ -1,10 +1,10 @@
 import { Color } from "../support/color.js";
 import { Path } from "../support/path.js";
 import { File } from "../file.js";
-import { Node } from "./node.js";
+import { ResourceNode } from "./resource.js";
 import { Attribute } from "./attribute.js";
 
-export class TextureNode extends Node {
+export class TextureNode extends ResourceNode {
     constructor() {
         super();
         this.attributes.set("src", new Attribute("string", ""));
@@ -31,12 +31,5 @@ export class TextureNode extends Node {
 
         node.attr("text", Path.filename(node.attr("src")));
         return node;
-    }
-
-    get path() {
-        const src = this.attr("src");
-        if (!src || src.startsWith("/")) return src;
-        if (this.owner) return Path.resolve(Path.dir(this.owner.path), src);
-        return "";
     }
 }

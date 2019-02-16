@@ -5,6 +5,9 @@ const Modifiers = ["Meta", "Ctrl", "Alt", "Shift"];
 const DefaultBindings = {
     "Ctrl+Z": "undo",
     "Ctrl+Shift+Z": "redo",
+    "Ctrl+X": "cut",
+    "Ctrl+C": "copy",
+    "Ctrl+V": "paste",
     "Ctrl+M": "new-map",
     "Ctrl+O": "show-explorer",
     "Ctrl+S": "save",

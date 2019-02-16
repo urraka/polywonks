@@ -129,6 +129,14 @@ export class Node extends EventEmitter {
         return false;
     }
 
+    clone() {
+        const node = new this.constructor();
+        for (const [key, attr] of this.attributes) {
+            node.attr(key, attr.value);
+        }
+        return node;
+    }
+
     *children() {
         let node = this.firstChild;
         while (node) {

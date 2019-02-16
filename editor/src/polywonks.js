@@ -33,6 +33,7 @@ import * as sidebar from "./sidebar.js";
 import * as file_explorer from "./file.explorer.js";
 import * as map_explorer from "./map.explorer.js";
 import * as map_properties from "./map.properties.js";
+import * as clipboard from "./clipboard.js";
 
 export const Polywonks = (() => {
     const namespace = {
@@ -73,6 +74,7 @@ export const Polywonks = (() => {
         file_explorer,
         map_explorer,
         map_properties,
+        clipboard,
     ];
 
     modules.forEach(module => {
