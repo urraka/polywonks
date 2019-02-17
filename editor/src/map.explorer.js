@@ -1,15 +1,21 @@
 import * as ui from "./ui/ui.js";
 import { LayerNode } from "./map/layer.js";
+import { EventEmitter } from "./support/event.js";
 
-export class MapExplorer extends ui.TreeView {
+export class MapExplorer extends EventEmitter {
     constructor(editor) {
         super();
         this.editor = editor;
+        this.tree = new ui.TreeView();
+        this.element = this.tree.element;
         this.element.classList.add("map-explorer");
         this.itemsByNode = new WeakMap();
-        this.addNode(this, this.editor.map).expanded = true;
-        this.on("itemselect", e => this.onItemSelect(e.data));
-        this.on("iconclick", e => this.onIconClick(e.data));
+
+        const item = this.addNode(this.tree, this.editor.map);
+        item.expanded = true;
+
+        this.tree.on("itemiconclick", e => this.onTreeItemIconClick(e.item));
+        this.tree.on("selectionchange", () => this.onTreeSelectionChange());
         this.editor.on("selectionchange", () => this.onEditorSelectionChange());
         this.editor.map.on("insert", e => this.onNodeInsert(e));
         this.editor.map.on("remove", e => this.onNodeRemove(e));
@@ -24,14 +30,14 @@ export class MapExplorer extends ui.TreeView {
     }
 
     onNodeRemove(event) {
-        this.removeItem(this.itemsByNode.get(event.node));
+        this.itemsByNode.get(event.node).remove();
         this.itemsByNode.delete(event.node);
     }
 
     onMapAttrChange(event) {
         if (event.attribute === "text") {
             const node = event.target;
-            this.itemsByNode.get(node).label.textContent = node.toString();
+            this.itemsByNode.get(node).text = node.toString();
         }
     }
 
@@ -39,26 +45,27 @@ export class MapExplorer extends ui.TreeView {
         this.itemsByNode.get(node).icon = node.visible ? "visible-icon" : "hidden-icon";;
     }
 
-    onItemSelect(node) {
-        if (node) {
-            this.editor.selection.replace(new Set([node]));
+    onTreeSelectionChange() {
+        const selectedItem = this.tree.selectedItem;
+
+        if (selectedItem) {
+            this.editor.selection.replace(new Set([selectedItem.data]));
         } else {
             this.editor.selection.clear();
         }
     }
 
-    onIconClick(node) {
+    onTreeItemIconClick(item) {
+        const node = item.data;
         if (node instanceof LayerNode) {
             node.visible = !node.visible;
         }
     }
 
     onEditorSelectionChange() {
-        this.clearSelected();
+        this.tree.clearSelected();
         for (const node of this.editor.selection.nodes) {
-            const li = this.itemsByNode.get(node).element;
-            this.selected.add(li);
-            li.classList.add("selected");
+            this.itemsByNode.get(node).selected = true;
         }
     }
 

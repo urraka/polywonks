@@ -1,107 +1,109 @@
 import { Panel, elem } from "./common.js";
 
-const dataMap = new WeakMap();
-
 export class TreeView extends Panel {
     constructor() {
         super("tree-view");
-        this.selected = new Set();
-        this.list = this.append(elem("ul"));
+        TreeView.treeByElement.set(this.element, this);
+        this.items = this.append(elem("ul"));
         this.element.addEventListener("mousedown", e => this.onMouseDown(e));
         this.element.addEventListener("dblclick", e => this.onDoubleClick(e));
     }
 
+    get selectedItems() {
+        return Array.from(this.items.querySelectorAll(".selected"), element => TreeItem.from(element));
+    }
+
+    get selectedItem() {
+        const element = this.items.querySelector(".selected");
+        return element ? TreeItem.from(element) : null;
+    }
+
     addItem(item, beforeItem = null) {
-        this.list.insertBefore(item.element, beforeItem ? beforeItem.element || beforeItem : null);
+        this.items.insertBefore(item.element, beforeItem ? beforeItem.element : null);
         return item;
     }
 
-    removeItem(item) {
-        const li = item.element || item;
-        li.remove();
-        dataMap.delete(li);
-    }
-
     clear() {
-        while (this.list.firstChild) {
-            this.list.removeChild(this.list.firstChild);
-        }
-
-        if (this.selected.size > 0) {
-            this.clearSelected();
-            this.emit("itemselect", { data: null });
-        }
+        const selectedItem = this.selectedItem;
+        Array.from(this.items.children, el => TreeItem.from(el)).forEach(item => item.remove());
+        if (selectedItem) this.emit("selectionchange");
     }
 
     clearSelected() {
-        for (const li of this.selected) {
-            li.classList.remove("selected");
-        }
-        this.selected.clear();
-    }
-
-    selectItem(li) {
-        if (!this.selected.has(li)) {
-            this.clearSelected();
-            this.selected.add(li);
-            li.classList.add("selected");
-            this.emit("itemselect", { data: dataMap.get(li) });
+        for (const item of this.selectedItems) {
+            item.selected = false;
         }
     }
 
     onMouseDown(event) {
         if (event.button === 0) {
-            if (event.target.tagName === "LI") {
-                event.target.classList.toggle("collapsed");
-            } else if (event.target.tagName === "LABEL") {
-                this.selectItem(event.target.parentElement);
-            } else if (event.target.tagName === "SPAN") {
-                this.emit("iconclick", { data: dataMap.get(event.target.parentElement) });
+            const item = TreeItem.from(event.target);
+
+            if (item) {
+                switch (event.target) {
+                    case item.element:
+                        item.expanded = !item.expanded;
+                        break;
+
+                    case item.label:
+                        if (!item.selected) {
+                            this.clearSelected();
+                            item.selected = true;
+                            this.emit("selectionchange");
+                        }
+                        break;
+
+                    case item.iconElement:
+                        this.emit("itemiconclick", { item });
+                        break;
+                }
             } else {
+                const selectedItem = this.selectedItem;
                 this.clearSelected();
-                this.emit("itemselect", { data: null });
+                if (selectedItem) this.emit("selectionchange");
             }
         }
     }
 
     onDoubleClick(event) {
-        if (event.target.tagName === "LABEL") {
-            const li = event.target.parentElement;
-            if (li.classList.contains("with-subitems")) {
-                li.classList.toggle("collapsed");
+        if (event.button === 0) {
+            const item = TreeItem.from(event.target);
+            if (item && event.target !== item.element) {
+                item.expanded = !item.expanded;
+                this.emit("itemdblclick", { item });
             }
-            this.emit("itemdblclick", { data: dataMap.get(li) });
         }
+    }
+
+    static get treeByElement() {
+        return TreeView._treeByElement || (TreeView._treeByElement = new WeakMap());
+    }
+
+    static from(element) {
+        return TreeView.treeByElement.get(element);
     }
 }
 
 export class TreeItem {
-    constructor(text, data, subitems = false) {
+    constructor(text, data, withSubitems = false) {
+        this.data = data;
         this.element = elem("li");
+        this.iconElement = null;
         this.label = elem("label");
-        this.label.setAttribute("tabindex", -1);
         this.subitems = null;
+        this.withSubitems = withSubitems;
+
+        TreeItem.itemByElement.set(this.element, this);
+        TreeItem.itemByElement.set(this.label, this);
+
+        this.label.setAttribute("tabindex", -1);
+        this.text = text;
         this.element.append(this.label);
-        this.label.textContent = text;
 
-        dataMap.set(this.element, data);
-
-        if (subitems) {
+        if (withSubitems) {
             this.element.classList.add("with-subitems");
-            this.element.classList.add("collapsed");
+            this.expanded = false;
         }
-    }
-
-    set icon(value) {
-        if (this.element.firstElementChild.tagName !== "SPAN") {
-            this.element.prepend(elem("span", value));
-        } else {
-            this.element.firstElementChild.className = value;
-        }
-    }
-
-    set expanded(value) {
-        this.element.classList.toggle("collapsed", !value);
     }
 
     addItem(item, beforeItem = null) {
@@ -109,10 +111,82 @@ export class TreeItem {
             this.subitems = elem("ul");
             this.element.append(this.subitems);
             this.element.classList.add("with-subitems");
-            this.element.classList.add("collapsed");
+            this.expanded = false;
         }
 
-        this.subitems.insertBefore(item.element, beforeItem ? beforeItem.element || beforeItem : null);
+        this.subitems.insertBefore(item.element, beforeItem ? beforeItem.element : null);
         return item;
+    }
+
+    remove() {
+        if (this.element.parentElement) {
+            const ul = this.element.parentElement;
+            const parentItem = TreeItem.from(ul.parentElement);
+            this.element.remove();
+            if (parentItem) parentItem.onSubitemRemoved();
+        }
+    }
+
+    onSubitemRemoved() {
+        if (this.subitems && this.subitems.childElementCount === 0) {
+            this.subitems.remove();
+            this.subitems = null;
+            if (!this.withSubitems) {
+                this.element.classList.remove("with-subitems");
+            }
+        }
+    }
+
+    get text() {
+        return this.label.textContent;
+    }
+
+    set text(value) {
+        this.label.textContent = value;
+    }
+
+    get icon() {
+        return this.iconElement ? this.iconElement.className : null;
+    }
+
+    set icon(value) {
+        if (value) {
+            if (!this.iconElement) {
+                this.iconElement = elem("span", value);
+                this.element.prepend(this.iconElement);
+                TreeItem.itemByElement.set(this.iconElement, this);
+            } else {
+                this.iconElement.className = value;
+            }
+        } else {
+            if (this.iconElement) {
+                this.iconElement.remove();
+                TreeItem.itemByElement.delete(this.iconElement);
+            }
+        }
+    }
+
+    get expanded() {
+        return !this.element.classList.contains("collapsed");
+    }
+
+    set expanded(value) {
+        this.element.classList.toggle("collapsed", !value);
+    }
+
+    get selected() {
+        return this.element.classList.contains("selected");
+    }
+
+    set selected(value) {
+        this.element.classList.toggle("selected", value);
+    }
+
+    static get itemByElement() {
+        return TreeItem._itemByElement || (TreeItem._itemByElement = new WeakMap());
+    }
+
+    static from(element) {
+        return TreeItem.itemByElement.get(element);
     }
 }
