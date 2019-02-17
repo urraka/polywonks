@@ -242,6 +242,15 @@ export class Editor extends ui.Panel {
         this.do(command);
     }
 
+    canCopy() {
+        for (const node of this.selection.nodes) {
+            if (node.parentNode && (node.parentNode instanceof LayerNode)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     cut() {
         this.copy();
         this.delete();
@@ -254,26 +263,28 @@ export class Editor extends ui.Panel {
             .filter(node => node.parentNode && (node.parentNode instanceof LayerNode))
             .map(node => clonedNodes.clone(node));
 
-        clones.forEach(clone => {
-            for (const clonedNode of [...clone.descendants()]) {
-                if (clonedNode instanceof ConnectionNode) {
-                    const originalNode = clonedNodes.cloneToOriginal.get(clonedNode);
-                    if (!this.selection.has(originalNode) ||
-                        !this.selection.has(originalNode.parentNode) ||
-                        !this.selection.has(originalNode.attr("waypoint"))
-                    ) {
-                        clonedNode.remove();
+        if (clones.length > 0) {
+            clones.forEach(clone => {
+                for (const clonedNode of [...clone.descendants()]) {
+                    if (clonedNode instanceof ConnectionNode) {
+                        const originalNode = clonedNodes.cloneToOriginal.get(clonedNode);
+                        if (!this.selection.has(originalNode) ||
+                            !this.selection.has(originalNode.parentNode) ||
+                            !this.selection.has(originalNode.attr("waypoint"))
+                        ) {
+                            clonedNode.remove();
+                        }
                     }
                 }
-            }
-        });
+            });
 
-        clonedNodes.resolveReferences();
+            clonedNodes.resolveReferences();
 
-        Clipboard.save({
-            path: this.map.path,
-            nodes: clones
-        });
+            Clipboard.save({
+                path: this.map.path,
+                nodes: clones
+            });
+        }
     }
 
     paste() {

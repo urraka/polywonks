@@ -30,6 +30,7 @@ export class App extends ui.Panel {
         this.onCursorChange = this.onCursorChange.bind(this);
         this.onViewChange = this.onViewChange.bind(this);
         this.onToolChange = this.onToolChange.bind(this);
+        this.onSelectionChange = this.onSelectionChange.bind(this);
         this.onKeyBindingsCommand = e => this.onCommand(e.command);
 
         this.keybindings.on("command", this.onKeyBindingsCommand);
@@ -219,6 +220,10 @@ export class App extends ui.Panel {
         this.status("tool", event.status);
     }
 
+    onSelectionChange() {
+        this.updateMenuItems();
+    }
+
     onTabWillChange() {
         const editor = this.editor;
 
@@ -227,6 +232,7 @@ export class App extends ui.Panel {
             editor.off("cursorchange", this.onCursorChange);
             editor.off("viewchange", this.onViewChange);
             editor.off("toolchange", this.onToolChange);
+            editor.off("selectionchange", this.onSelectionChange);
         }
     }
 
@@ -235,6 +241,7 @@ export class App extends ui.Panel {
         editor.on("cursorchange", this.onCursorChange);
         editor.on("viewchange", this.onViewChange);
         editor.on("toolchange", this.onToolChange);
+        editor.on("selectionchange", this.onSelectionChange);
         this.renderer.editor = editor;
         this.sidebar.editor = editor;
         this.updateMenuItems();
@@ -344,9 +351,9 @@ export class App extends ui.Panel {
         switch (item.key) {
             case "undo": return this.editor && this.editor.commandHistory.length > this.editor.undone;
             case "redo": return this.editor && this.editor.undone > 0;
-            case "cut": return this.editor && this.editor.selection.nodes.size > 0;
-            case "copy": return this.editor && this.editor.selection.nodes.size > 0;
-            case "paste": return this.editor && this.editor.activeLayer;
+            case "cut": return this.editor && this.editor.canCopy();
+            case "copy": return this.editor && this.editor.canCopy();
+            case "paste": return this.editor && this.editor.activeLayer && !Clipboard.empty();
             default: return true;
         }
     }
