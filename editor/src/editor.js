@@ -257,7 +257,7 @@ export class Editor extends ui.Panel {
         clones.forEach(clone => {
             for (const clonedNode of [...clone.descendants()]) {
                 if (clonedNode instanceof ConnectionNode) {
-                    const originalNode = clonedNodes.cloneToNode.get(clonedNode);
+                    const originalNode = clonedNodes.cloneToOriginal.get(clonedNode);
                     if (!this.selection.has(originalNode) ||
                         !this.selection.has(originalNode.parentNode) ||
                         !this.selection.has(originalNode.attr("waypoint"))
