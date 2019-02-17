@@ -331,11 +331,9 @@ export class App extends ui.Panel {
     }
 
     onKeyDown(event) {
-        if (event.ctrlKey && (event.key === "z") || event.key === "ContextMenu") {
-            event.preventDefault();
+        if (!(event.target instanceof HTMLInputElement)) {
+            this.keybindings.onKeyDown(event);
         }
-
-        this.keybindings.onKeyDown(event);
     }
 
     onKeyUp(event) {
