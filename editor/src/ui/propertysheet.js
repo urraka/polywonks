@@ -142,6 +142,6 @@ export class PropertyItem extends EventEmitter {
     }
 
     hasState(state) {
-        (this.control.classList || this.control.element.classList).contains(state);
+        return (this.control.classList || this.control.element.classList).contains(state);
     }
 }
