@@ -274,15 +274,13 @@ export class Renderer {
         ]);
     }
 
-    rectVertices(cx, cy, w, h, color) {
-        const rect = new Rect(0, 0, w, h);
-        rect.centerX = cx;
-        rect.centerY = cy;
+    rectVertices(x, y, w, h, color) {
+        const rect = new Rect(x, y, w, h);
         return [
             new Gfx.Vertex(rect.x0, rect.y0, 0, 0, color),
-            new Gfx.Vertex(rect.x1, rect.y0, 0, 0, color),
-            new Gfx.Vertex(rect.x1, rect.y1, 0, 0, color),
-            new Gfx.Vertex(rect.x0, rect.y1, 0, 0, color)
+            new Gfx.Vertex(rect.x1, rect.y0, 1, 0, color),
+            new Gfx.Vertex(rect.x1, rect.y1, 1, 1, color),
+            new Gfx.Vertex(rect.x0, rect.y1, 0, 1, color)
         ];
     }
 
@@ -304,19 +302,20 @@ export class Renderer {
             case SpawnNode: {
                 const info = this.iconsInfo["spawn-" + node.attr("type")];
                 if (!info) return null;
-                const s = this.editor.view.scale;
-                const { x, y } = this.editor.view.mapToPixelGrid(node.attr("x"), node.attr("y"));
-                return this.rectVertices(x, y, info.width / s, info.height / s, color);
+                const w = info.width / this.editor.view.scale;
+                const h = info.height / this.editor.view.scale;
+                const { x, y } = this.editor.view.mapToPixelGrid(node.attr("x") - w / 2, node.attr("y") - w / 2);
+                return this.rectVertices(x, y, w, h, color);
             }
 
             case ColliderNode: {
                 const size = 2 * node.attr("radius");
-                return this.rectVertices(node.attr("x"), node.attr("y"), size, size, color);
+                return this.rectVertices(node.attr("x") - size / 2, node.attr("y") - size / 2, size, size, color);
             }
 
             case WaypointNode: {
                 const size = cfg("editor.waypoint-size") / this.editor.view.scale;
-                const { x, y } = this.editor.view.mapToPixelGrid(node.attr("x"), node.attr("y"));
+                const { x, y } = this.editor.view.mapToPixelGrid(node.attr("x") - size / 2, node.attr("y") - size / 2);
                 return this.rectVertices(x, y, size, size, color);
             }
 
@@ -369,16 +368,18 @@ export class Renderer {
             }
 
             case SpawnNode: {
-                this.drawIcon("spawn-" + node.attr("type"), node.attr("x"), node.attr("y"));
+                const texture = this.icons["spawn-" + node.attr("type")];
+                const vertices = this.nodeVertices(node, new Color(255, 255, 255));
+                if (texture && vertices) {
+                    this.batch.addQuad(texture, vertices);
+                }
                 break;
             }
 
             case WaypointNode: {
                 const size = cfg("editor.waypoint-size") / this.editor.view.scale;
-                const p = this.editor.view.mapToPixelGrid(node.attr("x"), node.attr("y"));
-                const rect = new Rect(0, 0, size, size);
-                rect.centerX = p.x;
-                rect.centerY = p.y;
+                const p = this.editor.view.mapToPixelGrid(node.attr("x") - size / 2, node.attr("y") - size / 2);
+                const rect = new Rect(p.x, p.y, size, size);
 
                 const fill = new Color(this.theme.waypointColor);
                 fill.a = fill.a * 0.25;
@@ -415,18 +416,6 @@ export class Renderer {
                 vertices.forEach(v => v.color.a = 255);
                 this.drawLineLoop(vertices);
             }
-        }
-    }
-
-    drawIcon(name, x, y, color = new Color(255, 255, 255)) {
-        const texture = this.icons[name];
-
-        if (texture) {
-            ({ x, y } = this.editor.view.mapToPixelGrid(x, y));
-            const [w, h, s] = [texture.width, texture.height, this.editor.view.scale];
-            const sprite = new Gfx.Sprite(texture, w, h, 0, 1, 0, 1);
-            const transform = Matrix.transform(x, y, w / 2, h / 2, 1 / s, 1 / s, 0);
-            this.batch.addSprite(sprite, color, transform);
         }
     }
 

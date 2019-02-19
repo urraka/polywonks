@@ -73,8 +73,8 @@ export class RenderView extends EventEmitter {
 
     mapToPixelGrid(x, y) {
         const p = this.mapToCanvas(x, y);
-        p.x = Math.round(p.x);
-        p.y = Math.round(p.y);
+        p.x = Math.round(p.x) + 0.5;
+        p.y = Math.round(p.y) + 0.5;
         return this.canvasToMap(p.x, p.y);
     }
 }
