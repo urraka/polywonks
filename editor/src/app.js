@@ -27,9 +27,7 @@ export class App extends ui.Panel {
     }
 
     setupEvents() {
-        this.onCursorChange = this.onCursorChange.bind(this);
-        this.onViewChange = this.onViewChange.bind(this);
-        this.onToolChange = this.onToolChange.bind(this);
+        this.onEditorStatusChange = this.onEditorStatusChange.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.onKeyBindingsCommand = e => this.onCommand(e.command);
 
@@ -180,10 +178,6 @@ export class App extends ui.Panel {
         }
     }
 
-    status(name, value) {
-        this.statusbar.set(name, value);
-    }
-
     onExplorerOpen(path) {
         this.openFile(path);
     }
@@ -207,17 +201,10 @@ export class App extends ui.Panel {
         this.updateMenuItems();
     }
 
-    onCursorChange() {
-        this.status("cursor", `${Math.round(this.editor.cursor.x)}, ${Math.round(this.editor.cursor.y)}`);
-    }
-
-    onViewChange() {
-        this.status("cursor", `${Math.round(this.editor.cursor.x)}, ${Math.round(this.editor.cursor.y)}`);
-        this.status("zoom", Math.round(100 * this.editor.view.scale) + "%");
-    }
-
-    onToolChange(event) {
-        this.status("tool", event.status);
+    onEditorStatusChange(event) {
+        for (const [name, value] of Object.entries(event.status)) {
+            this.statusbar.set(name, value);
+        }
     }
 
     onSelectionChange() {
@@ -229,18 +216,14 @@ export class App extends ui.Panel {
 
         if (editor) {
             editor.deactivate();
-            editor.off("cursorchange", this.onCursorChange);
-            editor.off("viewchange", this.onViewChange);
-            editor.off("toolchange", this.onToolChange);
+            editor.off("statuschange", this.onEditorStatusChange);
             editor.off("selectionchange", this.onSelectionChange);
         }
     }
 
     onTabChange() {
         const editor = this.editor;
-        editor.on("cursorchange", this.onCursorChange);
-        editor.on("viewchange", this.onViewChange);
-        editor.on("toolchange", this.onToolChange);
+        editor.on("statuschange", this.onEditorStatusChange);
         editor.on("selectionchange", this.onSelectionChange);
         this.renderer.editor = editor;
         this.sidebar.editor = editor;

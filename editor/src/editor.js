@@ -29,7 +29,7 @@ export class Editor extends ui.Panel {
         this.activeLayer = null;
         this.previewNodes = new Set();
         this.reactiveNode = null;
-        this.cursor = { x: 0, y: 0 };
+        this.cursor = { x: 0, y: 0, toString() { return `${Math.round(this.x)}, ${Math.round(this.y)}`; } };
         this.saveName = map.path;
         this.saveIndex = 0;
         this.undone = 0;
@@ -54,7 +54,7 @@ export class Editor extends ui.Panel {
         this.map.on("visibilitychange", e => this.onMapVisibilityChange(e));
         this.view.on("change", () => this.onViewChange());
         this.selection.on("change", () => this.onSelectionChange());
-        this.currentTool.on("change", e => this.emit("toolchange", { status: e.status }));
+        this.currentTool.on("statuschange", e => this.onToolStatusChange(e));
         this.element.addEventListener("mousemove", e => this.onMouseMove(e));
         Settings.on("change", e => this.onSettingChange(e.setting));
 
@@ -217,7 +217,7 @@ export class Editor extends ui.Panel {
             this.panTool.activate(this);
             this.zoomTool.activate(this);
             this.currentTool.activate(this);
-            this.emit("viewchange");
+            this.onViewChange();
         }
     }
 
@@ -367,8 +367,18 @@ export class Editor extends ui.Panel {
     }
 
     onViewChange() {
-        this.emit("viewchange");
+        this.emit("statuschange", {
+            status: {
+                cursor: this.cursor.toString(),
+                zoom: Math.round(100 * this.view.scale) + "%",
+            }
+        });
+
         this.redraw();
+    }
+
+    onToolStatusChange(event) {
+        this.emit("statuschange", { status: { tool: event.status } });
     }
 
     onSelectionChange() {
@@ -390,7 +400,7 @@ export class Editor extends ui.Panel {
         const pos = this.view.canvasToMap(event.clientX - rect.left, event.clientY - rect.top);
         this.cursor.x = pos.x;
         this.cursor.y = pos.y;
-        this.emit("cursorchange");
+        this.emit("statuschange", { status: { cursor: this.cursor.toString() } });
     }
 
     onSettingChange(setting) {
