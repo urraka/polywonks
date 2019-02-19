@@ -464,11 +464,9 @@ export class Renderer {
 
         for (const node of this.selectionNodes) {
             if (node instanceof VertexNode) {
-                let s = this.editor.view.scale;
-                let p = this.editor.view.mapToPixelGrid(node.attr("x"), node.attr("y"));
-                const rect = new Rect(0, 0, vertexSize / s, vertexSize / s);
-                rect.centerX = p.x;
-                rect.centerY = p.y;
+                let size = vertexSize / this.editor.view.scale;
+                let p = this.editor.view.mapToPixelGrid(node.attr("x") - size / 2, node.attr("y") - size / 2);
+                const rect = new Rect(p.x, p.y, size, size);
 
                 if (editor.selection.has(node)) {
                     if (!subtractingNode(node)) {
@@ -539,12 +537,9 @@ export class Renderer {
     }
 
     drawPivot(node, fill, border) {
-        let s = this.editor.view.scale;
-        let p = this.editor.view.mapToPixelGrid(node.x, node.y);
-        const vertexSize = cfg("editor.vertex-size");
-        const rect = new Rect(0, 0, vertexSize / s, vertexSize / s);
-        rect.centerX = p.x;
-        rect.centerY = p.y;
+        const size = cfg("editor.vertex-size") / this.editor.view.scale;
+        const { x, y } = this.editor.view.mapToPixelGrid(node.x - size / 2, node.y - size / 2);
+        const rect = new Rect(x, y, size, size);
         this.drawRect(rect, fill, border);
     }
 
