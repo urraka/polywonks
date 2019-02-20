@@ -35,7 +35,7 @@ export class SelectTool extends Tool {
         this.clickPosition = { x: 0, y: 0 };
         this.pointer.activate(this.editor.element, 0);
         this.editor.element.addEventListener("mouseleave", this.onMouseLeave);
-        this.emit("statuschange", { status: "Select" });
+        this.emit("statuschange");
     }
 
     onDeactivate() {
@@ -43,7 +43,15 @@ export class SelectTool extends Tool {
         this.pointer.deactivate();
         this.editor.previewNodes.clear();
         this.editor.redraw();
-        this.emit("statuschange", { status: "" });
+        this.emit("statuschange");
+    }
+
+    get status() {
+        return this.activated ? {
+            "replace": "Select",
+            "add": "Select (+)",
+            "subtract": "Select (-)",
+        }[this.mode] : "";
     }
 
     get mode() {
@@ -53,12 +61,7 @@ export class SelectTool extends Tool {
     set mode(value) {
         if (this._mode !== value) {
             this._mode = value;
-            const status = {
-                "replace": "Select",
-                "add": "Select (+)",
-                "subtract": "Select (-)",
-            }[value];
-            this.emit("statuschange", { status });
+            this.emit("statuschange");
             this.updatePreviewNodes();
         }
     }

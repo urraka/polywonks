@@ -54,7 +54,7 @@ export class Editor extends ui.Panel {
         this.map.on("visibilitychange", e => this.onMapVisibilityChange(e));
         this.view.on("change", () => this.onViewChange());
         this.selection.on("change", () => this.onSelectionChange());
-        this.currentTool.on("statuschange", e => this.onToolStatusChange(e));
+        this.currentTool.on("statuschange", () => this.onToolStatusChange());
         this.element.addEventListener("mousemove", e => this.onMouseMove(e));
         Settings.on("change", e => this.onSettingChange(e.setting));
 
@@ -211,13 +211,28 @@ export class Editor extends ui.Panel {
         this.emit("redraw");
     }
 
+    statusChange(...args) {
+        const status = {};
+
+        const fn = this._statusFn || (this._statusFn = {
+            tool: () => this.currentTool.status,
+            layer: () => "Layer: " + this.activeLayer.toString(),
+            cursor: () => this.cursor.toString(),
+            zoom: () => Math.round(100 * this.view.scale) + "%",
+        });
+
+        if (args.length === 0) args = Object.keys(fn);
+        args.forEach(name => status[name] = fn[name]());
+        this.emit("statuschange", { status });
+    }
+
     activate() {
         if (!this.activated) {
             this.activated = true;
             this.panTool.activate(this);
             this.zoomTool.activate(this);
             this.currentTool.activate(this);
-            this.onViewChange();
+            this.statusChange();
         }
     }
 
@@ -367,28 +382,32 @@ export class Editor extends ui.Panel {
     }
 
     onViewChange() {
-        this.emit("statuschange", {
-            status: {
-                cursor: this.cursor.toString(),
-                zoom: Math.round(100 * this.view.scale) + "%",
-            }
-        });
-
+        this.statusChange("cursor", "zoom");
         this.redraw();
     }
 
-    onToolStatusChange(event) {
-        this.emit("statuschange", { status: { tool: event.status } });
+    onToolStatusChange() {
+        this.statusChange("tool");
     }
 
     onSelectionChange() {
+        const activeLayer = this.activeLayer;
+
         for (const node of this.selection.nodes) {
             if (node instanceof LayerNode) {
                 this.activeLayer = node;
             } else {
-                this.activeLayer = [...node.filter(node.ancestors(), LayerNode)].shift() || null;
+                this.activeLayer = [...node.filter(node.ancestors(), LayerNode)].shift() || this.activeLayer;
             }
             break;
+        }
+
+        if (!this.activeLayer) {
+            this.activeLayer = [...this.map.children()].find(node => node instanceof LayerNode);
+        }
+
+        if (this.activeLayer !== activeLayer) {
+            this.statusChange("layer");
         }
 
         this.emit("selectionchange");
@@ -400,7 +419,7 @@ export class Editor extends ui.Panel {
         const pos = this.view.canvasToMap(event.clientX - rect.left, event.clientY - rect.top);
         this.cursor.x = pos.x;
         this.cursor.y = pos.y;
-        this.emit("statuschange", { status: { cursor: this.cursor.toString() } });
+        this.statusChange("cursor");
     }
 
     onSettingChange(setting) {
