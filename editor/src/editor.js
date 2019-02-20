@@ -29,7 +29,7 @@ export class Editor extends ui.Panel {
         this.activeLayer = null;
         this.previewNodes = new Set();
         this.reactiveNode = null;
-        this.cursor = { x: 0, y: 0, toString() { return `${Math.round(this.x)}, ${Math.round(this.y)}`; } };
+        this.cursor = { x: 0, y: 0 };
         this.saveName = map.path;
         this.saveIndex = 0;
         this.undone = 0;
@@ -217,7 +217,7 @@ export class Editor extends ui.Panel {
         const fn = this._statusFn || (this._statusFn = {
             tool: () => this.currentTool.status,
             layer: () => "Layer: " + this.activeLayer.toString(),
-            cursor: () => this.cursor.toString(),
+            cursor: () => `${Math.round(this.cursor.x)}, ${Math.round(this.cursor.y)}`,
             zoom: () => Math.round(100 * this.view.scale) + "%",
         });
 
