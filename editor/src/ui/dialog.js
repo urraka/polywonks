@@ -189,9 +189,9 @@ export class Dialog extends Panel {
     onOverlayMouseDown(event) {
         if (event.target === this.overlay) {
             event.stopPropagation();
-            if (!this.element.classList.contains("shake")) {
-                this.element.classList.add("shake");
-                setTimeout(() => this.element.classList.remove("shake"), 400);
+            if (!this.element.classList.contains("flicker")) {
+                this.element.classList.add("flicker");
+                setTimeout(() => this.element.classList.remove("flicker"), 400);
             }
         }
     }
