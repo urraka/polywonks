@@ -44,7 +44,6 @@ export class Rect {
         this.width = x1 - this.x;
     }
 
-
     set y0(value) {
         const y1 = this.y1;
         this.y = value;

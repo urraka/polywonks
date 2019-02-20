@@ -87,7 +87,7 @@ export class Path {
         return i >= 0 ? path.substring(0, i) + ext : path + ext;
     }
 
-    // split("/root/dir/file") -> ["/", "dir/", "file"]
+    // split("/root/dir/file") -> ["/", "root/", "dir/", "file"]
     static split(path) {
         if (!path || typeof path !== "string") {
             throw new Error("Path.split() - Invalid path.");
