@@ -22,6 +22,7 @@ export class SelectTool extends Tool {
         this.pointer.on("end", e => this.onPointerEnd(e.mouseEvent));
         this.onMouseEnter = this.onMouseEnter.bind(this);
         this.onMouseLeave = this.onMouseLeave.bind(this);
+        this.onSelectionChange = this.onSelectionChange.bind(this);
     }
 
     onActivate() {
@@ -37,10 +38,12 @@ export class SelectTool extends Tool {
         this.pointer.activate(this.editor.element, 0);
         this.editor.element.addEventListener("mouseenter", this.onMouseEnter);
         this.editor.element.addEventListener("mouseleave", this.onMouseLeave);
+        this.selection.on("change", this.onSelectionChange);
         this.emit("statuschange");
     }
 
     onDeactivate() {
+        this.selection.off("change", this.onSelectionChange);
         this.editor.element.removeEventListener("mouseenter", this.onMouseEnter);
         this.editor.element.removeEventListener("mouseleave", this.onMouseLeave);
         this.pointer.deactivate();
@@ -146,6 +149,13 @@ export class SelectTool extends Tool {
         this.editor.redraw();
     }
 
+    onSelectionChange() {
+        if (this.affectedNode && !this.selection.has(this.affectedNode)) {
+            this.affectedNode = null;
+            this.updatePreviewNodes();
+        }
+    }
+
     onPointerBegin(event) {
         this.clickPosition.x = event.clientX;
         this.clickPosition.y = event.clientY;
@@ -153,6 +163,8 @@ export class SelectTool extends Tool {
         if (this.rect) {
             return;
         }
+
+        this.selection.off("change", this.onSelectionChange);
 
         let changed = false;
         this.updatePreviewNodes();
@@ -182,6 +194,8 @@ export class SelectTool extends Tool {
         this.selecting = true;
         this.rectPosition.x = this.editor.cursor.x;
         this.rectPosition.y = this.editor.cursor.y;
+
+        this.selection.on("change", this.onSelectionChange);
     }
 
     onPointerEnd(event) {
@@ -198,7 +212,9 @@ export class SelectTool extends Tool {
                 this.rootNode.nodesContainedByRect(...this.rect.values(), this.editor.view.scale) :
                 this.rootNode.nodesIntersectingRect(...this.rect.values(), this.editor.view.scale);
 
+            this.selection.off("change", this.onSelectionChange);
             this.selection[this.mode](new Set(nodes));
+            this.selection.on("change", this.onSelectionChange);
             this.rect = null;
             this.editor.redraw();
         }
