@@ -112,4 +112,11 @@ export class KeyBindings extends EventEmitter {
             }
         }
     }
+
+    onFocusLost() {
+        for (const command of this.pushed) {
+            this.pushed.delete(command);
+            this.emit("command", { command: "-" + command.slice(1) });
+        }
+    }
 }

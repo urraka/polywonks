@@ -43,6 +43,7 @@ export class App extends ui.Panel {
 
         window.addEventListener("beforeunload", e => this.onBeforeUnload(e));
         window.addEventListener("resize", e => this.onResize(e));
+        window.addEventListener("blur", () => this.keybindings.onFocusLost());
 
         document.addEventListener("drop", e => this.onDrop(e));
         document.addEventListener("dragover", e => this.onDragOver(e));
@@ -257,6 +258,7 @@ export class App extends ui.Panel {
     }
 
     onModalStart() {
+        this.keybindings.onFocusLost();
         this.keybindings.off("command", this.onKeyBindingsCommand);
         this.editor.deactivate();
     }
