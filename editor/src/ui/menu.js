@@ -147,14 +147,18 @@ export class Menu {
             }
             Menu.timeout(() => this.onShowSubmenu(menuItem));
         }
+        if (this.ownerItem) {
+            this.ownerItem.active = true;
+        }
         event.stopPropagation();
     }
 
     onMouseOut(event) {
         const menuItem = MenuItem.from(event);
         if (menuItem) {
-            const isSubmenu = e => e && (e === menuItem.submenu.element || isSubmenu(e.parentElement));
-            if (menuItem.submenu && !isSubmenu(event.relatedTarget)) {
+            const isSelfOrSubmenu = e => e && (menuItem.element.contains(e) || menuItem.submenu.element.contains(e));
+            if (menuItem.submenu && !isSelfOrSubmenu(event.relatedTarget)) {
+                menuItem.active = false;
                 Menu.timeout(() => menuItem.submenu.close());
             }
         }
