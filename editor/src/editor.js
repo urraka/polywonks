@@ -394,10 +394,8 @@ export class Editor extends ui.Panel {
         for (const node of this.selection.nodes) {
             if (node === this.map) {
                 this.activeLayer = null;
-            } else if (node instanceof LayerNode) {
-                this.activeLayer = node;
             } else {
-                this.activeLayer = [...node.filter(node.ancestors(), LayerNode)].shift() || this.activeLayer;
+                this.activeLayer = node.closest("layer") || this.activeLayer;
             }
             break;
         }

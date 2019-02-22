@@ -1,5 +1,6 @@
 import * as PMS from "../pms/pms.js";
 import * as Geometry from "../support/geometry.js";
+import { iter } from "../support/iter.js";
 import { Node } from "./node.js";
 import { VertexNode } from "./vertex.js";
 import { Attribute } from "./attribute.js";
@@ -30,7 +31,7 @@ export class TriangleNode extends Node {
         const polygon = new PMS.Polygon();
         polygon.type = PMS.PolyType.value(this.attr("poly-type"));
 
-        polygon.vertices = [...this.filter(this.children(), VertexNode)].map(node => {
+        polygon.vertices = iter(this.children("vertex")).map(node => {
             return node.toPMS();
         });
 

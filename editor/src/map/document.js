@@ -5,6 +5,7 @@ import { Rect } from "../support/rect.js";
 import { Color } from "../support/color.js";
 import { ValueType } from "../support/type.js";
 import { Path } from "../support/path.js";
+import { iter } from "../support/iter.js";
 import { Attribute } from "./attribute.js";
 import { Node } from "./node.js";
 import { ResourcesNode } from "./resources.js";
@@ -66,11 +67,13 @@ export class MapDocument extends Node {
     }
 
     get resources() {
-        return [...this.children()].find(node => node instanceof ResourcesNode);
+        return this._resources || (this._resources = iter(this.children("resources")).first());
     }
 
     get waypoints() {
-        return [...this.children()].find(node => (node instanceof LayerNode) && node.attr("type") === "waypoints");
+        return this._waypoints || (this._waypoints =
+            iter(this.children("layer")).find(node => node.attr("type") === "waypoints")
+        );
     }
 
     generateId(nodeName) {
@@ -81,7 +84,7 @@ export class MapDocument extends Node {
     static default() {
         const doc = new MapDocument();
         doc.attr("text", "Untitled");
-        [...createDefaultLayers()].forEach(layer => doc.append(layer));
+        iter(createDefaultLayers()).each(layer => doc.append(layer));
         return doc;
     }
 
@@ -99,7 +102,7 @@ export class MapDocument extends Node {
         doc.attr("steps", pms.steps);
 
         const layers = createDefaultLayers();
-        [...layers].forEach(layer => doc.append(layer));
+        iter(layers).each(layer => doc.append(layer));
 
         const texture = TextureNode.fromPMS(pms, path);
         layers.resources.append(texture);
@@ -151,10 +154,10 @@ export class MapDocument extends Node {
         const pms = new PMS.Map();
 
         // find the most used texture and export pms with that
-        const textures = [...this.filter(this.descendants(), TextureNode)];
+        const textures = [...this.resources.children("texture")];
         if (textures.length > 1) {
             const counters = new Map();
-            for (const node of this.filter(this.descendants(), TriangleNode)) {
+            for (const node of this.descendants("triangle")) {
                 const texture = node.attr("texture");
                 if (texture) {
                     const n = (counters.get(texture) || 0) + 1;
@@ -165,12 +168,12 @@ export class MapDocument extends Node {
         }
         if (textures.length > 0) {
             const texture = textures.pop();
-            pms.texture = texture.attr("export-name") || texture.attr("src").split("/").pop();
+            pms.texture = texture.attr("export-name") || Path.filename(texture.attr("src"));
         }
 
         // find scenery images that are used
         let imageNodes = new Set();
-        for (const node of this.filter(this.descendants(), SceneryNode)) {
+        for (const node of this.descendants("scenery")) {
             if (node.attr("image")) {
                 imageNodes.add(node.attr("image"));
             }
@@ -193,13 +196,13 @@ export class MapDocument extends Node {
             pms.randId = Math.trunc(Math.random() * 0x80000000);
         }
 
-        pms.polygons = [...this.filter(this.descendants(), TriangleNode)].map(node => node.toPMS());
+        pms.polygons = iter(this.descendants("triangle")).map(node => node.toPMS());
         pms.scenery = imageNodes.map(node => node.toPMS());
-        pms.props = [...this.filter(this.descendants(), SceneryNode)].map(node => node.toPMS(imageNodes, pms.version));
-        pms.colliders = [...this.filter(this.descendants(), ColliderNode)].map(node => node.toPMS());
-        pms.spawns = [...this.filter(this.descendants(), SpawnNode)].map(node => node.toPMS());
+        pms.props = iter(this.descendants("scenery")).map(node => node.toPMS(imageNodes, pms.version));
+        pms.colliders = iter(this.descendants("collider")).map(node => node.toPMS());
+        pms.spawns = iter(this.descendants("spawn")).map(node => node.toPMS());
 
-        const waypointNodes = [...this.filter(this.descendants(), WaypointNode)];
+        const waypointNodes = [...this.descendants("waypoint")];
         pms.waypoints = waypointNodes.map(node => node.toPMS(waypointNodes));
 
         // All positions have to be centered before calculating sectors.
@@ -223,11 +226,10 @@ export class MapDocument extends Node {
     }
 
     verticesBounds() {
-        const iterator = this.filter(this.descendants(), VertexNode);
-        const first = iterator.next().value;
+        const first = iter(this.descendants("vertex")).first();
         const bounds = first ? new Rect(first.attr("x"), first.attr("y")) : new Rect();
 
-        for (const node of iterator) {
+        for (const node of this.descendants("vertex")) {
             bounds.expandToPoint(node.attr("x"), node.attr("y"));
         }
 
@@ -260,7 +262,7 @@ export class MapDocument extends Node {
                     }
                 }, "") +
                 (!node.firstChild ? "/>" : ">\n" +
-                    [...node.children()].map(node => serializeNode(node, level + 1)).join("\n") +
+                    iter(node.children()).map(node => serializeNode(node, level + 1)).join("\n") +
                     `\n${"  ".repeat(level)}</${node.nodeName}>`);
         };
 

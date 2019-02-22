@@ -47,7 +47,7 @@ export class ImageNode extends ResourceNode {
 
     toPMS() {
         const scenery = new PMS.Scenery();
-        scenery.name = this.attr("export-name") || this.attr("src").split("/").pop();
+        scenery.name = this.attr("export-name") || Path.filename(this.attr("src"));
         return scenery;
     }
 }

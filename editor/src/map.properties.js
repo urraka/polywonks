@@ -1,7 +1,7 @@
 import * as PMS from "./pms/pms.js";
 import * as ui from "./ui/ui.js";
+import { iter } from "./support/iter.js";
 import { EventEmitter } from "./support/event.js";
-import { LayerNode, ImageNode, TextureNode, WaypointNode } from "./map/map.js";
 import { EditorCommand } from "./editor.command.js";
 
 export class MapProperties extends EventEmitter {
@@ -23,9 +23,8 @@ export class MapProperties extends EventEmitter {
 
     set node(node) {
         this._node = node;
-
         this.sheet.clear();
-        const layer = this.node.filter(this.node.ancestors(), LayerNode).next().value;
+        const layer = this.node.closest("layer");
 
         for (const [key, attr] of this.node.attributes) {
             let dataType = attr.dataType;
@@ -44,11 +43,11 @@ export class MapProperties extends EventEmitter {
                 const map = this.editor.map;
 
                 if (key === "image") {
-                    dataType = [...map.resources.descendants()].filter(node => node instanceof ImageNode);
+                    dataType = [...map.resources.descendants("image")];
                 } else if (key === "texture") {
-                    dataType = [...map.resources.descendants()].filter(node => node instanceof TextureNode);
+                    dataType = [...map.resources.descendants("texture")];
                 } else if (key === "waypoint") {
-                    dataType = [...map.waypoints.children()].filter(node => node instanceof WaypointNode);
+                    dataType = [...map.waypoints.children("waypoint")];
                 }
             }
 
@@ -68,12 +67,12 @@ export class MapProperties extends EventEmitter {
         const key = event.property.key;
         const value = event.property.value;
         const type = this.node.attributes.get(key).dataType;
-        const layer = this.node.filter(this.node.ancestors(), LayerNode).next().value;
+        const layer = this.node.closest("layer");
         const command = new EditorCommand(this.editor);
         const selection = this.editor.selection;
 
         const sameLayerType = (node) => {
-            const nodeLayer = node.filter(node.ancestors(), LayerNode).next().value;
+            const nodeLayer = node.closest("layer");
             return nodeLayer && nodeLayer.attr("type") === layer.attr("type");
         };
 
@@ -89,6 +88,6 @@ export class MapProperties extends EventEmitter {
     }
 
     onSelectionChange() {
-        this.node = this.editor.selection.nodes.values().next().value || this.editor.map;
+        this.node = iter(this.editor.selection.nodes).first() || this.editor.map;
     }
 }

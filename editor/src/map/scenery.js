@@ -88,7 +88,7 @@ export class SceneryNode extends Node {
             LayerType.SceneryFront
         ];
 
-        const layer = [...this.filter(this.ancestors(), LayerNode)][0];
+        const layer = this.closest("layer");
         const layerType = layer ? LayerType.value(layer.attr("type")) : -1;
         const image = this.attr("image");
         const imageIndex = imageNodes.indexOf(image);

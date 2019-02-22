@@ -137,55 +137,63 @@ export class Node extends EventEmitter {
         return node;
     }
 
-    *children() {
+    *children(nodeName) {
         let node = this.firstChild;
-        while (node) {
-            yield node;
-            node = node.nextSibling;
-        }
-    }
-
-    *descendants() {
-        let node = this.firstChild;
-        while (node) {
-            yield node;
-            for (const childNode of node.descendants()) {
-                yield childNode;
-            }
-            node = node.nextSibling;
-        }
-    }
-
-    *ancestors() {
-        let node = this.parentNode;
-        while (node) {
-            yield node;
-            node = node.parentNode;
-        }
-    }
-
-    *tree() {
-        yield this;
-        for (const node of this.descendants()) {
-            yield node;
-        }
-    }
-
-    *filter(iterator, classType) {
-        if (typeof classType === "function") {
-            for (const node of iterator) {
-                if (node instanceof classType) {
-                    yield node;
-                }
-            }
-        } else if (classType.length) {
-            for (const node of iterator) {
-                if (classType.some(T => node instanceof T)) {
-                    yield node;
-                }
+        if (nodeName) {
+            while (node) {
+                if (node.nodeName === nodeName) yield node;
+                node = node.nextSibling;
             }
         } else {
-            throw new Error("Invalid filter");
+            while (node) {
+                yield node;
+                node = node.nextSibling;
+            }
+        }
+    }
+
+    *descendants(nodeName) {
+        let node = this.firstChild;
+        if (nodeName) {
+            while (node) {
+                if (node.nodeName === nodeName) yield node;
+                yield *node.descendants(nodeName);
+                node = node.nextSibling;
+            }
+        } else {
+            while (node) {
+                yield node;
+                yield *node.descendants();
+                node = node.nextSibling;
+            }
+        }
+    }
+
+    *ancestors(nodeName) {
+        let node = this.parentNode;
+        if (nodeName) {
+            while (node) {
+                if (node.nodeName === nodeName) yield node;
+                node = node.parentNode;
+            }
+        } else {
+            while (node) {
+                yield node;
+                node = node.parentNode;
+            }
+        }
+    }
+
+    *tree(nodeName) {
+        if (!nodeName || this.nodeName === nodeName) yield this;
+        yield *this.descendants(nodeName);
+    }
+
+    closest(nodeName) {
+        if (this.nodeName === nodeName) {
+            return this;
+        } else if (this.parentNode) {
+            return this.parentNode.closest(nodeName);
         }
     }
 
