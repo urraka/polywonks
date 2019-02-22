@@ -41,7 +41,7 @@ export class Editor extends ui.Panel {
         this.sidebarPanels = new ui.MultiPanelView();
         this.sidebarPanels.element.classList.add("editor-sidebar-panels");
         this.explorer = this.sidebarPanels.addPanel("Map", new MapExplorer(this));
-        this.properties = this.sidebarPanels.addPanel("Properties", new MapProperties(this));
+        this.properties = this.sidebarPanels.addPanel("Map Properties", new MapProperties(this));
 
         if (map.path === "") {
             this.saveName = "Untitled.polywonks";
@@ -57,8 +57,6 @@ export class Editor extends ui.Panel {
         this.currentTool.on("statuschange", () => this.onToolStatusChange());
         this.element.addEventListener("mousemove", e => this.onMouseMove(e));
         Settings.on("change", e => this.onSettingChange(e.setting));
-
-        this.onSelectionChange();
     }
 
     get modified() {
@@ -216,7 +214,7 @@ export class Editor extends ui.Panel {
 
         const fn = this._statusFn || (this._statusFn = {
             tool: () => this.currentTool.status,
-            layer: () => "Layer: " + this.activeLayer.toString(),
+            layer: () => "Layer: " + (this.activeLayer || "None").toString(),
             cursor: () => `${Math.round(this.cursor.x)}, ${Math.round(this.cursor.y)}`,
             zoom: () => Math.round(100 * this.view.scale) + "%",
         });
@@ -394,16 +392,14 @@ export class Editor extends ui.Panel {
         const activeLayer = this.activeLayer;
 
         for (const node of this.selection.nodes) {
-            if (node instanceof LayerNode) {
+            if (node === this.map) {
+                this.activeLayer = null;
+            } else if (node instanceof LayerNode) {
                 this.activeLayer = node;
             } else {
                 this.activeLayer = [...node.filter(node.ancestors(), LayerNode)].shift() || this.activeLayer;
             }
             break;
-        }
-
-        if (!this.activeLayer) {
-            this.activeLayer = [...this.map.children()].find(node => node instanceof LayerNode);
         }
 
         if (this.activeLayer !== activeLayer) {

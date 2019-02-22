@@ -164,6 +164,10 @@ input:focus, .select:focus, .select:focus-within, .select.active, .select-option
     box-shadow: inset 0 0 4px 1px rgba(0, 0, 0, 0.5);
 }
 
+li.active-layer > label {
+    color: white;
+}
+
 * {
     scrollbar-color: #1e1e1e #3c3c3c;
 }

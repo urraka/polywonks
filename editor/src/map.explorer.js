@@ -17,10 +17,26 @@ export class MapExplorer extends EventEmitter {
         this.tree.on("itemiconclick", e => this.onTreeItemIconClick(e.item));
         this.tree.on("selectionchange", () => this.onTreeSelectionChange());
         this.editor.on("selectionchange", () => this.onEditorSelectionChange());
+        this.editor.on("statuschange", e => this.onEditorStatusChange(e.status));
         this.editor.map.on("insert", e => this.onNodeInsert(e));
         this.editor.map.on("remove", e => this.onNodeRemove(e));
         this.editor.map.on("attributechange", e => this.onMapAttrChange(e));
         this.editor.map.on("visibilitychange", e => this.onVisibilityChange(e.target));
+
+        this.updateActiveLayer();
+    }
+
+    updateActiveLayer() {
+        const item = this.itemsByNode.get(this.editor.activeLayer || this.editor.map);
+        const activeLayerItem = this.element.querySelector(".active-layer");
+        if (activeLayerItem) activeLayerItem.classList.remove("active-layer");
+        if (item) item.element.classList.add("active-layer");
+    }
+
+    onEditorStatusChange(status) {
+        if ("layer" in status) {
+            this.updateActiveLayer();
+        }
     }
 
     onNodeInsert(event) {
