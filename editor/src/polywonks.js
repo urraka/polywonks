@@ -16,6 +16,7 @@ import * as path from "./support/path.js";
 import * as pointer from "./support/pointer.js";
 import * as rect from "./support/rect.js";
 import * as type from "./support/type.js";
+import * as iter from "./support/iter.js";
 import * as map from "./map/map.js";
 import * as app from "./app.js";
 import * as editor from "./editor.js";
@@ -63,6 +64,7 @@ export const Polywonks = (() => {
         enm,
         rect,
         type,
+        iter,
         settings,
         tool,
         tool_select,
