@@ -30,15 +30,7 @@ export class MapProperties extends EventEmitter {
             let dataType = attr.dataType;
 
             if (layer && dataType === PMS.PolyType) {
-                if (layer.attr("type") === "polygons-back") {
-                    dataType = PMS.PolyType.filter(v => {
-                        return v === PMS.PolyType.Background || v === PMS.PolyType.BackgroundTransition;
-                    });
-                } else {
-                    dataType = PMS.PolyType.filter(v => {
-                        return v !== PMS.PolyType.Background && v !== PMS.PolyType.BackgroundTransition;
-                    });
-                }
+                dataType = layer.polyTypes();
             } else if (dataType === "node") {
                 const map = this.editor.map;
 

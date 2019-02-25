@@ -1,6 +1,12 @@
+import * as PMS from "../pms/pms.js";
 import { Enum } from "../support/enum.js";
-import { Node } from "./node.js";
 import { Attribute } from "./attribute.js";
+import { Node } from "./node.js";
+import { TriangleNode } from "./triangle.js";
+import { SceneryNode } from "./scenery.js";
+import { WaypointNode } from "./waypoint.js";
+import { ColliderNode } from "./collider.js";
+import { SpawnNode } from "./spawn.js";
 
 export const LayerType = new Enum({
     PolygonsBack: 0,
@@ -34,6 +40,56 @@ export class LayerNode extends Node {
             this._visible = value;
             this.emit("visibilitychange");
         }
+    }
+
+    isNodeAllowed(node) {
+        switch (this.attr("type")) {
+            case "polygons-back":
+            case "polygons-front":
+                return node instanceof TriangleNode;
+
+            case "scenery-back":
+            case "scenery-middle":
+            case "scenery-front":
+                return node instanceof SceneryNode;
+
+            case "colliders":
+                return node instanceof ColliderNode;
+
+            case "waypoints":
+                return node instanceof WaypointNode;
+
+            case "spawns":
+                return node instanceof SpawnNode;
+
+            default:
+                throw new Error("LayerNode.isNodeAllowed(): missing layer type");
+        }
+    }
+
+    polyTypes() {
+        return LayerNode.polyTypes[this.attr("type")];
+    }
+
+    static get polyTypes() {
+        return LayerNode._polyTypes || (LayerNode._polyTypes = (() => {
+            const polyTypes = {};
+            const none = PMS.PolyType.filter(() => false);
+
+            for (const name of LayerType.names()) {
+                polyTypes[name] = none;
+            }
+
+            polyTypes["polygons-back"] = PMS.PolyType.filter(v => {
+                return v === PMS.PolyType.Background || v === PMS.PolyType.BackgroundTransition;
+            });
+
+            polyTypes["polygons-front"] = PMS.PolyType.filter(v => {
+                return v !== PMS.PolyType.Background && v !== PMS.PolyType.BackgroundTransition;
+            });
+
+            return polyTypes;
+        })());
     }
 
     *nodesAt(...args) {

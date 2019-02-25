@@ -1,7 +1,7 @@
 import * as PMS from "./pms/pms.js";
 import * as ui from "./ui/ui.js";
 import { Path } from "./support/path.js";
-import { MapDocument, LayerNode, ConnectionNode, ResourceNode, ClonedNodesCollection } from "./map/map.js";
+import { MapDocument, LayerNode, ConnectionNode, ResourceNode, ClonedNodesCollection, TriangleNode } from "./map/map.js";
 import { File } from "./file.js";
 import { RenderView } from "./render.view.js";
 import { cfg, Settings } from "./settings.js";
@@ -302,16 +302,22 @@ export class Editor extends ui.Panel {
 
     paste() {
         if (this.activeLayer && !Clipboard.empty()) {
-            this.selection.clear();
-
             const data = Clipboard.load();
+            data.nodes = data.nodes.filter(node => this.activeLayer.isNodeAllowed(node));
+
+            if (data.nodes.length === 0) {
+                return;
+            }
+
             const resources = this.map.resources;
             const mount = Path.mount(this.map.path);
             const dir = Path.dir(this.map.path);
+
+            this.selection.clear();
             const command = new EditorCommand(this);
 
-            data.nodes.forEach(root => {
-                for (const node of root.tree()) {
+            data.nodes.forEach(nodeEntry => {
+                for (const node of nodeEntry.tree()) {
                     for (const [,attr] of node.attributes) {
                         if (attr.dataType === "node" && attr.value && (attr.value instanceof ResourceNode)) {
                             const resourceNode = attr.value;
@@ -339,7 +345,14 @@ export class Editor extends ui.Panel {
                     }
                 }
 
-                command.insert(this.activeLayer, null, root);
+                if (nodeEntry instanceof TriangleNode) {
+                    const polyTypes = this.activeLayer.polyTypes();
+                    if (![...polyTypes.names()].includes(nodeEntry.attr("poly-type"))) {
+                        nodeEntry.attr("poly-type", polyTypes.defaultName());
+                    }
+                }
+
+                command.insert(this.activeLayer, null, nodeEntry);
             });
 
             this.do(command);
