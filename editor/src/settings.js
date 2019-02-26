@@ -37,7 +37,7 @@ const DefaultSettings = {
     "editor.zoom-max": 16,
     "editor.zoom-min": 1 / 16,
     "editor.undo-limit": 100,
-    "editor.selection-rect-threshold": 5,
+    "editor.drag-threshold": 5,
     "editor.vertex-size": 7,
     "editor.waypoint-size": 11,
     "view.grid": true,

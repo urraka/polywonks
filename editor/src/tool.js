@@ -40,4 +40,6 @@ export class Tool extends EventEmitter {
             this.activate(editor);
         }
     }
+
+    onCommand() {}
 }

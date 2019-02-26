@@ -8,6 +8,7 @@ import { cfg, Settings } from "./settings.js";
 import { SelectTool } from "./tool.select.js";
 import { PanTool } from "./tool.pan.js";
 import { ZoomTool } from "./tool.zoom.js";
+import { MoveTool } from "./tool.move.js";
 import { MapExplorer } from "./map.explorer.js";
 import { Selection } from "./selection.js";
 import { MapProperties } from "./map.properties.js";
@@ -34,9 +35,14 @@ export class Editor extends ui.Panel {
         this.saveIndex = 0;
         this.undone = 0;
         this.commandHistory = [];
-        this.currentTool = new SelectTool();
-        this.panTool = new PanTool();
-        this.zoomTool = new ZoomTool();
+
+        this.tools = {
+            current: null,
+            pan: new PanTool(),
+            zoom: new ZoomTool(),
+            select: new SelectTool(),
+            move: new MoveTool(),
+        };
 
         this.sidebarPanels = new ui.MultiPanelView();
         this.sidebarPanels.element.classList.add("editor-sidebar-panels");
@@ -49,18 +55,41 @@ export class Editor extends ui.Panel {
             this.saveName = Path.replaceExtension(Path.filename(map.path), ".polywonks");
         }
 
+        this.onToolStatusChange = this.onToolStatusChange.bind(this);
+
         this.properties.content.on("nodechange", () => this.onPropertiesNodeChange());
         this.map.on("attributechange", e => this.onMapAttrChange(e));
         this.map.on("visibilitychange", e => this.onMapVisibilityChange(e));
         this.view.on("change", () => this.onViewChange());
         this.selection.on("change", () => this.onSelectionChange());
-        this.currentTool.on("statuschange", () => this.onToolStatusChange());
         this.element.addEventListener("mousemove", e => this.onMouseMove(e));
         Settings.on("change", e => this.onSettingChange(e.setting));
+
+        this.currentTool = this.tools.select;
     }
 
     get modified() {
         return this.saveIndex !== this.undone;
+    }
+
+    get currentTool() {
+        return this.tools.current;
+    }
+
+    set currentTool(value) {
+        const activated = this.tools.current && this.tools.current.activated;
+
+        if (this.tools.current) {
+            this.tools.current.deactivate();
+            this.tools.current.off("statuschange", this.onToolStatusChange);
+        }
+
+        this.tools.current = value;
+        this.tools.current.on("statuschange", this.onToolStatusChange);
+
+        if (activated) {
+            this.tools.current.activate(this);
+        }
     }
 
     relocateMap(newPath) {
@@ -197,12 +226,14 @@ export class Editor extends ui.Panel {
         }
     }
 
-    undo() {
-        if (this.commandHistory.length > this.undone) {
+    undo(command) {
+        if (this.commandHistory.length > this.undone && (!command || command === this.commandHistory[this.undone])) {
             this.commandHistory[this.undone++].undo();
             this.emit("change");
             this.redraw();
+            return true;
         }
+        return false;
     }
 
     redraw() {
@@ -213,7 +244,7 @@ export class Editor extends ui.Panel {
         const status = {};
 
         const fn = this._statusFn || (this._statusFn = {
-            tool: () => this.currentTool.status,
+            tool: () => this.tools.current.status,
             layer: () => "Layer: " + (this.activeLayer || "None").toString(),
             cursor: () => `${Math.round(this.cursor.x)}, ${Math.round(this.cursor.y)}`,
             zoom: () => Math.round(100 * this.view.scale) + "%",
@@ -227,9 +258,9 @@ export class Editor extends ui.Panel {
     activate() {
         if (!this.activated) {
             this.activated = true;
-            this.panTool.activate(this);
-            this.zoomTool.activate(this);
-            this.currentTool.activate(this);
+            this.tools.pan.activate(this);
+            this.tools.zoom.activate(this);
+            this.tools.current.activate(this);
             this.statusChange();
         }
     }
@@ -237,9 +268,9 @@ export class Editor extends ui.Panel {
     deactivate() {
         if (this.activated) {
             this.activated = false;
-            this.currentTool.deactivate();
-            this.zoomTool.deactivate();
-            this.panTool.deactivate();
+            this.tools.current.deactivate();
+            this.tools.zoom.deactivate();
+            this.tools.pan.deactivate();
         }
     }
 
@@ -360,7 +391,7 @@ export class Editor extends ui.Panel {
     }
 
     onCommand(command) {
-        this.currentTool.onCommand(command);
+        this.tools.current.onCommand(command);
     }
 
     onClose(event) {

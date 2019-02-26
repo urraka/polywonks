@@ -1,6 +1,6 @@
 import { Rect } from "./support/rect.js";
 import { mod } from "./support/math.js";
-import { Pointer } from "./support/pointer.js";
+import { Pointer, MovementThreshold } from "./support/pointer.js";
 import { Tool } from "./tool.js";
 import { cfg } from "./settings.js";
 
@@ -15,7 +15,7 @@ export class SelectTool extends Tool {
         this._mode = "replace";
         this.rect = null;
         this.rectPosition = { x: 0, y: 0 };
-        this.clickPosition = { x: 0, y: 0 };
+        this.movement = new MovementThreshold();
         this.pointer = new Pointer();
         this.pointer.on("begin", e => this.onPointerBegin(e.mouseEvent));
         this.pointer.on("move", e => this.onPointerMove(e.mouseEvent));
@@ -34,7 +34,7 @@ export class SelectTool extends Tool {
         this._mode = "replace";
         this.rect = null;
         this.rectPosition = { x: 0, y: 0 };
-        this.clickPosition = { x: 0, y: 0 };
+        this.movement.reset(cfg("editor.drag-threshold"));
         this.pointer.activate(this.editor.element, 0);
         this.editor.element.addEventListener("mouseenter", this.onMouseEnter);
         this.editor.element.addEventListener("mouseleave", this.onMouseLeave);
@@ -157,8 +157,7 @@ export class SelectTool extends Tool {
     }
 
     onPointerBegin(event) {
-        this.clickPosition.x = event.clientX;
-        this.clickPosition.y = event.clientY;
+        this.movement.click(event);
 
         if (this.rect) {
             return;
@@ -199,9 +198,7 @@ export class SelectTool extends Tool {
     }
 
     onPointerEnd(event) {
-        this.clickPosition.x = event.clientX;
-        this.clickPosition.y = event.clientY;
-
+        this.movement.click(event);
         this.selecting = false;
 
         if (this.rect) {
@@ -221,17 +218,13 @@ export class SelectTool extends Tool {
     }
 
     onPointerMove(event) {
-        if (this.selecting && !this.rect) {
-            const threshold = cfg("editor.selection-rect-threshold");
-            if (Math.abs(event.clientX - this.clickPosition.x) > threshold ||
-                Math.abs(event.clientY - this.clickPosition.y) > threshold) {
-                this.rect = new Rect(this.rectPosition.x, this.rectPosition.y, 0, 0);
+        if (this.selecting && !this.rect && this.movement.moved(event)) {
+            this.rect = new Rect(this.rectPosition.x, this.rectPosition.y, 0, 0);
 
-                if (this.revertNodes) {
-                    this.selection.replace(this.revertNodes);
-                    this.affectedNode = null;
-                    this.revertNodes = null;
-                }
+            if (this.revertNodes) {
+                this.selection.replace(this.revertNodes);
+                this.affectedNode = null;
+                this.revertNodes = null;
             }
         }
 

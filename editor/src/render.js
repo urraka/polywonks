@@ -428,7 +428,7 @@ export class Renderer {
         const subtractFill = new Color(fill, fill.a * 0.5);
 
         const editor = this.editor;
-        const selectTool = (editor.currentTool instanceof SelectTool) && editor.currentTool;
+        const selectTool = editor.tools.select.activated ? editor.tools.select : null;
         const subtracting = selectTool && selectTool.mode === "subtract";
         const subtractingNode = node => subtracting && editor.previewNodes.has(node);
 

@@ -85,3 +85,27 @@ export class Pointer extends EventEmitter {
         }
     }
 }
+
+export class MovementThreshold {
+    constructor(threshold = 0) {
+        this.reset(threshold);
+    }
+
+    reset(threshold) {
+        this.threshold = threshold;
+        this.x = 0;
+        this.y = 0;
+    }
+
+    click(event) {
+        if (event) {
+            this.x = event.clientX;
+            this.y = event.clientY;
+        }
+    }
+
+    moved(event) {
+        return Math.abs(event.clientX - this.x) > this.threshold ||
+            Math.abs(event.clientY - this.y) > this.threshold;
+    }
+}
