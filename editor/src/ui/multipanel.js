@@ -13,9 +13,12 @@ export class MultiPanelView extends Panel {
 export class PanelView extends Panel {
     constructor(title, content) {
         super("panel-view");
-        this.header = this.append(new PanelHeader(this, title));
+        this.header = null;
+        if (title !== null) {
+            this.header = this.append(new PanelHeader(this, title));
+            this.header.element.addEventListener("mousedown", e => this.onHeaderMouseDown(e));
+        }
         this.content = this.append(content);
-        this.header.element.addEventListener("mousedown", e => this.onHeaderMouseDown(e));
     }
 
     onHeaderMouseDown(event) {

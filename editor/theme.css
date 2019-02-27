@@ -112,6 +112,15 @@ input:focus, .select:focus, .select:focus-within, .select.active, .select-option
     background-color: #e8e8e8;
 }
 
+.list-view li:hover {
+    background-color: #2a2d2e;
+}
+
+.list-view li.active {
+    color: #fff;
+    background-color: #37373d;
+}
+
 .tab-view > .tab-container {
     background-color: #252526;
 }

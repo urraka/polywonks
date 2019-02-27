@@ -15,6 +15,7 @@ import { MapProperties } from "./map.properties.js";
 import { SaveDialog } from "./dialog.save.js";
 import { EditorCommand } from "./editor.command.js";
 import { Clipboard } from "./clipboard.js";
+import { iter } from "./support/iter.js";
 
 export class Editor extends ui.Panel {
     constructor(renderer, map = MapDocument.default()) {
@@ -31,41 +32,57 @@ export class Editor extends ui.Panel {
         this.previewNodes = new Set();
         this.reactiveNode = null;
         this.cursor = { x: 0, y: 0 };
-        this.saveName = map.path;
+        this.saveName = this.initialSaveName(map.path);
         this.saveIndex = 0;
         this.undone = 0;
         this.commandHistory = [];
+        this.tools = this.createTools();
+        this.sidebar = this.createSidebarPanels();
+        this.setupEvents();
+        this.currentTool = this.tools.select;
+    }
 
-        this.tools = {
+    initialSaveName(path) {
+        if (path === "") {
+            return "Untitled.polywonks";
+        } else if (path.startsWith("/library/") || Path.ext(path).toLowerCase() === ".pms") {
+            return Path.replaceExtension(Path.filename(path), ".polywonks");
+        } else {
+            return path;
+        }
+    }
+
+    createTools() {
+        return {
             current: null,
             pan: new PanTool(),
             zoom: new ZoomTool(),
             select: new SelectTool(),
             move: new MoveTool(),
         };
+    }
 
-        this.sidebarPanels = new ui.MultiPanelView();
-        this.sidebarPanels.element.classList.add("editor-sidebar-panels");
-        this.explorer = this.sidebarPanels.addPanel("Map", new MapExplorer(this));
-        this.properties = this.sidebarPanels.addPanel("Map Properties", new MapProperties(this));
+    createSidebarPanels() {
+        const sidebar = {};
+        sidebar.mainPanel = new ui.MultiPanelView();
+        sidebar.mainPanel.element.classList.add("editor-sidebar-panels");
+        sidebar.tools = sidebar.mainPanel.addPanel(null, new ui.ListView());
+        sidebar.explorer = sidebar.mainPanel.addPanel("Map", new MapExplorer(this));
+        sidebar.properties = sidebar.mainPanel.addPanel("Map Properties", new MapProperties(this));
+        ["Select", "Move"].forEach(text => sidebar.tools.content.addItem(new ui.ListViewItem(text, text.toLowerCase())));
+        return sidebar;
+    }
 
-        if (map.path === "") {
-            this.saveName = "Untitled.polywonks";
-        } else if (map.path.startsWith("/library/") || Path.ext(map.path).toLowerCase() === ".pms") {
-            this.saveName = Path.replaceExtension(Path.filename(map.path), ".polywonks");
-        }
-
+    setupEvents() {
         this.onToolStatusChange = this.onToolStatusChange.bind(this);
-
-        this.properties.content.on("nodechange", () => this.onPropertiesNodeChange());
+        this.sidebar.properties.content.on("nodechange", () => this.onPropertiesNodeChange());
+        this.sidebar.tools.content.on("itemclick", e => this.currentTool = this.tools[e.item.data]);
         this.map.on("attributechange", e => this.onMapAttrChange(e));
         this.map.on("visibilitychange", e => this.onMapVisibilityChange(e));
         this.view.on("change", () => this.onViewChange());
         this.selection.on("change", () => this.onSelectionChange());
         this.element.addEventListener("mousemove", e => this.onMouseMove(e));
         Settings.on("change", e => this.onSettingChange(e.setting));
-
-        this.currentTool = this.tools.select;
     }
 
     get modified() {
@@ -86,6 +103,11 @@ export class Editor extends ui.Panel {
 
         this.tools.current = value;
         this.tools.current.on("statuschange", this.onToolStatusChange);
+
+        const element = this.sidebar.tools.content.element.querySelector("li.active");
+        if (element) element.classList.remove("active");
+        const item = iter(this.sidebar.tools.content.items()).find(item => this.tools[item.data] === this.tools.current);
+        if (item) item.element.classList.add("active");
 
         if (activated) {
             this.tools.current.activate(this);
@@ -409,7 +431,7 @@ export class Editor extends ui.Panel {
     }
 
     onPropertiesNodeChange() {
-        this.properties.header.title = this.properties.content.node.nodeName + " properties";
+        this.sidebar.properties.header.title = this.sidebar.properties.content.node.nodeName + " properties";
     }
 
     onMapAttrChange(event) {

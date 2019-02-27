@@ -15,14 +15,14 @@ export class Sidebar extends ui.Panel {
     }
 
     onEditorClose(editor) {
-        editor.sidebarPanels.element.remove();
+        editor.sidebar.mainPanel.element.remove();
     }
 
     set editor(editor) {
         const panels = this.tools.element.querySelector(".editor-sidebar-panels.active");
         if (panels) panels.classList.remove("active");
-        if (!editor.sidebarPanels.element.parentElement) this.tools.append(editor.sidebarPanels);
-        editor.sidebarPanels.element.classList.add("active");
+        if (!editor.sidebar.mainPanel.element.parentElement) this.tools.append(editor.sidebar.mainPanel);
+        editor.sidebar.mainPanel.element.classList.add("active");
     }
 
     get activeTab() {

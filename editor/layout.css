@@ -377,6 +377,19 @@ body {
     pointer-events: all;
 }
 
+.list-view {
+    display: block;
+    overflow: auto;
+    padding: 2px 0;
+}
+
+.list-view li {
+    white-space: nowrap;
+    height: 22px;
+    line-height: 22px;
+    padding: 0 16px;
+}
+
 .property-sheet {
     overflow-y: auto;
     padding: 4px;
