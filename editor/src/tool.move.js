@@ -2,14 +2,17 @@ import { Pointer, MovementThreshold } from "./support/pointer.js";
 import { Tool } from "./tool.js";
 import { EditorCommand } from "./editor.command.js";
 import { cfg } from "./settings.js";
-import { TriangleNode, ConnectionNode, WaypointNode, PivotNode } from "./map/map.js";
+import { TriangleNode, ConnectionNode, PivotNode } from "./map/map.js";
 import { Matrix } from "./support/matrix.js";
+import { iter } from "./support/iter.js";
 
 export class MoveTool extends Tool {
     constructor() {
         super();
         this.command = null;
         this.startPoint = null;
+        this.prevPoint = null;
+        this.handlePoint = null;
         this.nodes = null;
         this.selectTool = null;
         this.movement = new MovementThreshold();
@@ -18,6 +21,7 @@ export class MoveTool extends Tool {
         this.pointer.on("move", e => this.onPointerMove(e.mouseEvent));
         this.pointer.on("end", e => this.onPointerEnd(e.mouseEvent));
         this.onSelectStatusChange = this.onSelectStatusChange.bind(this);
+        this.onSelectionChange = this.onSelectionChange.bind(this);
     }
 
     get status() {
@@ -34,17 +38,22 @@ export class MoveTool extends Tool {
     onActivate() {
         this.command = null;
         this.startPoint = null;
-        this.nodes = null;
+        this.prevPoint = null;
+        this.handlePoint = null;
+        this.nodes = this.filterSelection();
+        this.handlePoint = this.findHandlePoint();
         this.selectTool = this.editor.tools.select;
         this.movement.reset(cfg("editor.drag-threshold"));
         this.pointer.activate(this.editor.element, 0);
         this.selectTool.activate(this.editor);
         this.selectTool.on("statuschange", this.onSelectStatusChange);
+        this.editor.selection.on("change", this.onSelectionChange);
         this.emit("statuschange");
     }
 
     onDeactivate() {
         this.selectTool.off("statuschange", this.onSelectStatusChange);
+        this.editor.selection.off("change", this.onSelectionChange);
         this.selectTool.deactivate();
         this.pointer.deactivate();
         this.emit("statuschange");
@@ -69,38 +78,57 @@ export class MoveTool extends Tool {
     }
 
     onSelectionChange() {
-        this.onPointerMove();
+        this.nodes = this.filterSelection();
+        this.handlePoint = this.findHandlePoint();
+        setTimeout(() => this.onPointerMove());
+    }
+
+    findHandlePoint() {
+        if (this.nodes.size === 0) {
+            return null;
+        } else if (!this.handlePoint) {
+            const node = iter(this.nodes).first();
+            if (node instanceof PivotNode) {
+                return { x: node.x, y: node.y };
+            } else {
+                return { x: node.attr("x"), y: node.attr("y") };
+            }
+        }
+        return this.handlePoint;
+    }
+
+    filterSelection() {
+        const nodes = new Set();
+        for (const node of this.editor.selection.nodes) {
+            if (node.attributes.has("x") && node.attributes.has("y")) {
+                nodes.add(node);
+            } else if (node instanceof TriangleNode) {
+                for (const vertex of node.children("vertex")) {
+                    nodes.add(vertex);
+                }
+            } else if (node instanceof ConnectionNode) {
+                nodes.add(node.parentNode);
+                nodes.add(node.attr("waypoint"));
+            } else if ((node instanceof PivotNode) && this.editor.selection.nodes.size === 1) {
+                nodes.add(node);
+            }
+        }
+        return nodes;
     }
 
     onPointerBegin(event) {
         this.movement.click(event);
-
         if (!this.selectTool.activated) {
             this.startPoint = {...this.editor.cursor};
-            this.nodes = new Set();
-
-            for (const node of this.editor.selection.nodes) {
-                if (node.attributes.has("x") && node.attributes.has("y")) {
-                    this.nodes.add(node);
-                } else if (node instanceof TriangleNode) {
-                    for (const vertex of node.children("vertex")) {
-                        this.nodes.add(vertex);
-                    }
-                } else if (node instanceof ConnectionNode) {
-                    this.nodes.add(node.parentNode);
-                    this.nodes.add(node.attr("waypoint"));
-                } else if ((node instanceof PivotNode) && this.editor.selection.nodes.size === 1) {
-                    this.nodes.add(node);
-                }
-            }
+            this.prevPoint = this.startPoint;
         }
     }
 
     onPointerEnd(event) {
         this.movement.click(event);
         this.startPoint = null;
+        this.prevPoint = null;
         this.command = null;
-        this.nodes = null;
         setTimeout(() => this.onPointerMove(event));
     }
 
@@ -117,9 +145,14 @@ export class MoveTool extends Tool {
         } else if (this.command || this.movement.moved(event)) {
             if (this.command && !this.editor.undo(this.command)) {
                 this.startPoint = {...this.editor.cursor};
+                this.prevPoint = this.startPoint;
             }
 
             this.command = new EditorCommand(this.editor);
+
+            this.handlePoint.x += this.editor.cursor.x - this.prevPoint.x;
+            this.handlePoint.y += this.editor.cursor.y - this.prevPoint.y;
+            this.prevPoint = {...this.editor.cursor};
 
             const offset = {
                 x: this.editor.cursor.x - this.startPoint.x,

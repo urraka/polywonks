@@ -1,13 +1,11 @@
 import * as Gfx from "./gfx/gfx.js";
 import { Color } from "./support/color.js";
-import { Matrix } from "./support/matrix.js";
-import { processImage, gradientCircle } from "./support/image.js";
+import { processImage, gradientCircle, rectangle } from "./support/image.js";
 import { dashToCamel } from "./support/format.js";
 import { Rect } from "./support/rect.js";
 import { SpawnTeam } from "./pms/pms.js";
 import { File } from "./file.js";
 import { cfg, Settings } from "./settings.js";
-import { SelectTool } from "./tool.select.js";
 
 import {
     LayerNode,
@@ -22,6 +20,7 @@ import {
     WaypointNode,
     ConnectionNode,
 } from "./map/map.js";
+import { mod } from "./support/math.js";
 
 export class Renderer {
     constructor() {
@@ -29,8 +28,6 @@ export class Renderer {
         this.context.canvas.classList.add("editor-canvas");
         this.batch = this.context.createBatch();
         this.textures = new WeakMap();
-        this.colliderTexture = this.context.createTexture(512, 512, gradientCircle());
-        this.colliderTexture.generateMipmaps();
         this.icons = {};
         this.iconsInfo = {};
         this.animFrameId = null;
@@ -38,10 +35,9 @@ export class Renderer {
         this.theme = null;
         this._editor = null;
         this.onEditorRedraw = () => this.redraw();
+        this.loadIcons();
 
-        for (const spawnType of SpawnTeam.names()) {
-            this.loadIcon("spawn-" + spawnType);
-        }
+        Settings.on("change", e => this.onSettingChange(e.setting));
     }
 
     get editor() {
@@ -73,21 +69,55 @@ export class Renderer {
         }
     }
 
-    loadIcon(name) {
+    loadIcons() {
+        this.loadColliderIcon();
+        this.loadWaypointsIcon();
+        this.loadVertexIcon();
+        for (const spawnType of SpawnTeam.names()) {
+            this.loadImageIcon("spawn-" + spawnType);
+        }
+    }
+
+    loadColliderIcon() {
+        this.icons["collider"] = this.context.createTexture(512, 512, gradientCircle());
+        this.icons["collider"].generateMipmaps();
+    }
+
+    loadWaypointsIcon() {
+        const size = cfg("editor.waypoint-size");
+        const fn = rectangle(1, new Color("#ffffff.3f"), new Color("#fff"));
+        this.icons["waypoints"] = this.context.createTexture(size, size, fn);
+        this.icons["waypoints"].setNearestFilter(true);
+    }
+
+    loadVertexIcon() {
+        const size = cfg("editor.vertex-size");
+        const fn = rectangle(1, new Color("#fff"), new Color("#000"));
+        this.icons["vertex"] = this.context.createTexture(size, size, fn);
+        this.icons["vertex"].setNearestFilter(true);
+    }
+
+    loadImageIcon(name) {
         const image = new Image();
         image.src = "res/" + name + ".png";
         image.addEventListener("load", () => {
             const imageData = processImage(image, { premultiply: true });
             this.icons[name] = this.context.createTexture(imageData);
             this.icons[name].setNearestFilter(true);
-            this.redraw();
-
             this.iconsInfo[name] = {
                 width: imageData.width,
                 height: imageData.height,
                 radius: imageData.data.length >= 3 && imageData.data[3] < 255 ? imageData.width / 2 : 0
             };
+            this.redraw();
         });
+    }
+
+    onSettingChange(setting) {
+        switch (setting) {
+            case "editor.vertex-size": this.loadVertexIcon(); break;
+            case "editor.waypoint-size": this.loadWaypointsIcon(); break;
+        }
     }
 
     disposeNodeResources(node) {
@@ -180,6 +210,7 @@ export class Renderer {
 
         this.drawNode(this.editor.map, node => (node instanceof WaypointNode) || (node instanceof ConnectionNode));
         this.drawSelection();
+        this.drawGuides();
         this.context.clear(this.theme.background);
         this.context.draw(this.batch, this.editor.view.transform);
     }
@@ -284,6 +315,13 @@ export class Renderer {
         ];
     }
 
+    pixelRectVertices(cx, cy, w, h, color) {
+        w /= this.editor.view.scale;
+        h /= this.editor.view.scale;
+        const p = this.editor.view.mapToPixelGrid(cx - w / 2, cy - h / 2);
+        return this.rectVertices(p.x, p.y, w, h, color);
+    }
+
     nodeVertices(node, color) {
         switch (node.constructor) {
             case TriangleNode: {
@@ -301,11 +339,7 @@ export class Renderer {
 
             case SpawnNode: {
                 const info = this.iconsInfo["spawn-" + node.attr("type")];
-                if (!info) return null;
-                const w = info.width / this.editor.view.scale;
-                const h = info.height / this.editor.view.scale;
-                const { x, y } = this.editor.view.mapToPixelGrid(node.attr("x") - w / 2, node.attr("y") - w / 2);
-                return this.rectVertices(x, y, w, h, color);
+                return info && this.pixelRectVertices(node.attr("x"), node.attr("y"), info.width, info.height, color);
             }
 
             case ColliderNode: {
@@ -314,9 +348,8 @@ export class Renderer {
             }
 
             case WaypointNode: {
-                const size = cfg("editor.waypoint-size") / this.editor.view.scale;
-                const { x, y } = this.editor.view.mapToPixelGrid(node.attr("x") - size / 2, node.attr("y") - size / 2);
-                return this.rectVertices(x, y, size, size, color);
+                const size = cfg("editor.waypoint-size");
+                return this.pixelRectVertices(node.attr("x"), node.attr("y"), size, size, color);
             }
 
             case ConnectionNode: {
@@ -354,50 +387,29 @@ export class Renderer {
                 break;
             }
 
-            case SceneryNode: {
-                this.batch.addQuad(this.texture(node.attr("image")), this.nodeVertices(node, null));
+            case SceneryNode:
+                this.drawSprite(node, this.texture(node.attr("image")), null);
                 break;
-            }
 
-            case ColliderNode: {
-                const r = node.attr("radius");
-                const sprite = new Gfx.Sprite(this.colliderTexture, 2 * r, 2 * r, 0, 1, 0, 1);
-                const transform = Matrix.translate(node.attr("x") - r, node.attr("y") - r);
-                this.batch.addSprite(sprite, new Color(255, 0, 0), transform);
+            case ColliderNode:
+                this.batch.addQuad(this.icons["collider"], this.nodeVertices(node, new Color(255, 0, 0)));
                 break;
-            }
 
-            case SpawnNode: {
-                const texture = this.icons["spawn-" + node.attr("type")];
-                const vertices = this.nodeVertices(node, new Color(255, 255, 255));
-                if (texture && vertices) {
-                    this.batch.addQuad(texture, vertices);
-                }
+            case SpawnNode:
+                this.drawSprite(node, this.icons["spawn-" + node.attr("type")], new Color(255, 255, 255));
                 break;
-            }
 
-            case WaypointNode: {
-                const size = cfg("editor.waypoint-size") / this.editor.view.scale;
-                const p = this.editor.view.mapToPixelGrid(node.attr("x") - size / 2, node.attr("y") - size / 2);
-                const rect = new Rect(p.x, p.y, size, size);
-
-                const fill = new Color(this.theme.waypointColor);
-                fill.a = fill.a * 0.25;
-
-                this.drawRect(rect, fill, this.theme.waypointColor);
+            case WaypointNode:
+                this.drawSprite(node, this.icons["waypoints"], this.theme.waypointColor);
                 break;
-            }
 
             case ConnectionNode: {
                 const a = node.parentNode;
                 const b = node.attr("waypoint");
-                const color = this.theme.waypointColor;
-
                 this.batch.add(Gfx.Lines, null, [
-                    new Gfx.Vertex(a.attr("x"), a.attr("y"), 0, 0, color),
-                    new Gfx.Vertex(b.attr("x"), b.attr("y"), 0, 0, color)
+                    new Gfx.Vertex(a.attr("x"), a.attr("y"), 0, 0, this.theme.waypointColor),
+                    new Gfx.Vertex(b.attr("x"), b.attr("y"), 0, 0, this.theme.waypointColor)
                 ]);
-
                 break;
             }
         }
@@ -407,6 +419,11 @@ export class Renderer {
                 this.drawNode(childNode, filter);
             }
         }
+    }
+
+    drawSprite(node, texture, color) {
+        const vertices = this.nodeVertices(node, color);
+        if (texture && vertices) this.batch.addQuad(texture, vertices);
     }
 
     drawWireframe() {
@@ -420,127 +437,159 @@ export class Renderer {
     }
 
     drawSelection() {
-        const fill = this.theme.selectionFill;
-        const selectedBorder = this.theme.selectionBorder;
-        const previewBorder = this.theme.selectionPreviewBorder;
-        const reactiveBorder = this.theme.selectionReactiveBorder;
-        const subtractBorder = this.theme.selectionSubtractBorder;
-        const subtractFill = new Color(fill, fill.a * 0.5);
+        const palette = {
+            overlay: {
+                selected: {
+                    fill: this.theme.selectionFill,
+                    border: this.theme.selectionBorder
+                },
+                subtracting: {
+                    fill: new Color(this.theme.selectionFill, this.theme.selectionFill.a * 0.5),
+                    border: this.theme.selectionSubtractBorder
+                },
+                preview: {
+                    fill: null,
+                    border: this.theme.selectionPreviewBorder
+                },
+                reactive: {
+                    fill: null,
+                    border: this.theme.selectionReactiveBorder
+                }
+            },
+            vertex: {
+                selected: this.theme.vertexFill,
+                subtracting: this.theme.selectionSubtractBorder,
+                preview: new Color(this.theme.vertexFill, this.theme.vertexFill.a * 0.5),
+                reactive: new Color(this.theme.vertexFill, this.theme.vertexFill.a * 0.5)
+            }
+        };
 
-        const editor = this.editor;
-        const selectTool = editor.tools.select.activated ? editor.tools.select : null;
-        const subtracting = selectTool && selectTool.mode === "subtract";
-        const subtractingNode = node => subtracting && editor.previewNodes.has(node);
+        this.drawSelectionOverlay(palette.overlay);
+        this.drawSelectionVertices(palette.vertex);
+        this.drawSelectionRect();
+    }
 
+    subtractingEnabled() {
+        const sel = this.editor.tools.select;
+        return sel.activated && sel.mode === "subtract";
+    }
+
+    subtractingNode(node) {
+        return this.subtractingEnabled() && this.editor.previewNodes.has(node);
+    }
+
+    chooseSelectionColor(node, palette) {
+        if (this.editor.selection.has(node) || ((node instanceof PivotNode) && this.editor.selection.has(node.parentNode))) {
+            if (!this.subtractingNode(node)) {
+                return palette.selected;
+            } else {
+                return palette.subtracting;
+            }
+        } else if (!this.subtractingEnabled()) {
+            if (node === this.editor.reactiveNode) {
+                return palette.reactive;
+            } else {
+                return palette.preview;
+            }
+        }
+    }
+
+    drawSelectionOverlay(palette) {
+        let color;
+        const idx = [0, 1, 2, 2, 3, 0];
         for (const node of this.selectionNodes) {
-            const vertices = this.nodeVertices(node, fill);
+            if (color = this.chooseSelectionColor(node, palette)) {
+                const vtx = this.nodeVertices(node, color.fill || color.border);
+                const vtxFill = vtx && (vtx.length === 3 ? vtx : vtx.length === 4 ? idx.map(i => vtx[i]) : null);
+                if (vtxFill && color.fill) this.batch.add(Gfx.Triangles, null, vtxFill);
+                if (vtx && color.border) this.drawLineLoop(vtx, color.border);
+            }
+        }
+    }
 
-            if (vertices) {
-                const verticesFill = vertices.length === 3 ? vertices :
-                    vertices.length === 4 ? [0, 1, 2, 2, 3, 0].map(i => vertices[i]) : null;
-
-                if (editor.selection.has(node)) {
-                    if (!subtractingNode(node)) {
-                        if (verticesFill) this.batch.add(Gfx.Triangles, null, verticesFill);
-                        this.drawLineLoop(vertices, selectedBorder);
-                    } else {
-                        vertices.forEach(v => v.color.set(subtractFill));
-                        if (verticesFill) this.batch.add(Gfx.Triangles, null, verticesFill);
-                        this.drawLineLoop(vertices, subtractBorder);
+    drawSelectionVertices(palette) {
+        let color;
+        const types = [VertexNode, SceneryNode, PivotNode];
+        for (const node of this.selectionNodes) {
+            if (types.includes(node.constructor) && (color = this.chooseSelectionColor(node, palette))) {
+                switch (node.constructor) {
+                    case VertexNode: {
+                        if (color === palette.selected) {
+                            const prev = node.previousSibling || (node.parentNode && node.parentNode.lastChild);
+                            const next = node.nextSibling || (node.parentNode && node.parentNode.firstChild);
+                            if (prev && prev !== node) this.drawVertexLine(node, prev);
+                            if (next && next !== node && next !== prev) this.drawVertexLine(node, next);
+                        }
+                        this.drawVertex(node.attr("x"), node.attr("y"), color);
+                        break;
                     }
-                } else if (!subtracting) {
-                    if (node === editor.reactiveNode) {
-                        this.drawLineLoop(vertices, reactiveBorder);
-                    } else {
-                        this.drawLineLoop(vertices, previewBorder);
+
+                    case SceneryNode: {
+                        const pivot = node.firstChild;
+                        if (pivot && this.editor.selection.has(node) && !this.subtractingNode(node) &&
+                            !this.editor.selection.has(pivot) && !this.editor.previewNodes.has(pivot)
+                        ) {
+                            this.drawVertex(pivot.x, pivot.y, color);
+                        }
+                        break;
+                    }
+
+                    case PivotNode: {
+                        this.drawVertex(node.x, node.y, color);
+                        break;
                     }
                 }
             }
         }
+    }
 
-        const vertexSize = cfg("editor.vertex-size");
-        const vertexFillDim = new Color(this.theme.vertexFill, this.theme.vertexFill.a * 0.5);
-        const vertexBorderDim = new Color(this.theme.vertexBorder, this.theme.vertexBorder.a * 0.5);
-
-        for (const node of this.selectionNodes) {
-            if (node instanceof VertexNode) {
-                let size = vertexSize / this.editor.view.scale;
-                let p = this.editor.view.mapToPixelGrid(node.attr("x") - size / 2, node.attr("y") - size / 2);
-                const rect = new Rect(p.x, p.y, size, size);
-
-                if (editor.selection.has(node)) {
-                    if (!subtractingNode(node)) {
-                        const prev = node.previousSibling || (node.parentNode && node.parentNode.lastChild);
-                        const next = node.nextSibling || (node.parentNode && node.parentNode.firstChild);
-
-                        if (prev && prev !== node) {
-                            const dx = prev.attr("x") - node.attr("x");
-                            const dy = prev.attr("y") - node.attr("y");
-                            const length = Math.hypot(dx, dy);
-                            const targetX = node.attr("x") + (length > 0 ? Math.min(length, 2 * vertexSize) * (dx / length) : 0);
-                            const targetY = node.attr("y") + (length > 0 ? Math.min(length, 2 * vertexSize) * (dy / length) : 0);
-                            this.batch.add(Gfx.Lines, null, [
-                                new Gfx.Vertex(node.attr("x"), node.attr("y"), 0, 0, this.theme.vertexBorder),
-                                new Gfx.Vertex(targetX, targetY, 0, 0, new Color(this.theme.vertexBorder, 0))
-                            ]);
-                        }
-
-                        if (next && next !== node && next !== prev) {
-                            const dx = next.attr("x") - node.attr("x");
-                            const dy = next.attr("y") - node.attr("y");
-                            const length = Math.hypot(dx, dy);
-                            const targetX = node.attr("x") + (length > 0 ? Math.min(length, 2 * vertexSize) * (dx / length) : 0);
-                            const targetY = node.attr("y") + (length > 0 ? Math.min(length, 2 * vertexSize) * (dy / length) : 0);
-                            this.batch.add(Gfx.Lines, null, [
-                                new Gfx.Vertex(node.attr("x"), node.attr("y"), 0, 0, this.theme.vertexBorder),
-                                new Gfx.Vertex(targetX, targetY, 0, 0, new Color(this.theme.vertexBorder, 0))
-                            ]);
-                        }
-
-                        this.drawRect(rect, this.theme.vertexFill, this.theme.vertexBorder);
-                    } else {
-                        this.drawRect(rect, subtractBorder, this.theme.vertexBorder);
-                    }
-                } else if (!subtracting) {
-                    this.drawRect(rect, vertexFillDim, vertexBorderDim);
-                }
-            } else if (node instanceof SceneryNode) {
-                const pivot = node.firstChild;
-                if (pivot && editor.selection.has(node) && !subtractingNode(node) &&
-                    !editor.selection.has(pivot) && !editor.previewNodes.has(pivot)
-                ) {
-                    if (editor.selection.has(node)) {
-                        this.drawPivot(pivot, this.theme.vertexFill, this.theme.vertexBorder);
-                    } else {
-                        this.drawPivot(pivot, vertexFillDim, vertexBorderDim);
-                    }
-                }
-            } else if (node instanceof PivotNode) {
-                if (editor.selection.has(node) || editor.selection.has(node.parentNode)) {
-                    if (subtractingNode(node)) {
-                        this.drawPivot(node, subtractBorder, this.theme.vertexBorder);
-                    } else {
-                        this.drawPivot(node, this.theme.vertexFill, this.theme.vertexBorder);
-                    }
-                } else {
-                    this.drawPivot(node, vertexFillDim, vertexBorderDim);
-                }
-            }
-        }
-
-        if (selectTool && selectTool.rect) {
-            const p1 = this.editor.view.mapToPixelGrid(selectTool.rect.x0, selectTool.rect.y0);
-            const p2 = this.editor.view.mapToPixelGrid(selectTool.rect.x1, selectTool.rect.y1);
+    drawSelectionRect() {
+        const sel = this.editor.tools.select;
+        if (sel.activated && sel.rect) {
+            const p1 = this.editor.view.mapToPixelGrid(sel.rect.x0, sel.rect.y0);
+            const p2 = this.editor.view.mapToPixelGrid(sel.rect.x1, sel.rect.y1);
             const rc = new Rect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
             this.drawRect(rc, this.theme.selectionRectFill, this.theme.selectionRectBorder);
         }
     }
 
-    drawPivot(node, fill, border) {
-        const size = cfg("editor.vertex-size") / this.editor.view.scale;
-        const { x, y } = this.editor.view.mapToPixelGrid(node.x - size / 2, node.y - size / 2);
-        const rect = new Rect(x, y, size, size);
-        this.drawRect(rect, fill, border);
+    drawVertex(x, y, color) {
+        const size = cfg("editor.vertex-size");
+        const vertices = this.pixelRectVertices(x, y, size, size, color);
+        this.batch.addQuad(this.icons["vertex"], vertices);
+    }
+
+    drawVertexLine(a, b) {
+        const dx = b.attr("x") - a.attr("x");
+        const dy = b.attr("y") - a.attr("y");
+        const length = Math.hypot(dx, dy);
+        const size = cfg("editor.vertex-size");
+        const targetX = a.attr("x") + (length > 0 ? Math.min(length, 2 * size) * (dx / length) : 0);
+        const targetY = a.attr("y") + (length > 0 ? Math.min(length, 2 * size) * (dy / length) : 0);
+        this.batch.add(Gfx.Lines, null, [
+            new Gfx.Vertex(a.attr("x"), a.attr("y"), 0, 0, this.theme.vertexBorder),
+            new Gfx.Vertex(targetX, targetY, 0, 0, new Color(this.theme.vertexBorder, 0))
+        ]);
+    }
+
+    drawGuides() {
+        const view = this.editor.view;
+        const moveTool = this.editor.tools.move;
+
+        if (moveTool.activated && moveTool.handlePoint) {
+            const color = this.theme.guidesColor;
+
+            const a = view.canvasToMap(0, 0);
+            const b = { x: a.x + view.width, y: a.y + view.height }
+            const p = moveTool.handlePoint;
+
+            this.batch.add(Gfx.Lines, null, [
+                new Gfx.Vertex(p.x, a.y, 0, 0, color),
+                new Gfx.Vertex(p.x, b.y, 0, 0, color),
+                new Gfx.Vertex(a.x, p.y, 0, 0, color),
+                new Gfx.Vertex(b.x, p.y, 0, 0, color),
+            ]);
+        }
     }
 
     drawRect(rect, fill, border) {
@@ -559,10 +608,31 @@ export class Renderer {
 
     drawLineLoop(vertices, color) {
         if (color) {
-            vertices.forEach(v => v.color.set(color));
+            vertices.forEach(vertex => vertex.color.set(color));
         }
-        for (let i = vertices.length - 1, j = 0; j < vertices.length - +(vertices.length < 3); i = j++) {
-            this.batch.add(Gfx.Lines, null, [vertices[i], vertices[j]]);
+
+        if (vertices.length === 2) {
+            this.batch.add(Gfx.Lines, null, vertices);
+        } else {
+            const n = vertices.length;
+            const halfPixel = 0.5 / this.editor.view.scale;
+
+            vertices.forEach((vertex, i) => {
+                const prev = vertices[mod(i - 1, n)];
+                const next = vertices[mod(i + 1, n)];
+                const a = { x: prev.x - vertex.x, y: prev.y - vertex.y };
+                const b = { x: next.x - vertex.x, y: next.y - vertex.y };
+                const alen = Math.hypot(a.x, a.y);
+                const blen = Math.hypot(b.x, b.y);
+                const c = { x: 0.5 * (a.x / alen + b.x / blen), y: 0.5 * (a.y / alen + b.y / blen) };
+                const clen = Math.hypot(c.x, c.y);
+                vertex.x += halfPixel * c.x / clen;
+                vertex.y += halfPixel * c.y / clen;
+            });
+
+            for (let i = vertices.length - 1, j = 0; j < n; i = j++) {
+                this.batch.add(Gfx.Lines, null, [vertices[i], vertices[j]]);
+            }
         }
     }
 }

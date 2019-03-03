@@ -84,3 +84,18 @@ export function gradientCircle() {
         color.set(a, a, a, a); // this is white premultiplied with alpha
     };
 }
+
+export function rectangle(borderWidth, fillColor, borderColor) {
+    return function(color, x, y, w, h) {
+        if (x < borderWidth || (w - x) <= borderWidth || y < borderWidth || (h - y) <= borderWidth) {
+            color.set(borderColor);
+        } else {
+            color.set(fillColor);
+        }
+
+        const alpha = color.a / 255;
+        color.r = Math.round(color.r * alpha);
+        color.g = Math.round(color.g * alpha);
+        color.b = Math.round(color.b * alpha);
+    };
+}
