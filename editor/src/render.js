@@ -316,10 +316,11 @@ export class Renderer {
     }
 
     pixelRectVertices(cx, cy, w, h, color) {
-        w /= this.editor.view.scale;
-        h /= this.editor.view.scale;
-        const p = this.editor.view.mapToPixelGrid(cx - w / 2, cy - h / 2);
-        return this.rectVertices(p.x, p.y, w, h, color);
+        const s = this.editor.view.scale;
+        const dx = Math.floor(0.5 * w) / s;
+        const dy = Math.floor(0.5 * h) / s;
+        const p = this.editor.view.mapToPixelGrid(cx, cy);
+        return this.rectVertices(p.x - dx, p.y - dy, w / s, h / s, color);
     }
 
     nodeVertices(node, color) {
@@ -575,13 +576,17 @@ export class Renderer {
     drawGuides() {
         const view = this.editor.view;
         const moveTool = this.editor.tools.move;
+        const pos = moveTool.handlePosition;
 
-        if (moveTool.activated && moveTool.handlePosition) {
+        if (moveTool.activated && pos) {
             const color = moveTool.handleActive ? this.theme.guidesActiveColor : this.theme.guidesColor;
 
             const a = view.canvasToMap(0, 0);
             const b = { x: a.x + view.width, y: a.y + view.height }
-            const p = moveTool.handlePosition;
+            const p = this.editor.view.mapToPixelGrid(pos.x, pos.y);
+            const halfPixel = 0.5 / this.editor.view.scale;
+            p.x += halfPixel;
+            p.y += halfPixel;
 
             this.batch.add(Gfx.Lines, null, [
                 new Gfx.Vertex(p.x, a.y, 0, 0, color),
