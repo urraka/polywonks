@@ -17,6 +17,14 @@ export class ColliderNode extends Node {
         return "collider";
     }
 
+    get x() {
+        return this.attr("x");
+    }
+
+    get y() {
+        return this.attr("y");
+    }
+
     static fromPMS(collider) {
         const node = new ColliderNode();
         node.attr("x", collider.x);

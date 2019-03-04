@@ -31,6 +31,7 @@ const DefaultSettings = {
     "theme.vertex-fill": new Color("#fff"),
     "theme.vertex-border": new Color("#000"),
     "theme.guides-color": new Color("#8080ff"),
+    "theme.guides-active-color": new Color("#f00"),
     "editor.grid-size": 100,
     "editor.grid-divisions": 5,
     "editor.grid-limit": 10,

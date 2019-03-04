@@ -16,6 +16,14 @@ export class SpawnNode extends Node {
         return "spawn";
     }
 
+    get x() {
+        return this.attr("x");
+    }
+
+    get y() {
+        return this.attr("y");
+    }
+
     static fromPMS(spawn) {
         const node = new SpawnNode();
         node.attr("x", spawn.x);

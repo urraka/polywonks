@@ -105,7 +105,7 @@ export class MovementThreshold {
     }
 
     moved(event) {
-        return Math.abs(event.clientX - this.x) > this.threshold ||
-            Math.abs(event.clientY - this.y) > this.threshold;
+        return event && (Math.abs(event.clientX - this.x) > this.threshold ||
+            Math.abs(event.clientY - this.y) > this.threshold);
     }
 }

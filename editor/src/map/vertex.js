@@ -19,6 +19,14 @@ export class VertexNode extends Node {
         return "vertex";
     }
 
+    get x() {
+        return this.attr("x");
+    }
+
+    get y() {
+        return this.attr("y");
+    }
+
     static fromPMS(vertex) {
         const node = new VertexNode();
         node.attr("x", vertex.x);

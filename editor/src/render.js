@@ -576,12 +576,12 @@ export class Renderer {
         const view = this.editor.view;
         const moveTool = this.editor.tools.move;
 
-        if (moveTool.activated && moveTool.handlePoint) {
-            const color = this.theme.guidesColor;
+        if (moveTool.activated && moveTool.handlePosition) {
+            const color = moveTool.handleActive ? this.theme.guidesActiveColor : this.theme.guidesColor;
 
             const a = view.canvasToMap(0, 0);
             const b = { x: a.x + view.width, y: a.y + view.height }
-            const p = moveTool.handlePoint;
+            const p = moveTool.handlePosition;
 
             this.batch.add(Gfx.Lines, null, [
                 new Gfx.Vertex(p.x, a.y, 0, 0, color),

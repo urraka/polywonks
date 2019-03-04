@@ -14,7 +14,7 @@ class Iter {
     }
 
     filter(fn) {
-        return iter(filter(iterable, fn));
+        return iter(filter(this.iterable, fn));
     }
 
     each(fn) {
@@ -54,6 +54,6 @@ class Iter {
     }
 
     [Symbol.iterator]() {
-        return this.iterable[Symbol.iterator];
+        return this.iterable[Symbol.iterator]();
     }
 }

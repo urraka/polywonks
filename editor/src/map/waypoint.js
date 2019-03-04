@@ -24,6 +24,14 @@ export class WaypointNode extends Node {
         return "waypoint";
     }
 
+    get x() {
+        return this.attr("x");
+    }
+
+    get y() {
+        return this.attr("y");
+    }
+
     fromPMS(waypoint, waypointNodes) {
         this.attr("x", waypoint.x);
         this.attr("y", waypoint.y);
