@@ -10,17 +10,10 @@ export class PivotNode extends Node {
         this.attributes.set("offsetY", new Attribute("float", 0));
     }
 
-    get nodeName() {
-        return "pivot";
-    }
-
-    get x() {
-        return this.parentNode.attr("x");
-    }
-
-    get y() {
-        return this.parentNode.attr("y");
-    }
+    get nodeName() { return "pivot"; }
+    get hasPosition() { return true; }
+    get x() { return this.parentNode.attr("x"); }
+    get y() { return this.parentNode.attr("y"); }
 
     intersectsPoint(x, y, scale) {
         const d = 0.5 * cfg("editor.vertex-size") / scale;

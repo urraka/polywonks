@@ -21,17 +21,10 @@ export class SceneryNode extends Node {
         this.attributes.set("color", new Attribute("color", new Color(255, 255, 255)));
     }
 
-    get nodeName() {
-        return "scenery";
-    }
-
-    get x() {
-        return this.attr("x");
-    }
-
-    get y() {
-        return this.attr("y");
-    }
+    get nodeName() { return "scenery"; }
+    get hasPosition() { return true; }
+    get x() { return this.attr("x"); }
+    get y() { return this.attr("y"); }
 
     get pivotX() {
         if (this.firstChild) {

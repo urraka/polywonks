@@ -579,7 +579,8 @@ export class Renderer {
         const pos = moveTool.handlePosition;
 
         if (moveTool.activated && pos) {
-            const color = moveTool.handleActive ? this.theme.guidesActiveColor : this.theme.guidesColor;
+            const color = moveTool.snapResult ? this.theme.guidesSnap :
+                moveTool.handleActive ? this.theme.guidesActive : this.theme.guides;
 
             const a = view.canvasToMap(0, 0);
             const b = { x: a.x + view.width, y: a.y + view.height }

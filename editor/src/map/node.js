@@ -247,4 +247,8 @@ export class Node extends EventEmitter {
     get visible() {
         return true;
     }
+
+    get hasPosition() {
+        return false;
+    }
 }

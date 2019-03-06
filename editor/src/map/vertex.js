@@ -15,17 +15,10 @@ export class VertexNode extends Node {
         this.attributes.set("color", new Attribute("color", new Color(255, 255, 255, 255)));
     }
 
-    get nodeName() {
-        return "vertex";
-    }
-
-    get x() {
-        return this.attr("x");
-    }
-
-    get y() {
-        return this.attr("y");
-    }
+    get nodeName() { return "vertex"; }
+    get hasPosition() { return true; }
+    get x() { return this.attr("x"); }
+    get y() { return this.attr("y"); }
 
     static fromPMS(vertex) {
         const node = new VertexNode();

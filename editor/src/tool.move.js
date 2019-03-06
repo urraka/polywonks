@@ -2,9 +2,10 @@ import { Pointer, MovementThreshold } from "./support/pointer.js";
 import { Tool } from "./tool.js";
 import { EditorCommand } from "./editor.command.js";
 import { cfg } from "./settings.js";
-import { TriangleNode, ConnectionNode, PivotNode, VertexNode } from "./map/map.js";
+import { TriangleNode, ConnectionNode, PivotNode, VertexNode, SceneryNode, WaypointNode, SpawnNode, ColliderNode } from "./map/map.js";
 import { Matrix } from "./support/matrix.js";
 import { iter } from "./support/iter.js";
+import { distance2 } from "./support/geometry.js";
 
 export class MoveTool extends Tool {
     constructor() {
@@ -16,6 +17,7 @@ export class MoveTool extends Tool {
         this.handleNode = null;
         this.handleOffset = { x: 0, y: 0 };
         this.handleActive = false;
+        this.snapResult = null;
         this.selectTool = null;
         this.movement = new MovementThreshold();
         this.pointer = new Pointer();
@@ -49,9 +51,10 @@ export class MoveTool extends Tool {
         this.command = null;
         this.startPoint = null;
         this.dragging = false;
-        this.handleNode = this.findHandleNode();
+        this.handleNode = iter(this.nodes).first();
         this.handleOffset = { x: 0, y: 0 };
         this.handleActive = false;
+        this.snapResult = null;
         this.selectTool = this.editor.tools.select;
         this.movement.reset(cfg("editor.drag-threshold"));
         this.pointer.activate(this.editor.element, 0);
@@ -89,24 +92,28 @@ export class MoveTool extends Tool {
 
     onSelectionChange() {
         this.nodes = this.filterSelection();
-        this.handleNode = this.findHandleNode();
-        this.handleOffset = { x: 0, y: 0 };
-        setTimeout(() => this.onPointerMove());
-    }
+        this.handleActive = false;
 
-    findHandleNode() {
-        if (this.nodes.size === 0) {
-            return null;
-        } else if (!this.handleNode) {
-            return iter(this.nodes).first();
+        if (!this.nodes.has(this.handleNode)) {
+            const p = this.handlePosition;
+            this.handleNode = iter(this.nodes).first();
+
+            if (p && this.handleNode) {
+                this.handleOffset.x = p.x - this.handleNode.x;
+                this.handleOffset.y = p.y - this.handleNode.y;
+            } else {
+                this.handleOffset.x = 0;
+                this.handleOffset.y = 0;
+            }
         }
-        return this.handleNode;
+
+        setTimeout(() => this.onPointerMove());
     }
 
     filterSelection() {
         const nodes = new Set();
         for (const node of this.editor.selection.nodes) {
-            if (node.attributes.has("x") && node.attributes.has("y")) {
+            if (node.hasPosition && !(node instanceof PivotNode)) {
                 nodes.add(node);
             } else if (node instanceof TriangleNode) {
                 for (const vertex of node.children("vertex")) {
@@ -134,6 +141,7 @@ export class MoveTool extends Tool {
         this.startPoint = null;
         this.dragging = false;
         this.command = null;
+        this.snapResult = null;
         setTimeout(() => this.onPointerMove(event));
     }
 
@@ -145,41 +153,9 @@ export class MoveTool extends Tool {
 
             if (this.dragging) {
                 if (this.handleActive) {
-                    this.handleOffset.x += this.editor.cursor.x - this.startPoint.x;
-                    this.handleOffset.y += this.editor.cursor.y - this.startPoint.y;
-                    this.startPoint = {...this.editor.cursor};
-                    this.editor.redraw();
+                    this.moveHandle();
                 } else {
-                    if (this.command && !this.editor.undo(this.command)) {
-                        this.startPoint = {...this.editor.cursor};
-                    }
-
-                    this.command = new EditorCommand(this.editor);
-
-                    const offset = {
-                        x: this.editor.cursor.x - this.startPoint.x,
-                        y: this.editor.cursor.y - this.startPoint.y
-                    };
-
-                    for (const node of this.nodes) {
-                        if (node instanceof PivotNode) {
-                            const scenery = node.parentNode;
-                            const sx = scenery.attr("width") >= 0 ? 1 : -1;
-                            const sy = scenery.attr("height") >= 0 ? 1 : -1;
-                            const pivotOffset = Matrix.scale(sx, sy)
-                                .multiply(Matrix.rotate(-scenery.attr("rotation")))
-                                .multiply(offset);
-                            this.command.attr(node, "offsetX", node.attr("offsetX") + pivotOffset.x);
-                            this.command.attr(node, "offsetY", node.attr("offsetY") + pivotOffset.y);
-                            this.command.attr(scenery, "x", scenery.attr("x") + offset.x);
-                            this.command.attr(scenery, "y", scenery.attr("y") + offset.y);
-                        } else {
-                            this.command.attr(node, "x", node.attr("x") + offset.x);
-                            this.command.attr(node, "y", node.attr("y") + offset.y);
-                        }
-                    }
-
-                    this.editor.do(this.command);
+                    this.moveNodes();
                 }
             }
         } else {
@@ -188,7 +164,7 @@ export class MoveTool extends Tool {
             const cursorNodes = this.cursorNodes();
 
             if (this.handleNode) {
-                const types = [PivotNode, VertexNode];
+                const types = [PivotNode, VertexNode, WaypointNode, SpawnNode, ColliderNode];
                 this.handleActive = this.cursorIntersectsHandle() && !cursorNodes.some(n => types.includes(n.constructor));
             }
 
@@ -207,6 +183,132 @@ export class MoveTool extends Tool {
                 this.editor.redraw();
             }
         }
+    }
+
+    moveHandle() {
+        this.handleOffset.x += this.editor.cursor.x - this.startPoint.x;
+        this.handleOffset.y += this.editor.cursor.y - this.startPoint.y;
+
+        const handle = this.handlePosition;
+        this.snapResult = this.snap(handle.x, handle.y);
+
+        if (this.snapResult) {
+            if (this.nodes.has(this.snapResult.node)) {
+                this.handleNode = this.snapResult.node;
+            }
+
+            this.handleOffset.x = this.snapResult.position.x - this.handleNode.x;
+            this.handleOffset.y = this.snapResult.position.y - this.handleNode.y;
+
+            this.startPoint = this.handlePosition;
+            this.startPoint.x += this.editor.cursor.x - handle.x;
+            this.startPoint.y += this.editor.cursor.y - handle.y;
+        } else {
+            this.startPoint = {...this.editor.cursor};
+        }
+
+        this.editor.redraw();
+    }
+
+    moveNodes() {
+        if (this.command && !this.editor.undo(this.command)) {
+            this.onPointerEnd();
+            return;
+        }
+
+        this.command = new EditorCommand(this.editor);
+
+        const offset = {
+            x: this.editor.cursor.x - this.startPoint.x,
+            y: this.editor.cursor.y - this.startPoint.y
+        };
+
+        const handle = this.handlePosition;
+        this.snapResult = this.snap(handle.x + offset.x, handle.y + offset.y, node => !this.nodes.has(node));
+
+        if (this.snapResult) {
+            offset.x = this.snapResult.position.x - handle.x;
+            offset.y = this.snapResult.position.y - handle.y;
+        }
+
+        for (const node of this.nodes) {
+            if (node instanceof PivotNode) {
+                const scenery = node.parentNode;
+                const sx = scenery.attr("width") >= 0 ? 1 : -1;
+                const sy = scenery.attr("height") >= 0 ? 1 : -1;
+                const pivotOffset = Matrix.scale(sx, sy)
+                    .multiply(Matrix.rotate(-scenery.attr("rotation")))
+                    .multiply(offset);
+                this.command.attr(node, "offsetX", node.attr("offsetX") + pivotOffset.x);
+                this.command.attr(node, "offsetY", node.attr("offsetY") + pivotOffset.y);
+                this.command.attr(scenery, "x", scenery.attr("x") + offset.x);
+                this.command.attr(scenery, "y", scenery.attr("y") + offset.y);
+            } else {
+                this.command.attr(node, "x", node.attr("x") + offset.x);
+                this.command.attr(node, "y", node.attr("y") + offset.y);
+            }
+        }
+
+        this.command = this.editor.do(this.command);
+    }
+
+    snap(x, y, filterFn = () => true) {
+        const s = this.editor.view.scale;
+        const d = cfg("editor.snap-radius") / s;
+
+        const result = iter(this.editor.map.nodesIntersectingRect(x - d, y - d, 2 * d, 2 * d, s))
+            .filter(node => node.hasPosition && !!filterFn(node))
+            .map(node => {
+                if (node instanceof SceneryNode) {
+                    return node.computeVertices().map(v => ({
+                        node,
+                        position: { x: v.x, y: v.y },
+                        dist: distance2(x, y, v.x, v.y)
+                    }));
+                } else {
+                    return {
+                        node,
+                        position: { x: node.x, y: node.y },
+                        dist: distance2(x, y, node.x, node.y)
+                    };
+                }
+            })
+            .concat(this.snapGrid(x, y))
+            .flat()
+            .sort((a, b) => a.dist - b.dist)[0];
+
+        if (result && result.dist <= (d * d)) {
+            return result;
+        }
+
+        return null;
+    }
+
+    snapGrid(x, y) {
+        if (cfg("view.grid")) {
+            const limit = cfg("editor.grid-limit");
+            const size = cfg("editor.grid-size");
+            const divisions = cfg("editor.grid-divisions");
+            const divisionSize = size / divisions;
+            const effectiveSize = size * Math.ceil(limit / (size * this.editor.view.scale));
+
+            const d = (divisionSize * this.editor.view.scale >= limit) ? divisionSize : effectiveSize;
+            const x0 = d * Math.floor(x / d);
+            const y0 = d * Math.floor(y / d);
+
+            return [
+                { x: x0, y: y0 },
+                { x: x0 + d, y: y0 },
+                { x: x0 + d, y: y0 + d },
+                { x: x0, y: y0 + d },
+            ].map(p => ({
+                node: null,
+                position: p,
+                dist: distance2(x, y, p.x, p.y)
+            }));
+        }
+
+        return [];
     }
 
     cursorIntersectsHandle() {

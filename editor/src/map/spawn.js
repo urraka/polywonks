@@ -12,17 +12,10 @@ export class SpawnNode extends Node {
         this.attributes.set("type", new Attribute(PMS.SpawnTeam, PMS.SpawnTeam.General));
     }
 
-    get nodeName() {
-        return "spawn";
-    }
-
-    get x() {
-        return this.attr("x");
-    }
-
-    get y() {
-        return this.attr("y");
-    }
+    get nodeName() { return "spawn"; }
+    get hasPosition() { return true; }
+    get x() { return this.attr("x"); }
+    get y() { return this.attr("y"); }
 
     static fromPMS(spawn) {
         const node = new SpawnNode();

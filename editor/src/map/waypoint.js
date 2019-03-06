@@ -20,17 +20,10 @@ export class WaypointNode extends Node {
         this.attributes.set("action", new Attribute(PMS.ActionType, PMS.ActionType.None));
     }
 
-    get nodeName() {
-        return "waypoint";
-    }
-
-    get x() {
-        return this.attr("x");
-    }
-
-    get y() {
-        return this.attr("y");
-    }
+    get nodeName() { return "waypoint"; }
+    get hasPosition() { return true; }
+    get x() { return this.attr("x"); }
+    get y() { return this.attr("y"); }
 
     fromPMS(waypoint, waypointNodes) {
         this.attr("x", waypoint.x);

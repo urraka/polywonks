@@ -13,17 +13,10 @@ export class ColliderNode extends Node {
         this.attributes.set("radius", new Attribute("float", cfg("map.collider-radius")));
     }
 
-    get nodeName() {
-        return "collider";
-    }
-
-    get x() {
-        return this.attr("x");
-    }
-
-    get y() {
-        return this.attr("y");
-    }
+    get nodeName() { return "collider"; }
+    get hasPosition() { return true; }
+    get x() { return this.attr("x"); }
+    get y() { return this.attr("y"); }
 
     static fromPMS(collider) {
         const node = new ColliderNode();
