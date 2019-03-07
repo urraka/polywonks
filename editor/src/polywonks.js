@@ -35,6 +35,7 @@ import * as file_explorer from "./file.explorer.js";
 import * as map_explorer from "./map.explorer.js";
 import * as map_properties from "./map.properties.js";
 import * as clipboard from "./clipboard.js";
+import * as grid from "./grid.js";
 
 export const Polywonks = (() => {
     const namespace = {
@@ -77,6 +78,7 @@ export const Polywonks = (() => {
         map_explorer,
         map_properties,
         clipboard,
+        grid,
     ];
 
     modules.forEach(module => {

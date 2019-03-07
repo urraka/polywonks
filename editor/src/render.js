@@ -204,10 +204,7 @@ export class Renderer {
             this.drawWireframe();
         }
 
-        if (cfg("view.grid")) {
-            this.drawGrid();
-        }
-
+        this.drawGrid();
         this.drawNode(this.editor.map, node => (node instanceof WaypointNode) || (node instanceof ConnectionNode));
         this.drawSelection();
         this.drawGuides();
@@ -217,56 +214,19 @@ export class Renderer {
 
     drawGrid() {
         const view = this.editor.view;
-        const w = view.width / 2;
-        const h = view.height / 2;
-        const color = this.theme.gridColor;
-        const divisionColor = this.theme.gridColorDivision;
-        const limit = cfg("editor.grid-limit");
-        const size = cfg("editor.grid-size");
-        const divisions = cfg("editor.grid-divisions");
-        const divisionSize = size / divisions;
+        const x0 = view.x - view.width / 2;
+        const x1 = view.x + view.width / 2;
+        const y0 = view.y - view.height / 2;
+        const y1 = view.y + view.height / 2;
+        const px = 0.5 / view.scale;
 
-        if (divisionSize * view.scale >= limit) {
-            const x0 = Math.floor((view.x - w) / size) * size + divisionSize;
-            for (let x = x0; x <= view.x + w + size; x += divisionSize) {
-                for (let i = 0; i < divisions - 1; x += divisionSize, i++) {
-                    const lineX = Math.floor(x / divisionSize) * divisionSize;
-                    this.batch.add(Gfx.Lines, null, [
-                        new Gfx.Vertex(lineX, view.y - h, 0, 0, divisionColor),
-                        new Gfx.Vertex(lineX, view.y + h, 0, 0, divisionColor)
-                    ]);
-                }
-            }
+        const fn = {
+            x: (t, color) => [new Gfx.Vertex(t + px, y0, 0, 0, color), new Gfx.Vertex(t + px, y1, 0, 0, color)],
+            y: (t, color) => [new Gfx.Vertex(x0, t + px, 0, 0, color), new Gfx.Vertex(x1, t + px, 0, 0, color)],
+        };
 
-            const y0 = Math.floor((view.y - h) / size) * size + divisionSize;
-            for (let y = y0; y <= view.y + h + size; y += divisionSize) {
-                for (let i = 0; i < divisions - 1; y += divisionSize, i++) {
-                    const lineY = Math.floor(y / divisionSize) * divisionSize;
-                    this.batch.add(Gfx.Lines, null, [
-                        new Gfx.Vertex(view.x - w, lineY, 0, 0, divisionColor),
-                        new Gfx.Vertex(view.x + w, lineY, 0, 0, divisionColor)
-                    ]);
-                }
-            }
-        }
-
-        // when zooming out grid size becomes N*size depending on the limit (min pixel size)
-        const effectiveSize = size * Math.ceil(limit / (size * view.scale));
-
-        for (let x = view.x - w; x <= view.x + w + effectiveSize; x += effectiveSize) {
-            const lineX = Math.floor(x / effectiveSize) * effectiveSize;
-            this.batch.add(Gfx.Lines, null, [
-                new Gfx.Vertex(lineX, view.y - h, 0, 0, color),
-                new Gfx.Vertex(lineX, view.y + h, 0, 0, color)
-            ]);
-        }
-
-        for (let y = view.y - h; y <= view.y + h + effectiveSize; y += effectiveSize) {
-            const lineY = Math.floor(y / effectiveSize) * effectiveSize;
-            this.batch.add(Gfx.Lines, null, [
-                new Gfx.Vertex(view.x - w, lineY, 0, 0, color),
-                new Gfx.Vertex(view.x + w, lineY, 0, 0, color)
-            ]);
+        for (const line of this.editor.grid.lines()) {
+            this.batch.add(Gfx.Lines, null, fn[line.axis](line.offset, line.color));
         }
     }
 

@@ -16,6 +16,7 @@ import { SaveDialog } from "./dialog.save.js";
 import { EditorCommand } from "./editor.command.js";
 import { Clipboard } from "./clipboard.js";
 import { iter } from "./support/iter.js";
+import { Grid } from "./grid.js";
 
 export class Editor extends ui.Panel {
     constructor(renderer, map = MapDocument.default()) {
@@ -25,6 +26,7 @@ export class Editor extends ui.Panel {
         this.activated = false;
         this.openedAsDefault = false;
         this.view = new RenderView(renderer);
+        this.grid = new Grid(this.view);
         this.map = map;
         this.map.iconsInfo = this.renderer.iconsInfo;
         this.selection = new Selection(this);

@@ -286,13 +286,7 @@ export class MoveTool extends Tool {
 
     snapGrid(x, y) {
         if (cfg("view.grid")) {
-            const limit = cfg("editor.grid-limit");
-            const size = cfg("editor.grid-size");
-            const divisions = cfg("editor.grid-divisions");
-            const divisionSize = size / divisions;
-            const effectiveSize = size * Math.ceil(limit / (size * this.editor.view.scale));
-
-            const d = (divisionSize * this.editor.view.scale >= limit) ? divisionSize : effectiveSize;
+            const d = this.editor.grid.effectiveSize;
             const x0 = d * Math.floor(x / d);
             const y0 = d * Math.floor(y / d);
 
