@@ -14,7 +14,6 @@ export class Event {
 export class EventEmitter {
     constructor() {
         this.listeners = {};
-        this.emitterLockCount = 0;
     }
 
     on(type, listener) {
@@ -42,10 +41,6 @@ export class EventEmitter {
      * emit(type, data = null, target = this)
      */
     emit(...args) {
-        if (this.emitterLockCount > 0) {
-            return;
-        }
-
         if (args[0] instanceof Event) {
             const event = args[0];
             if (this.listeners[event.type]) {
@@ -56,13 +51,5 @@ export class EventEmitter {
             const [type, data = null, target = this] = args;
             return this.emit(new Event(type, data, target));
         }
-    }
-
-    lockEmitter() {
-        this.emitterLockCount++;
-    }
-
-    unlockEmitter() {
-        this.emitterLockCount--;
     }
 }
