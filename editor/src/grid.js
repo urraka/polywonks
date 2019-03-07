@@ -55,7 +55,7 @@ export class Grid {
 
             for (let t = Math.floor(a / size) * size + inc; t <= b + size; t += inc) {
                 for (let i = 0; i < divisions - 1; t += inc, i++) {
-                    yield new GridLine(axis, color, Math.floor(t / inc) * inc);
+                    yield new GridLine(axis, color, t);
                 }
             }
         }
@@ -67,8 +67,8 @@ export class Grid {
         const a = this.view[axis] - this.view[AxisSize[axis]] / 2;
         const b = this.view[axis] + this.view[AxisSize[axis]] / 2;
 
-        for (let t = a; t <= b + inc; t += inc) {
-            yield new GridLine(axis, color, Math.floor(t / inc) * inc);
+        for (let t = Math.floor(a / inc) * inc; t <= b + inc; t += inc) {
+            yield new GridLine(axis, color, t);
         }
     }
 }
