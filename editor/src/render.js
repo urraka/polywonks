@@ -3,12 +3,12 @@ import { Color } from "./support/color.js";
 import { processImage, gradientCircle, rectangle } from "./support/image.js";
 import { dashToCamel } from "./support/format.js";
 import { Rect } from "./support/rect.js";
+import { mod } from "./support/math.js";
 import { SpawnTeam } from "./pms/pms.js";
 import { File } from "./file.js";
 import { cfg, Settings } from "./settings.js";
 
 import {
-    LayerNode,
     TextureNode,
     ImageNode,
     SceneryNode,
@@ -20,7 +20,6 @@ import {
     WaypointNode,
     ConnectionNode,
 } from "./map/map.js";
-import { mod } from "./support/math.js";
 
 export class Renderer {
     constructor() {
@@ -67,6 +66,33 @@ export class Renderer {
                 this.theme[propertyName] = cfg(key);
             }
         }
+
+        this.theme.selectionPalette = {
+            overlay: {
+                selected: {
+                    fill: this.theme.selectionFill,
+                    border: this.theme.selectionBorder
+                },
+                subtracting: {
+                    fill: new Color(this.theme.selectionFill, this.theme.selectionFill.a * 0.5),
+                    border: this.theme.selectionSubtractBorder
+                },
+                preview: {
+                    fill: null,
+                    border: this.theme.selectionPreviewBorder
+                },
+                reactive: {
+                    fill: null,
+                    border: this.theme.selectionReactiveBorder
+                }
+            },
+            vertex: {
+                selected: this.theme.vertexFill,
+                subtracting: this.theme.selectionSubtractBorder,
+                preview: new Color(this.theme.vertexFill, this.theme.vertexFill.a * 0.5),
+                reactive: new Color(this.theme.vertexFill, this.theme.vertexFill.a * 0.5)
+            }
+        };
     }
 
     loadIcons() {
@@ -185,31 +211,76 @@ export class Renderer {
     }
 
     draw() {
-        if (!this.editor) {
-            return;
-        }
+        if (this.editor) {
+            const renderLayers = {
+                map: [],
+                icons: [],
+                waypoints: [],
+                selectionOverlay: [],
+                selectionVertices: [],
+                previewOutlines: [],
+                previewVertices: [],
+            };
 
-        this.selectionNodes = [];
-        this.loadThemeColors();
-        this.updateCanvasSize();
-        this.batch.clear();
-
-        if (cfg("view.background")) {
+            this.batch.clear();
+            this.loadThemeColors();
+            this.updateCanvasSize();
+            this.sortNodes(this.editor.map, renderLayers);
             this.drawBackground();
+            this.drawNodes(renderLayers.map);
+            this.drawWireframe(renderLayers.map);
+            this.drawNodes(renderLayers.icons);
+            this.drawGrid();
+            this.drawNodes(renderLayers.waypoints);
+            this.drawSelection(renderLayers.selectionOverlay);
+            this.drawSelection(renderLayers.selectionVertices);
+            this.drawPreview(renderLayers.previewOutlines);
+            this.drawPreview(renderLayers.previewVertices);
+            this.drawSelectionRect();
+            this.drawGuides();
+            this.context.clear(this.theme.background);
+            this.context.draw(this.batch, this.editor.view.transform);
         }
+    }
 
-        this.drawNode(this.editor.map, node => !(node instanceof WaypointNode) && !(node instanceof ConnectionNode));
+    isVertex(node) {
+        return (node instanceof VertexNode) || (node instanceof PivotNode);
+    }
 
-        if (cfg("view.wireframe")) {
-            this.drawWireframe();
+    sortNodes(parentNode, renderLayers) {
+        for (const node of parentNode.children()) {
+            if (node.visible) {
+                switch (node.constructor) {
+                    case TriangleNode:
+                    case SceneryNode: renderLayers.map.push(node); break;
+                    case SpawnNode:
+                    case ColliderNode: renderLayers.icons.push(node); break;
+                    case WaypointNode:
+                    case ConnectionNode: renderLayers.waypoints.push(node); break;
+                }
+
+                if (this.editor.selection.has(node)) {
+                    if (this.isVertex(node)) {
+                        renderLayers.selectionVertices.push(node);
+                    } else {
+                        renderLayers.selectionOverlay.push(node);
+                        if ((node instanceof SceneryNode) && node.firstChild && !this.editor.selection.has(node.firstChild)) {
+                            renderLayers.selectionVertices.push(node.firstChild);
+                        }
+                    }
+                } else if (this.editor.previewNodes.has(node) || (this.isVertex(node) && cfg("view.vertices"))) {
+                    if (this.isVertex(node)) {
+                        if (!(node instanceof PivotNode) || !this.editor.selection.has(node.parentNode)) {
+                            renderLayers.previewVertices.push(node);
+                        }
+                    } else {
+                        renderLayers.previewOutlines.push(node);
+                    }
+                }
+
+                this.sortNodes(node, renderLayers);
+            }
         }
-
-        this.drawGrid();
-        this.drawNode(this.editor.map, node => (node instanceof WaypointNode) || (node instanceof ConnectionNode));
-        this.drawSelection();
-        this.drawGuides();
-        this.context.clear(this.theme.background);
-        this.context.draw(this.batch, this.editor.view.transform);
     }
 
     drawGrid() {
@@ -231,38 +302,40 @@ export class Renderer {
     }
 
     drawBackground() {
-        const bounds = this.editor.map.backgroundBounds();
-        const colorTop = new Color(this.editor.map.attr("color-top"), 255);
-        const colorBottom = new Color(this.editor.map.attr("color-bottom"), 255);
-        const view = this.editor.view;
+        if (cfg("view.background")) {
+            const bounds = this.editor.map.backgroundBounds();
+            const colorTop = new Color(this.editor.map.attr("color-top"), 255);
+            const colorBottom = new Color(this.editor.map.attr("color-bottom"), 255);
+            const view = this.editor.view;
 
-        bounds.x0 = view.x - view.width / 2;
-        bounds.x1 = view.x + view.width / 2;
+            bounds.x0 = view.x - view.width / 2;
+            bounds.x1 = view.x + view.width / 2;
 
-        if (bounds.y0 > view.y - view.height / 2) {
+            if (bounds.y0 > view.y - view.height / 2) {
+                this.batch.addQuad(null, [
+                    new Gfx.Vertex(bounds.x0, view.y - view.height / 2, 0, 0, colorTop),
+                    new Gfx.Vertex(bounds.x1, view.y - view.height / 2, 0, 0, colorTop),
+                    new Gfx.Vertex(bounds.x1, bounds.y0, 0, 0, colorTop),
+                    new Gfx.Vertex(bounds.x0, bounds.y0, 0, 0, colorTop)
+                ]);
+            }
+
+            if (bounds.y1 < view.y + view.height / 2) {
+                this.batch.addQuad(null, [
+                    new Gfx.Vertex(bounds.x0, bounds.y1, 0, 0, colorBottom),
+                    new Gfx.Vertex(bounds.x1, bounds.y1, 0, 0, colorBottom),
+                    new Gfx.Vertex(bounds.x1, view.y + view.height / 2, 0, 0, colorBottom),
+                    new Gfx.Vertex(bounds.x0, view.y + view.height / 2, 0, 0, colorBottom)
+                ]);
+            }
+
             this.batch.addQuad(null, [
-                new Gfx.Vertex(bounds.x0, view.y - view.height / 2, 0, 0, colorTop),
-                new Gfx.Vertex(bounds.x1, view.y - view.height / 2, 0, 0, colorTop),
+                new Gfx.Vertex(bounds.x0, bounds.y0, 0, 0, colorTop),
                 new Gfx.Vertex(bounds.x1, bounds.y0, 0, 0, colorTop),
-                new Gfx.Vertex(bounds.x0, bounds.y0, 0, 0, colorTop)
-            ]);
-        }
-
-        if (bounds.y1 < view.y + view.height / 2) {
-            this.batch.addQuad(null, [
-                new Gfx.Vertex(bounds.x0, bounds.y1, 0, 0, colorBottom),
                 new Gfx.Vertex(bounds.x1, bounds.y1, 0, 0, colorBottom),
-                new Gfx.Vertex(bounds.x1, view.y + view.height / 2, 0, 0, colorBottom),
-                new Gfx.Vertex(bounds.x0, view.y + view.height / 2, 0, 0, colorBottom)
+                new Gfx.Vertex(bounds.x0, bounds.y1, 0, 0, colorBottom)
             ]);
         }
-
-        this.batch.addQuad(null, [
-            new Gfx.Vertex(bounds.x0, bounds.y0, 0, 0, colorTop),
-            new Gfx.Vertex(bounds.x1, bounds.y0, 0, 0, colorTop),
-            new Gfx.Vertex(bounds.x1, bounds.y1, 0, 0, colorBottom),
-            new Gfx.Vertex(bounds.x0, bounds.y1, 0, 0, colorBottom)
-        ]);
     }
 
     rectVertices(x, y, w, h, color) {
@@ -326,15 +399,13 @@ export class Renderer {
         }
     }
 
-    drawNode(node, filter) {
-        if (!node.visible) {
-            return;
+    drawNodes(nodes) {
+        for (const node of nodes) {
+            this.drawNode(node);
         }
+    }
 
-        if (filter(node) && (this.editor.selection.has(node) || this.editor.previewNodes.has(node))) {
-            this.selectionNodes.push(node);
-        }
-
+    drawNode(node) {
         switch (node.constructor) {
             case TriangleNode: {
                 const vertices = this.nodeVertices(node);
@@ -374,12 +445,6 @@ export class Renderer {
                 break;
             }
         }
-
-        for (const childNode of node.children()) {
-            if ((childNode instanceof LayerNode) || filter(childNode)) {
-                this.drawNode(childNode, filter);
-            }
-        }
     }
 
     drawSprite(node, texture, color) {
@@ -387,47 +452,53 @@ export class Renderer {
         if (texture && vertices) this.batch.addQuad(texture, vertices);
     }
 
-    drawWireframe() {
-        for (const node of this.editor.map.descendants()) {
-            if (node instanceof TriangleNode) {
-                const vertices = this.nodeVertices(node);
-                vertices.forEach(v => v.color.a = 255);
-                this.drawLineLoop(vertices);
+    drawWireframe(nodes) {
+        if (cfg("view.wireframe")) {
+            for (const node of nodes) {
+                this.drawNodeWireframe(node);
             }
         }
     }
 
-    drawSelection() {
-        const palette = {
-            overlay: {
-                selected: {
-                    fill: this.theme.selectionFill,
-                    border: this.theme.selectionBorder
-                },
-                subtracting: {
-                    fill: new Color(this.theme.selectionFill, this.theme.selectionFill.a * 0.5),
-                    border: this.theme.selectionSubtractBorder
-                },
-                preview: {
-                    fill: null,
-                    border: this.theme.selectionPreviewBorder
-                },
-                reactive: {
-                    fill: null,
-                    border: this.theme.selectionReactiveBorder
-                }
-            },
-            vertex: {
-                selected: this.theme.vertexFill,
-                subtracting: this.theme.selectionSubtractBorder,
-                preview: new Color(this.theme.vertexFill, this.theme.vertexFill.a * 0.5),
-                reactive: new Color(this.theme.vertexFill, this.theme.vertexFill.a * 0.5)
-            }
-        };
+    drawNodeWireframe(node) {
+        const vertices = this.nodeVertices(node);
+        vertices.forEach(v => v.color.a = 255);
+        this.drawLineLoop(vertices);
+    }
 
-        this.drawSelectionOverlay(palette.overlay);
-        this.drawSelectionVertices(palette.vertex);
-        this.drawSelectionRect();
+    drawPreview(nodes) {
+        this.drawSelection(nodes, true);
+    }
+
+    drawSelection(nodes, preview = false) {
+        for (const node of nodes) {
+            this.drawNodeSelection(node, preview);
+        }
+    }
+
+    drawNodeSelection(node, preview) {
+        let color;
+
+        if (this.isVertex(node)) {
+            if (color = this.chooseSelectionColor(node, this.theme.selectionPalette.vertex, preview)) {
+                if ((node instanceof VertexNode) && this.editor.selection.has(node)) {
+                    const prev = node.previousSibling || (node.parentNode && node.parentNode.lastChild);
+                    const next = node.nextSibling || (node.parentNode && node.parentNode.firstChild);
+                    if (prev && prev !== node) this.drawVertexLine(node, prev);
+                    if (next && next !== node && next !== prev) this.drawVertexLine(node, next);
+                }
+
+                this.drawVertex(node.x, node.y, color);
+            }
+        } else {
+            if (color = this.chooseSelectionColor(node, this.theme.selectionPalette.overlay, preview)) {
+                const idx = [0, 1, 2, 2, 3, 0];
+                const vtx = this.nodeVertices(node, color.fill || color.border);
+                const vtxFill = vtx && (vtx.length === 3 ? vtx : vtx.length === 4 ? idx.map(i => vtx[i]) : null);
+                if (vtxFill && color.fill) this.batch.add(Gfx.Triangles, null, vtxFill);
+                if (vtx && color.border) this.drawLineLoop(vtx, color.border);
+            }
+        }
     }
 
     subtractingEnabled() {
@@ -439,68 +510,19 @@ export class Renderer {
         return this.subtractingEnabled() && this.editor.previewNodes.has(node);
     }
 
-    chooseSelectionColor(node, palette) {
-        if (this.editor.selection.has(node) || ((node instanceof PivotNode) && this.editor.selection.has(node.parentNode))) {
-            if (!this.subtractingNode(node)) {
-                return palette.selected;
-            } else {
-                return palette.subtracting;
-            }
-        } else if (!this.subtractingEnabled()) {
-            if (node === this.editor.reactiveNode) {
-                return palette.reactive;
-            } else {
-                return palette.preview;
-            }
-        }
-    }
-
-    drawSelectionOverlay(palette) {
-        let color;
-        const idx = [0, 1, 2, 2, 3, 0];
-        for (const node of this.selectionNodes) {
-            if (color = this.chooseSelectionColor(node, palette)) {
-                const vtx = this.nodeVertices(node, color.fill || color.border);
-                const vtxFill = vtx && (vtx.length === 3 ? vtx : vtx.length === 4 ? idx.map(i => vtx[i]) : null);
-                if (vtxFill && color.fill) this.batch.add(Gfx.Triangles, null, vtxFill);
-                if (vtx && color.border) this.drawLineLoop(vtx, color.border);
-            }
-        }
-    }
-
-    drawSelectionVertices(palette) {
-        let color;
-        const types = [VertexNode, SceneryNode, PivotNode];
-        for (const node of this.selectionNodes) {
-            if (types.includes(node.constructor) && (color = this.chooseSelectionColor(node, palette))) {
-                switch (node.constructor) {
-                    case VertexNode: {
-                        if (color === palette.selected) {
-                            const prev = node.previousSibling || (node.parentNode && node.parentNode.lastChild);
-                            const next = node.nextSibling || (node.parentNode && node.parentNode.firstChild);
-                            if (prev && prev !== node) this.drawVertexLine(node, prev);
-                            if (next && next !== node && next !== prev) this.drawVertexLine(node, next);
-                        }
-                        this.drawVertex(node.attr("x"), node.attr("y"), color);
-                        break;
-                    }
-
-                    case SceneryNode: {
-                        const pivot = node.firstChild;
-                        if (pivot && this.editor.selection.has(node) && !this.subtractingNode(node) &&
-                            !this.editor.selection.has(pivot) && !this.editor.previewNodes.has(pivot)
-                        ) {
-                            this.drawVertex(pivot.x, pivot.y, color);
-                        }
-                        break;
-                    }
-
-                    case PivotNode: {
-                        this.drawVertex(node.x, node.y, color);
-                        break;
-                    }
+    chooseSelectionColor(node, palette, preview) {
+        if (preview) {
+            if (!this.subtractingEnabled()) {
+                if (node === this.editor.reactiveNode) {
+                    return palette.reactive;
+                } else {
+                    return palette.preview;
                 }
             }
+        } else if (this.subtractingNode(node)) {
+            return palette.subtracting;
+        } else {
+            return palette.selected;
         }
     }
 

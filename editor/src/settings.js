@@ -48,6 +48,7 @@ const DefaultSettings = {
     "view.background": true,
     "view.polygons": "texture",
     "view.wireframe": false,
+    "view.vertices": false,
     "map.color-top": new Color("#1e1e1e"),
     "map.color-bottom": new Color("#1e1e1e"),
     "map.jet": 0,
