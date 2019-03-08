@@ -98,10 +98,13 @@ export class App extends ui.Panel {
             ["View", [
                 ["Reset Viewport", "reset-viewport"],
                 [],
-                ["Grid", "toggle-grid"],
-                ["Background", "toggle-background"],
-                ["Vertices", "toggle-vertices"],
-                ["Wireframe", "toggle-wireframe"],
+                ["Snap to Grid", "toggle-snap-to-grid"],
+                ["Snap to Objects", "toggle-snap-to-objects"],
+                [],
+                ["Show Grid", "toggle-grid"],
+                ["Show Background", "toggle-background"],
+                ["Show Vertices", "toggle-vertices"],
+                ["Show Wireframe", "toggle-wireframe"],
                 ["Polygons", [
                     ["Texture", "show-polygon-texture"],
                     ["Plain Color", "show-polygon-plain"],
@@ -347,6 +350,8 @@ export class App extends ui.Panel {
 
     isMenuItemChecked(item) {
         switch (item.key) {
+            case "toggle-snap-to-grid": return cfg("editor.snap-to-grid");
+            case "toggle-snap-to-objects": return cfg("editor.snap-to-objects");
             case "toggle-grid": return cfg("view.grid");
             case "toggle-background": return cfg("view.background");
             case "toggle-vertices": return cfg("view.vertices");
@@ -388,6 +393,8 @@ export class App extends ui.Panel {
             "paste": () => this.editor.paste(),
             "delete": () => this.editor.delete(),
             "reset-viewport": () => this.editor.view.reset(),
+            "toggle-snap-to-grid": () => cfg("editor.snap-to-grid", !cfg("editor.snap-to-grid")),
+            "toggle-snap-to-objects": () => cfg("editor.snap-to-objects", !cfg("editor.snap-to-objects")),
             "toggle-grid": () => cfg("view.grid", !cfg("view.grid")),
             "toggle-background": () => cfg("view.background", !cfg("view.background")),
             "toggle-vertices": () => cfg("view.vertices", !cfg("view.vertices")),

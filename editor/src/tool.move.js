@@ -224,7 +224,8 @@ export class MoveTool extends Tool {
         };
 
         const handle = this.handlePosition;
-        this.snapResult = this.snap(handle.x + offset.x, handle.y + offset.y, node => !this.nodes.has(node));
+        const fn = n => !this.nodes.has(n) && (!(n instanceof PivotNode) || !this.nodes.has(n.parentNode));
+        this.snapResult = this.snap(handle.x + offset.x, handle.y + offset.y, fn);
 
         if (this.snapResult) {
             offset.x = this.snapResult.position.x - handle.x;
@@ -253,10 +254,15 @@ export class MoveTool extends Tool {
     }
 
     snap(x, y, filterFn = () => true) {
+        let nodes = [];
         const s = this.editor.view.scale;
         const d = cfg("editor.snap-radius") / s;
 
-        const result = iter(this.editor.map.nodesIntersectingRect(x - d, y - d, 2 * d, 2 * d, s))
+        if (cfg("editor.snap-to-objects")) {
+            nodes = this.editor.map.nodesIntersectingRect(x - d, y - d, 2 * d, 2 * d, s);
+        }
+
+        const result = iter(nodes)
             .filter(node => node.hasPosition && !!filterFn(node))
             .map(node => {
                 if (node instanceof SceneryNode) {
@@ -285,7 +291,7 @@ export class MoveTool extends Tool {
     }
 
     snapGrid(x, y) {
-        if (cfg("view.grid")) {
+        if (cfg("view.grid") && cfg("editor.snap-to-grid")) {
             const d = this.editor.grid.effectiveSize;
             const x0 = d * Math.floor(x / d);
             const y0 = d * Math.floor(y / d);

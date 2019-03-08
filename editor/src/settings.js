@@ -44,6 +44,8 @@ const DefaultSettings = {
     "editor.vertex-size": 7,
     "editor.waypoint-size": 11,
     "editor.snap-radius": 5,
+    "editor.snap-to-grid": true,
+    "editor.snap-to-objects": true,
     "view.grid": true,
     "view.background": true,
     "view.polygons": "texture",
