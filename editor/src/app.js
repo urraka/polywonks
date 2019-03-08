@@ -100,6 +100,7 @@ export class App extends ui.Panel {
                 [],
                 ["Grid", "toggle-grid"],
                 ["Background", "toggle-background"],
+                ["Vertices", "toggle-vertices"],
                 ["Wireframe", "toggle-wireframe"],
                 ["Polygons", [
                     ["Texture", "show-polygon-texture"],
@@ -348,6 +349,7 @@ export class App extends ui.Panel {
         switch (item.key) {
             case "toggle-grid": return cfg("view.grid");
             case "toggle-background": return cfg("view.background");
+            case "toggle-vertices": return cfg("view.vertices");
             case "toggle-wireframe": return cfg("view.wireframe");
             case "show-polygon-texture": return cfg("view.polygons") === "texture";
             case "show-polygon-plain": return cfg("view.polygons") === "plain";
@@ -388,6 +390,7 @@ export class App extends ui.Panel {
             "reset-viewport": () => this.editor.view.reset(),
             "toggle-grid": () => cfg("view.grid", !cfg("view.grid")),
             "toggle-background": () => cfg("view.background", !cfg("view.background")),
+            "toggle-vertices": () => cfg("view.vertices", !cfg("view.vertices")),
             "toggle-wireframe": () => cfg("view.wireframe", !cfg("view.wireframe")),
             "show-polygon-texture": () => cfg("view.polygons", "texture"),
             "show-polygon-plain": () => cfg("view.polygons", "plain"),

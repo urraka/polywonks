@@ -30,7 +30,6 @@ export class Renderer {
         this.icons = {};
         this.iconsInfo = {};
         this.animFrameId = null;
-        this.selectionNodes = null;
         this.theme = null;
         this._editor = null;
         this.onEditorRedraw = () => this.redraw();
