@@ -355,18 +355,20 @@ export class Renderer {
         return this.rectVertices(p.x - dx, p.y - dy, w / s, h / s, color);
     }
 
-    nodeVertices(node, color) {
+    nodeVertices(node, color, align = false) {
         switch (node.constructor) {
             case TriangleNode: {
                 const vertices = Array.from(node.children()).map(v => {
                     return new Gfx.Vertex(v.attr("x"), v.attr("y"), v.attr("u"), v.attr("v"), color || v.attr("color"));
                 });
+                if (align) vertices.forEach(v => Object.assign(v, this.editor.view.mapToPixelGrid(v.x, v.y)));
                 return vertices.length === 3 ? vertices : null;
             }
 
             case SceneryNode: {
                 const vertices = node.computeVertices(this.texture(node.attr("image")));
                 if (color) vertices.forEach(v => v.color.set(color));
+                if (align) vertices.forEach(v => Object.assign(v, this.editor.view.mapToPixelGrid(v.x, v.y)));
                 return vertices;
             }
 
@@ -376,8 +378,8 @@ export class Renderer {
             }
 
             case ColliderNode: {
-                const size = 2 * node.attr("radius");
-                return this.rectVertices(node.attr("x") - size / 2, node.attr("y") - size / 2, size, size, color);
+                const size = 2 * node.attr("radius") * this.editor.view.scale;
+                return this.pixelRectVertices(node.attr("x"), node.attr("y"), size, size, color);
             }
 
             case WaypointNode: {
@@ -492,7 +494,7 @@ export class Renderer {
         } else {
             if (color = this.chooseSelectionColor(node, this.theme.selectionPalette.overlay, preview)) {
                 const idx = [0, 1, 2, 2, 3, 0];
-                const vtx = this.nodeVertices(node, color.fill || color.border);
+                const vtx = this.nodeVertices(node, color.fill || color.border, true);
                 const vtxFill = vtx && (vtx.length === 3 ? vtx : vtx.length === 4 ? idx.map(i => vtx[i]) : null);
                 if (vtxFill && color.fill) this.batch.add(Gfx.Triangles, null, vtxFill);
                 if (vtx && color.border) this.drawLineLoop(vtx, color.border);
@@ -613,8 +615,11 @@ export class Renderer {
                 const blen = Math.hypot(b.x, b.y);
                 const c = { x: 0.5 * (a.x / alen + b.x / blen), y: 0.5 * (a.y / alen + b.y / blen) };
                 const clen = Math.hypot(c.x, c.y);
-                vertex.x += halfPixel * c.x / clen;
-                vertex.y += halfPixel * c.y / clen;
+
+                if (Number.isFinite(clen)) {
+                    vertex.x += halfPixel * c.x / clen;
+                    vertex.y += halfPixel * c.y / clen;
+                }
             });
 
             for (let i = vertices.length - 1, j = 0; j < n; i = j++) {
