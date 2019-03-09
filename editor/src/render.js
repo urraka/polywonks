@@ -462,7 +462,7 @@ export class Renderer {
     }
 
     drawNodeWireframe(node) {
-        const vertices = this.nodeVertices(node);
+        const vertices = this.nodeVertices(node, null, true);
         vertices.forEach(v => v.color.a = 255);
         this.drawLineLoop(vertices);
     }
