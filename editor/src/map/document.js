@@ -104,7 +104,7 @@ export class MapDocument extends Node {
         const layers = createDefaultLayers();
         iter(layers).each(layer => doc.append(layer));
 
-        const texture = TextureNode.fromPMS(pms, path);
+        const texture = TextureNode.fromPMS(pms, path, pms.polygons);
         layers.resources.append(texture);
 
         for (const polygon of pms.polygons) {

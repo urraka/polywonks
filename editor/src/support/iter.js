@@ -53,6 +53,12 @@ class Iter {
         return result;
     }
 
+    count() {
+        let n = 0;
+        for (const item of this.iterable) n++;
+        return n;
+    }
+
     [Symbol.iterator]() {
         return this.iterable[Symbol.iterator]();
     }

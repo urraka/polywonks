@@ -17,6 +17,8 @@ import { EditorCommand } from "./editor.command.js";
 import { Clipboard } from "./clipboard.js";
 import { iter } from "./support/iter.js";
 import { Grid } from "./grid.js";
+import { PolygonTool } from "./tool.polygon.js";
+import { CursorTool } from "./tool.cursor.js";
 
 export class Editor extends ui.Panel {
     constructor(renderer, map = MapDocument.default()) {
@@ -33,11 +35,13 @@ export class Editor extends ui.Panel {
         this.activeLayer = null;
         this.previewNodes = new Set();
         this.reactiveNode = null;
-        this.cursor = { x: 0, y: 0 };
+        this.cursor = new CursorTool();
         this.saveName = this.initialSaveName(map.path);
         this.saveIndex = 0;
         this.undone = 0;
         this.commandHistory = [];
+
+        this.cursor.activate(this);
         this.tools = this.createTools();
         this.sidebar = this.createSidebarPanels();
         this.setupEvents();
@@ -57,10 +61,12 @@ export class Editor extends ui.Panel {
     createTools() {
         return {
             current: null,
+            previous: null,
             pan: new PanTool(),
             zoom: new ZoomTool(),
             select: new SelectTool(),
             move: new MoveTool(),
+            polygon: new PolygonTool(),
         };
     }
 
@@ -71,19 +77,21 @@ export class Editor extends ui.Panel {
         sidebar.tools = sidebar.mainPanel.addPanel(null, new ui.ListView());
         sidebar.explorer = sidebar.mainPanel.addPanel("Map", new MapExplorer(this));
         sidebar.properties = sidebar.mainPanel.addPanel("Map Properties", new MapProperties(this));
-        ["Select", "Move"].forEach(text => sidebar.tools.content.addItem(new ui.ListViewItem(text, text.toLowerCase())));
+        sidebar.tools.content.addItem(new ui.ListViewItem("Select", this.tools.select));
+        sidebar.tools.content.addItem(new ui.ListViewItem("Move", this.tools.move));
+        sidebar.tools.content.addItem(new ui.ListViewItem("Create Polygons", this.tools.polygon));
         return sidebar;
     }
 
     setupEvents() {
         this.onToolStatusChange = this.onToolStatusChange.bind(this);
         this.sidebar.properties.content.on("nodechange", () => this.onPropertiesNodeChange());
-        this.sidebar.tools.content.on("itemclick", e => this.currentTool = this.tools[e.item.data]);
+        this.sidebar.tools.content.on("itemclick", e => this.currentTool = e.item.data);
         this.map.on("attributechange", e => this.onMapAttrChange(e));
         this.map.on("visibilitychange", e => this.onMapVisibilityChange(e));
         this.view.on("change", () => this.onViewChange());
+        this.cursor.on("change", () => this.onCursorChange());
         this.selection.on("change", () => this.onSelectionChange());
-        this.element.addEventListener("mousemove", e => this.onMouseMove(e));
         Settings.on("change", e => this.onSettingChange(e.setting));
     }
 
@@ -97,6 +105,7 @@ export class Editor extends ui.Panel {
 
     set currentTool(value) {
         const activated = this.tools.current && this.tools.current.activated;
+        this.tools.previous = this.tools.current || value;
 
         if (this.tools.current) {
             this.tools.current.deactivate();
@@ -114,6 +123,8 @@ export class Editor extends ui.Panel {
         if (activated) {
             this.tools.current.activate(this);
         }
+
+        this.redraw();
     }
 
     relocateMap(newPath) {
@@ -270,7 +281,7 @@ export class Editor extends ui.Panel {
         const fn = this._statusFn || (this._statusFn = {
             tool: () => this.tools.current.status,
             layer: () => "Layer: " + (this.activeLayer || "None").toString(),
-            cursor: () => `${Math.round(this.cursor.x)}, ${Math.round(this.cursor.y)}`,
+            cursor: () => this.cursor.status,
             zoom: () => Math.round(100 * this.view.scale) + "%",
         });
 
@@ -476,11 +487,7 @@ export class Editor extends ui.Panel {
         this.redraw();
     }
 
-    onMouseMove(event) {
-        const rect = event.target.getBoundingClientRect();
-        const pos = this.view.canvasToMap(event.clientX - rect.left, event.clientY - rect.top);
-        this.cursor.x = pos.x;
-        this.cursor.y = pos.y;
+    onCursorChange() {
         this.statusChange("cursor");
     }
 

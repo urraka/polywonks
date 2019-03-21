@@ -27,6 +27,7 @@ export class Renderer {
         this.context.canvas.classList.add("editor-canvas");
         this.batch = this.context.createBatch();
         this.textures = new WeakMap();
+        this.texturesInfo = new WeakMap();
         this.icons = {};
         this.iconsInfo = {};
         this.animFrameId = null;
@@ -149,6 +150,7 @@ export class Renderer {
         const texture = this.textures.get(node);
         if (texture) {
             this.textures.delete(node);
+            this.texturesInfo.delete(node);
             if (texture !== this.context.defaultTexture) {
                 texture.dispose();
             }
@@ -167,6 +169,8 @@ export class Renderer {
 
         if (!texture) {
             this.textures.set(node, texture = this.context.defaultTexture);
+            this.texturesInfo.set(node, { width: 0, height: 0 });
+
             const path = node.path;
 
             if (path) {
@@ -182,6 +186,7 @@ export class Renderer {
                         const texture = this.context.createTexture(imageData);
                         texture.setRepeat(node instanceof TextureNode);
                         this.textures.set(node, texture);
+                        this.texturesInfo.set(node, { width: image.width, height: image.height });
                         this.redraw();
                     }
                 });
@@ -189,6 +194,11 @@ export class Renderer {
         }
 
         return texture;
+    }
+
+    textureInfo(node) {
+        this.texture(node);
+        return this.texturesInfo.get(node);
     }
 
     redraw() {
@@ -236,6 +246,7 @@ export class Renderer {
             this.drawPreview(renderLayers.previewOutlines);
             this.drawPreview(renderLayers.previewVertices);
             this.drawSelectionRect();
+            this.drawTools();
             this.drawGuides();
             this.context.clear(this.theme.background);
             this.context.draw(this.batch, this.editor.view.transform);
@@ -362,7 +373,7 @@ export class Renderer {
                     return new Gfx.Vertex(v.attr("x"), v.attr("y"), v.attr("u"), v.attr("v"), color || v.attr("color"));
                 });
                 if (align) vertices.forEach(v => Object.assign(v, this.editor.view.mapToPixelGrid(v.x, v.y)));
-                return vertices.length === 3 ? vertices : null;
+                return vertices;
             }
 
             case SceneryNode: {
@@ -410,7 +421,7 @@ export class Renderer {
         switch (node.constructor) {
             case TriangleNode: {
                 const vertices = this.nodeVertices(node);
-                if (vertices) {
+                if (vertices.length === 3) {
                     if (cfg("view.polygons") === "texture") {
                         this.batch.add(Gfx.Triangles, this.texture(node.attr("texture")), vertices);
                     } else if (cfg("view.polygons") === "plain") {
@@ -556,18 +567,25 @@ export class Renderer {
         ]);
     }
 
+    drawTools() {
+        const polygonTool = this.editor.tools.polygon;
+        if (polygonTool.activated && polygonTool.triangle) {
+            this.drawNode(polygonTool.triangle);
+            this.drawNodeWireframe(polygonTool.triangle);
+        }
+    }
+
     drawGuides() {
         const view = this.editor.view;
-        const moveTool = this.editor.tools.move;
-        const pos = moveTool.handlePosition;
+        const tool = this.editor.tools.current;
 
-        if (moveTool.activated && pos) {
-            const color = moveTool.snapResult ? this.theme.guidesSnap :
-                moveTool.handleActive ? this.theme.guidesActive : this.theme.guides;
+        if (tool.activated && tool.handle && tool.handle.visible) {
+            const color = tool.handle.snapResult ? this.theme.guidesSnap :
+                tool.handle.active ? this.theme.guidesActive : this.theme.guides;
 
             const a = view.canvasToMap(0, 0);
             const b = { x: a.x + view.width, y: a.y + view.height }
-            const p = this.editor.view.mapToPixelGrid(pos.x, pos.y);
+            const p = this.editor.view.mapToPixelGrid(tool.handle.x, tool.handle.y);
             const halfPixel = 0.5 / this.editor.view.scale;
             p.x += halfPixel;
             p.y += halfPixel;

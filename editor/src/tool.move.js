@@ -5,19 +5,17 @@ import { cfg } from "./settings.js";
 import { TriangleNode, ConnectionNode, PivotNode, VertexNode, SceneryNode, WaypointNode, SpawnNode, ColliderNode } from "./map/map.js";
 import { Matrix } from "./support/matrix.js";
 import { iter } from "./support/iter.js";
-import { distance2 } from "./support/geometry.js";
+import { SnapHandle, SnapSource } from "./snapping.js";
 
 export class MoveTool extends Tool {
     constructor() {
         super();
         this.nodes = null;
         this.command = null;
-        this.startPoint = null;
+        this.handleStart = null;
+        this.handleOffset = null;
         this.dragging = false;
-        this.handleNode = null;
-        this.handleOffset = { x: 0, y: 0 };
-        this.handleActive = false;
-        this.snapResult = null;
+        this.handle = null;
         this.selectTool = null;
         this.movement = new MovementThreshold();
         this.pointer = new Pointer();
@@ -26,13 +24,6 @@ export class MoveTool extends Tool {
         this.pointer.on("end", e => this.onPointerEnd(e.mouseEvent));
         this.onSelectStatusChange = this.onSelectStatusChange.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
-    }
-
-    get handlePosition() {
-        return this.handleNode && {
-            x: this.handleNode.x + this.handleOffset.x,
-            y: this.handleNode.y + this.handleOffset.y
-        };
     }
 
     get status() {
@@ -49,12 +40,10 @@ export class MoveTool extends Tool {
     onActivate() {
         this.nodes = this.filterSelection();
         this.command = null;
-        this.startPoint = null;
+        this.handleStart = null;
+        this.handleOffset = null;
         this.dragging = false;
-        this.handleNode = iter(this.nodes).first();
-        this.handleOffset = { x: 0, y: 0 };
-        this.handleActive = false;
-        this.snapResult = null;
+        this.handle = this.createHandle();
         this.selectTool = this.editor.tools.select;
         this.movement.reset(cfg("editor.drag-threshold"));
         this.pointer.activate(this.editor.element, 0);
@@ -92,22 +81,23 @@ export class MoveTool extends Tool {
 
     onSelectionChange() {
         this.nodes = this.filterSelection();
-        this.handleActive = false;
-
-        if (!this.nodes.has(this.handleNode)) {
-            const p = this.handlePosition;
-            this.handleNode = iter(this.nodes).first();
-
-            if (p && this.handleNode) {
-                this.handleOffset.x = p.x - this.handleNode.x;
-                this.handleOffset.y = p.y - this.handleNode.y;
-            } else {
-                this.handleOffset.x = 0;
-                this.handleOffset.y = 0;
-            }
-        }
-
+        this.handle = this.createHandle(this.handle.visible ? this.handle : null);
         setTimeout(() => this.onPointerMove());
+    }
+
+    createHandle(position = null) {
+        const handle = new SnapHandle(this.editor);
+        handle.visible = false;
+        if (this.nodes.size > 0) {
+            const node = iter(this.nodes).first();
+            if (position) {
+                handle.reset(position.x, position.y, node);
+            } else {
+                handle.reset(node.x, node.y, node);
+            }
+            handle.visible = true;
+        }
+        return handle;
     }
 
     filterSelection() {
@@ -132,27 +122,32 @@ export class MoveTool extends Tool {
     onPointerBegin(event) {
         this.movement.click(event);
         if (!this.selectTool.activated) {
-            this.startPoint = {...this.editor.cursor};
+            this.handleStart = {
+                x: this.handle.x,
+                y: this.handle.y,
+            };
+            this.handleOffset = {
+                x: this.handle.x - this.editor.cursor.x,
+                y: this.handle.y - this.editor.cursor.y,
+            };
         }
     }
 
     onPointerEnd(event) {
         this.movement.click(event);
-        this.startPoint = null;
+        this.handleStart = null;
+        this.handleOffset = null;
         this.dragging = false;
         this.command = null;
-        this.snapResult = null;
+        this.handle.snapResult = null;
         setTimeout(() => this.onPointerMove(event));
     }
 
     onPointerMove(event) {
-        if (this.startPoint) {
-            if (!this.dragging && this.movement.moved(event)) {
-                this.dragging = true;
-            }
-
+        if (this.pointer.dragging && !this.selectTool.activated) {
+            this.dragging = this.dragging || this.movement.moved(event);
             if (this.dragging) {
-                if (this.handleActive) {
+                if (this.handle.active) {
                     this.moveHandle();
                 } else {
                     this.moveNodes();
@@ -160,54 +155,38 @@ export class MoveTool extends Tool {
             }
         } else {
             const selWasActive = this.selectTool.activated;
-            const handleWasActive = this.handleActive;
+            const handleWasActive = this.handle.active;
             const cursorNodes = this.cursorNodes();
 
-            if (this.handleNode) {
+            if (this.handle.visible) {
                 const types = [PivotNode, VertexNode, WaypointNode, SpawnNode, ColliderNode];
-                this.handleActive = this.cursorIntersectsHandle() && !cursorNodes.some(n => types.includes(n.constructor));
+                this.handle.active = this.handle.intersectsPoint(this.editor.cursor.position) &&
+                    !cursorNodes.some(n => types.includes(n.constructor));
             }
 
             if (this.selectTool.activated) {
-                if (!this.selectTool.selecting && this.selectTool.mode === "replace" && (cursorNodes.length > 0 || this.handleActive)) {
+                if (!this.selectTool.selecting && this.selectTool.mode === "replace" && (cursorNodes.length > 0 || this.handle.active)) {
                     this.selectTool.deactivate();
                 }
             } else {
-                if (cursorNodes.length === 0 && !this.handleActive) {
+                if (cursorNodes.length === 0 && !this.handle.active) {
                     this.selectTool.activate(this.editor);
                 }
             }
 
-            if (this.selectTool.activated !== selWasActive || this.handleActive !== handleWasActive) {
+            if (this.selectTool.activated !== selWasActive || this.handle.active !== handleWasActive) {
                 this.emit("statuschange");
-                this.editor.redraw();
             }
-        }
-    }
-
-    moveHandle() {
-        this.handleOffset.x += this.editor.cursor.x - this.startPoint.x;
-        this.handleOffset.y += this.editor.cursor.y - this.startPoint.y;
-
-        const handle = this.handlePosition;
-        this.snapResult = this.snap(handle.x, handle.y);
-
-        if (this.snapResult) {
-            if (this.nodes.has(this.snapResult.node)) {
-                this.handleNode = this.snapResult.node;
-            }
-
-            this.handleOffset.x = this.snapResult.position.x - this.handleNode.x;
-            this.handleOffset.y = this.snapResult.position.y - this.handleNode.y;
-
-            this.startPoint = this.handlePosition;
-            this.startPoint.x += this.editor.cursor.x - handle.x;
-            this.startPoint.y += this.editor.cursor.y - handle.y;
-        } else {
-            this.startPoint = {...this.editor.cursor};
         }
 
         this.editor.redraw();
+    }
+
+    moveHandle() {
+        const cursor = this.editor.cursor;
+        const offset = this.handleOffset;
+        this.handle.snapSources = [new SnapSource(this.editor.map)];
+        this.handle.moveTo(cursor.x + offset.x, cursor.y + offset.y);
     }
 
     moveNodes() {
@@ -219,18 +198,17 @@ export class MoveTool extends Tool {
         this.command = new EditorCommand(this.editor);
 
         const offset = {
-            x: this.editor.cursor.x - this.startPoint.x,
-            y: this.editor.cursor.y - this.startPoint.y
+            x: this.editor.cursor.x - (this.handleStart.x - this.handleOffset.x),
+            y: this.editor.cursor.y - (this.handleStart.y - this.handleOffset.y),
         };
 
-        const handle = this.handlePosition;
+        const p = { x: this.handle.x, y: this.handle.y };
         const fn = n => !this.nodes.has(n) && (!(n instanceof PivotNode) || !this.nodes.has(n.parentNode));
-        this.snapResult = this.snap(handle.x + offset.x, handle.y + offset.y, fn);
-
-        if (this.snapResult) {
-            offset.x = this.snapResult.position.x - handle.x;
-            offset.y = this.snapResult.position.y - handle.y;
-        }
+        this.handle.snapSources = [new SnapSource(this.editor.map, fn)];
+        this.handle.moveTo(this.handleStart.x + offset.x, this.handleStart.y + offset.y);
+        offset.x = this.handle.x - this.handleStart.x;
+        offset.y = this.handle.y - this.handleStart.y;
+        this.handle.reset(p.x, p.y, this.handle.referenceNode);
 
         for (const node of this.nodes) {
             if (node instanceof PivotNode) {
@@ -253,75 +231,10 @@ export class MoveTool extends Tool {
         this.command = this.editor.do(this.command);
     }
 
-    snap(x, y, filterFn = () => true) {
-        let nodes = [];
-        const s = this.editor.view.scale;
-        const d = cfg("editor.snap-radius") / s;
-
-        if (cfg("editor.snap-to-objects")) {
-            nodes = this.editor.map.nodesIntersectingRect(x - d, y - d, 2 * d, 2 * d, s);
-        }
-
-        const result = iter(nodes)
-            .filter(node => node.hasPosition && !!filterFn(node))
-            .map(node => {
-                if (node instanceof SceneryNode) {
-                    return node.computeVertices().map(v => ({
-                        node,
-                        position: { x: v.x, y: v.y },
-                        dist: distance2(x, y, v.x, v.y)
-                    }));
-                } else {
-                    return {
-                        node,
-                        position: { x: node.x, y: node.y },
-                        dist: distance2(x, y, node.x, node.y)
-                    };
-                }
-            })
-            .concat(this.snapGrid(x, y))
-            .flat()
-            .sort((a, b) => a.dist - b.dist)[0];
-
-        if (result && result.dist <= (d * d)) {
-            return result;
-        }
-
-        return null;
-    }
-
-    snapGrid(x, y) {
-        if (cfg("view.grid") && cfg("editor.snap-to-grid")) {
-            const d = this.editor.grid.effectiveSize;
-            const x0 = d * Math.floor(x / d);
-            const y0 = d * Math.floor(y / d);
-
-            return [
-                { x: x0, y: y0 },
-                { x: x0 + d, y: y0 },
-                { x: x0 + d, y: y0 + d },
-                { x: x0, y: y0 + d },
-            ].map(p => ({
-                node: null,
-                position: p,
-                dist: distance2(x, y, p.x, p.y)
-            }));
-        }
-
-        return [];
-    }
-
-    cursorIntersectsHandle() {
-        const pos = this.handlePosition;
-        const cur = this.editor.cursor;
-        const d = 0.5 * cfg("editor.vertex-size") / this.editor.view.scale;
-        return Math.abs(cur.x - pos.x) <= d || Math.abs(cur.y - pos.y) <= d;
-    }
-
     cursorNodes() {
         const sel = this.editor.selection.nodes;
         const scale = this.editor.view.scale;
-        const { x, y } = this.editor.cursor;
+        const { x, y } = this.editor.cursor.position;
         return [...iter(this.editor.map.nodesAt(x, y, scale)).filter(node => sel.has(node))];
     }
 }

@@ -107,7 +107,7 @@ export class SelectTool extends Tool {
                 this.editor.previewNodes = new Set(nodes);
             }
         } else {
-            const { x, y } = this.editor.cursor;
+            const { x, y } = this.editor.cursor.position;
             let nodes = [...this.rootNode.nodesAt(x, y, this.editor.view.scale)];
 
             if (this.mode === "subtract") {
