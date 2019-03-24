@@ -2,7 +2,7 @@ export function iter(iterable) {
     return new Iter(iterable);
 }
 
-function *filter(iterable, fn) {
+function* filter(iterable, fn) {
     for (const item of iterable) {
         if (fn(item)) yield item;
     }

@@ -74,7 +74,7 @@ export function processImage(image, params) {
  * @param {Number} h - Height of the image being generated.
  */
 export function gradientCircle() {
-    return function(color, x, y, w, h) {
+    return function (color, x, y, w, h) {
         const D = w / 2;
         const dist = Math.sqrt((x - D) * (x - D) + (y - D) * (y - D));
         const t = Math.max(0, Math.min(1, dist - (D - 1)));
@@ -86,7 +86,7 @@ export function gradientCircle() {
 }
 
 export function rectangle(borderWidth, fillColor, borderColor) {
-    return function(color, x, y, w, h) {
+    return function (color, x, y, w, h) {
         if (x < borderWidth || (w - x) <= borderWidth || y < borderWidth || (h - y) <= borderWidth) {
             color.set(borderColor);
         } else {

@@ -157,13 +157,13 @@ export class Node extends EventEmitter {
         if (nodeName) {
             while (node) {
                 if (node.nodeName === nodeName) yield node;
-                yield *node.descendants(nodeName);
+                yield* node.descendants(nodeName);
                 node = node.nextSibling;
             }
         } else {
             while (node) {
                 yield node;
-                yield *node.descendants();
+                yield* node.descendants();
                 node = node.nextSibling;
             }
         }
@@ -186,7 +186,7 @@ export class Node extends EventEmitter {
 
     *tree(nodeName) {
         if (!nodeName || this.nodeName === nodeName) yield this;
-        yield *this.descendants(nodeName);
+        yield* this.descendants(nodeName);
     }
 
     closest(nodeName) {
@@ -211,7 +211,7 @@ export class Node extends EventEmitter {
 
     *nodesAt(x, y, scale) {
         for (const childNode of this.children()) {
-            yield *childNode.nodesAt(x, y, scale);
+            yield* childNode.nodesAt(x, y, scale);
         }
         if (this.intersectsPoint(x, y, scale)) {
             yield this;
@@ -220,7 +220,7 @@ export class Node extends EventEmitter {
 
     *nodesIntersectingRect(x, y, w, h, scale) {
         for (const childNode of this.children()) {
-            yield *childNode.nodesIntersectingRect(x, y, w, h, scale);
+            yield* childNode.nodesIntersectingRect(x, y, w, h, scale);
         }
         if (this.intersectsRect(x, y, w, h, scale)) {
             yield this;
@@ -229,7 +229,7 @@ export class Node extends EventEmitter {
 
     *nodesContainedByRect(x, y, w, h, scale) {
         for (const childNode of this.children()) {
-            yield *childNode.nodesContainedByRect(x, y, w, h, scale);
+            yield* childNode.nodesContainedByRect(x, y, w, h, scale);
         }
         if (this.containedByRect(x, y, w, h, scale)) {
             yield this;

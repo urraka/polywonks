@@ -94,19 +94,19 @@ export class LayerNode extends Node {
 
     *nodesAt(...args) {
         if (this.visible) {
-            yield *super.nodesAt(...args);
+            yield* super.nodesAt(...args);
         }
     }
 
     *nodesIntersectingRect(...args) {
         if (this.visible) {
-            yield *super.nodesIntersectingRect(...args);
+            yield* super.nodesIntersectingRect(...args);
         }
     }
 
     *nodesContainedByRect(...args) {
         if (this.visible) {
-            yield *super.nodesContainedByRect(...args);
+            yield* super.nodesContainedByRect(...args);
         }
     }
 }

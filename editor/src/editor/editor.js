@@ -384,7 +384,7 @@ export class Editor extends ui.Panel {
 
             data.nodes.forEach(nodeEntry => {
                 for (const node of nodeEntry.tree()) {
-                    for (const [,attr] of node.attributes) {
+                    for (const [, attr] of node.attributes) {
                         if (attr.dataType === "node" && attr.value && (attr.value instanceof ResourceNode)) {
                             const resourceNode = attr.value;
                             const path = resourceNode.pathFrom(Path.dir(data.path)).toLowerCase();

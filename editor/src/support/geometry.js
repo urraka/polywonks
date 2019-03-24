@@ -1,7 +1,7 @@
 export function rectContainsPoint(x, y, w, h, px, py) {
     let x0, x1, y0, y1;
-    w < 0? (x0 = x + w, x1 = x) : (x0 = x, x1 = x + w);
-    h < 0? (y0 = y + h, y1 = y) : (y0 = y, y1 = y + h);
+    w < 0 ? (x0 = x + w, x1 = x) : (x0 = x, x1 = x + w);
+    h < 0 ? (y0 = y + h, y1 = y) : (y0 = y, y1 = y + h);
     return x0 <= px && px <= x1 && y0 <= py && py <= y1;
 }
 
@@ -13,26 +13,26 @@ export function rectContainsTriangle(x, y, w, h, ax, ay, bx, by, cx, cy) {
 
 export function rectContainsRect(ax, ay, aw, ah, bx, by, bw, bh) {
     let ax0, ax1, ay0, ay1, bx0, bx1, by0, by1;
-    aw < 0? (ax0 = ax + aw, ax1 = ax) : (ax0 = ax, ax1 = ax + aw);
-    ah < 0? (ay0 = ay + ah, ay1 = ay) : (ay0 = ay, ay1 = ay + ah);
-    bw < 0? (bx0 = bx + bw, bx1 = bx) : (bx0 = bx, bx1 = bx + bw);
-    bh < 0? (by0 = by + bh, by1 = by) : (by0 = by, by1 = by + bh);
+    aw < 0 ? (ax0 = ax + aw, ax1 = ax) : (ax0 = ax, ax1 = ax + aw);
+    ah < 0 ? (ay0 = ay + ah, ay1 = ay) : (ay0 = ay, ay1 = ay + ah);
+    bw < 0 ? (bx0 = bx + bw, bx1 = bx) : (bx0 = bx, bx1 = bx + bw);
+    bh < 0 ? (by0 = by + bh, by1 = by) : (by0 = by, by1 = by + bh);
     return ax0 <= bx0 && bx1 <= ax1 && ay0 <= by0 && by1 <= ay1;
 }
 
 export function rectIntersectsRect(ax, ay, aw, ah, bx, by, bw, bh) {
     let ax0, ax1, ay0, ay1, bx0, bx1, by0, by1;
-    aw < 0? (ax0 = ax + aw, ax1 = ax) : (ax0 = ax, ax1 = ax + aw);
-    ah < 0? (ay0 = ay + ah, ay1 = ay) : (ay0 = ay, ay1 = ay + ah);
-    bw < 0? (bx0 = bx + bw, bx1 = bx) : (bx0 = bx, bx1 = bx + bw);
-    bh < 0? (by0 = by + bh, by1 = by) : (by0 = by, by1 = by + bh);
+    aw < 0 ? (ax0 = ax + aw, ax1 = ax) : (ax0 = ax, ax1 = ax + aw);
+    ah < 0 ? (ay0 = ay + ah, ay1 = ay) : (ay0 = ay, ay1 = ay + ah);
+    bw < 0 ? (bx0 = bx + bw, bx1 = bx) : (bx0 = bx, bx1 = bx + bw);
+    bh < 0 ? (by0 = by + bh, by1 = by) : (by0 = by, by1 = by + bh);
     return ax0 <= bx1 && ax1 >= bx0 && ay0 <= by1 && ay1 >= by0;
 }
 
 export function rectIntersectsCircle(x, y, w, h, px, py, r) {
     let x0, x1, y0, y1, dx, dy;
-    w < 0? (x0 = x + w, x1 = x) : (x0 = x, x1 = x + w);
-    h < 0? (y0 = y + h, y1 = y) : (y0 = y, y1 = y + h);
+    w < 0 ? (x0 = x + w, x1 = x) : (x0 = x, x1 = x + w);
+    h < 0 ? (y0 = y + h, y1 = y) : (y0 = y, y1 = y + h);
     dx = px - Math.max(x0, Math.min(x1, px));
     dy = py - Math.max(y0, Math.min(y1, py));
     return (dx * dx) + (dy * dy) <= (r * r);
@@ -97,10 +97,10 @@ export function distance2(ax, ay, bx, by) {
 }
 
 export function pointToSegmentDistance2(x, y, ax, ay, bx, by) {
-  const length2 = distance2(ax, ay, bx, by);
-  if (length2 === 0) return distance2(x, y, ax, ay);
-  const t = Math.max(0, Math.min(1, ((x - ax) * (bx - ax) + (y - ay) * (by - ay)) / length2));
-  return distance2(x, y, ax + t * (bx - ax), ay + t * (by - ay));
+    const length2 = distance2(ax, ay, bx, by);
+    if (length2 === 0) return distance2(x, y, ax, ay);
+    const t = Math.max(0, Math.min(1, ((x - ax) * (bx - ax) + (y - ay) * (by - ay)) / length2));
+    return distance2(x, y, ax + t * (bx - ax), ay + t * (by - ay));
 }
 
 export function pointToSegmentDistance(x, y, ax, ay, bx, by) {

@@ -155,7 +155,7 @@ export class App extends ui.Panel {
             Editor.loadFile(this.renderer, path, editor => {
                 if (editor) {
                     const panel = this.tabs.addPanel(new ui.TabPanel(Path.filename(editor.saveName), editor));
-                    editor.on("change", () => this.onEditorChange({editor, panel}));
+                    editor.on("change", () => this.onEditorChange({ editor, panel }));
                     this.sidebar.activeTab = "sidebar-tools";
 
                     if (activePanel && activeEditor.openedAsDefault && !activeEditor.modified) {
@@ -172,7 +172,7 @@ export class App extends ui.Panel {
 
     openEditor(editor = new Editor(this.renderer)) {
         const panel = this.tabs.addPanel(new ui.TabPanel(Path.filename(editor.saveName), editor));
-        editor.on("change", () => this.onEditorChange({editor, panel}));
+        editor.on("change", () => this.onEditorChange({ editor, panel }));
         return editor;
     }
 

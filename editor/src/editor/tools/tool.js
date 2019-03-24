@@ -41,5 +41,5 @@ export class Tool extends EventEmitter {
         }
     }
 
-    onCommand() {}
+    onCommand() { }
 }

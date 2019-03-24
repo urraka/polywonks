@@ -28,7 +28,7 @@ function createDefaultLayers() {
     return (list => {
         const layers = {};
         list.forEach(([key, layer]) => layers[key] = layer);
-        layers[Symbol.iterator] = Array.prototype[Symbol.iterator].bind(list.map(([,layer]) => layer));
+        layers[Symbol.iterator] = Array.prototype[Symbol.iterator].bind(list.map(([, layer]) => layer));
         return layers;
     })([
         ["resources", resources],
@@ -250,7 +250,7 @@ export class MapDocument extends Node {
         const serializeNode = (node, level = 0) => {
             return `${"  ".repeat(level)}<` + node.nodeName +
                 (node.id !== null ? ` id="${node.id}"` : "") +
-                [...node.attributes.entries()].reduce((accum, [key, {dataType, value}]) => {
+                [...node.attributes.entries()].reduce((accum, [key, { dataType, value }]) => {
                     if (dataType === "node" && value !== null) {
                         return accum + " " + `${key}="${value.id}"`;
                     } else {

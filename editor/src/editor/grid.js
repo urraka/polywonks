@@ -35,10 +35,10 @@ export class Grid {
 
     *lines() {
         if (cfg("view.grid")) {
-            yield *this.minorLines("x");
-            yield *this.minorLines("y");
-            yield *this.majorLines("x");
-            yield *this.majorLines("y");
+            yield* this.minorLines("x");
+            yield* this.minorLines("y");
+            yield* this.majorLines("x");
+            yield* this.majorLines("y");
         }
     }
 

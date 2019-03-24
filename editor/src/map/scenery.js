@@ -66,13 +66,13 @@ export class SceneryNode extends Node {
 
     toPMS(imageNodes, version) {
         const topleft = Matrix.transform(
-                this.attr("x"),
-                this.attr("y"),
-                this.pivotX,
-                this.pivotY,
-                1, 1,
-                this.attr("rotation")
-            ).multiply({ x: 0, y: 0 });
+            this.attr("x"),
+            this.attr("y"),
+            this.pivotX,
+            this.pivotY,
+            1, 1,
+            this.attr("rotation")
+        ).multiply({ x: 0, y: 0 });
 
         let offset = { x: 0, y: 0 };
 
