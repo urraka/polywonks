@@ -115,10 +115,8 @@ export class Editor extends ui.Panel {
         this.tools.current = value;
         this.tools.current.on("statuschange", this.onToolStatusChange);
 
-        const element = this.sidebar.tools.content.element.querySelector("li.active");
-        if (element) element.classList.remove("active");
-        const item = iter(this.sidebar.tools.content.items()).find(item => this.tools[item.data] === this.tools.current);
-        if (item) item.element.classList.add("active");
+        const listView = this.sidebar.tools.content;
+        listView.activeItem = iter(listView.items()).find(item => item.data === value);
 
         if (activated) {
             this.tools.current.activate(this);

@@ -8,6 +8,16 @@ export class ListView extends Panel {
         this.list.addEventListener("click", e => this.onClick(e));
     }
 
+    get activeItem() {
+        return ListViewItem.from(this.list.querySelector("li.active"));
+    }
+
+    set activeItem(item) {
+        const activeItem = this.activeItem;
+        if (activeItem) activeItem.active = false;
+        if (item) item.active = true;
+    }
+
     addItem(item) {
         this.list.append(item.element);
         return item;
@@ -42,6 +52,14 @@ export class ListViewItem {
         this.element.setAttribute("tabindex", 0);
         this.data = data;
         ListViewItem.itemByElement.set(this.element, this);
+    }
+
+    get active() {
+        return this.element.classList.contains("active");
+    }
+
+    set active(value) {
+        this.element.classList.toggle("active", value);
     }
 
     static get itemByElement() {
