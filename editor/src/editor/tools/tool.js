@@ -1,4 +1,4 @@
-import { EventEmitter } from "./support/event.js";
+import { EventEmitter } from "../../support/event.js";
 
 export class Tool extends EventEmitter {
     constructor() {

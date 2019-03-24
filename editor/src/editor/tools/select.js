@@ -1,8 +1,8 @@
-import { Rect } from "./support/rect.js";
-import { mod } from "./support/math.js";
-import { Pointer, MovementThreshold } from "./support/pointer.js";
+import { cfg } from "../../settings.js";
+import { Rect } from "../../support/rect.js";
+import { mod } from "../../support/math.js";
+import { Pointer, MovementThreshold } from "../../support/pointer.js";
 import { Tool } from "./tool.js";
-import { cfg } from "./settings.js";
 
 export class SelectTool extends Tool {
     constructor() {

@@ -1,9 +1,9 @@
+import { iter } from "../../support/iter.js";
+import { Pointer } from "../../support/pointer.js";
+import { VertexNode, TriangleNode } from "../../map/map.js";
+import { EditorCommand } from "../command.js";
+import { SnapHandle, SnapSource } from "../snapping.js";
 import { Tool } from "./tool.js";
-import { Pointer } from "./support/pointer.js";
-import { VertexNode, TriangleNode } from "./map/map.js";
-import { EditorCommand } from "./editor.command.js";
-import { iter } from "./support/iter.js";
-import { SnapHandle, SnapSource } from "./snapping.js";
 
 export class PolygonTool extends Tool {
     constructor() {

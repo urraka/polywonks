@@ -1,11 +1,11 @@
-import { Pointer, MovementThreshold } from "./support/pointer.js";
+import { cfg } from "../../settings.js";
+import { Matrix } from "../../support/matrix.js";
+import { iter } from "../../support/iter.js";
+import { Pointer, MovementThreshold } from "../../support/pointer.js";
+import { TriangleNode, ConnectionNode, PivotNode, VertexNode, WaypointNode, SpawnNode, ColliderNode } from "../../map/map.js";
+import { EditorCommand } from "../command.js";
 import { Tool } from "./tool.js";
-import { EditorCommand } from "./editor.command.js";
-import { cfg } from "./settings.js";
-import { TriangleNode, ConnectionNode, PivotNode, VertexNode, SceneryNode, WaypointNode, SpawnNode, ColliderNode } from "./map/map.js";
-import { Matrix } from "./support/matrix.js";
-import { iter } from "./support/iter.js";
-import { SnapHandle, SnapSource } from "./snapping.js";
+import { SnapHandle, SnapSource } from "../snapping.js";
 
 export class MoveTool extends Tool {
     constructor() {

@@ -1,8 +1,8 @@
-import * as PMS from "./pms/pms.js";
-import * as ui from "./ui/ui.js";
-import { iter } from "./support/iter.js";
-import { EventEmitter } from "./support/event.js";
-import { EditorCommand } from "./editor.command.js";
+import * as PMS from "../pms/pms.js";
+import * as ui from "../ui/ui.js";
+import { iter } from "../support/iter.js";
+import { EventEmitter } from "../support/event.js";
+import { EditorCommand } from "./command.js";
 
 export class MapProperties extends EventEmitter {
     constructor(editor) {

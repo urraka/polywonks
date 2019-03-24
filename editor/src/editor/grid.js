@@ -1,4 +1,4 @@
-import { cfg } from "./settings.js";
+import { cfg } from "../settings.js";
 
 const AxisSize = {
     "x": "width",

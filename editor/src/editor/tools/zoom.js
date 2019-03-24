@@ -1,5 +1,5 @@
+import { cfg } from "../../settings.js";
 import { Tool } from "./tool.js";
-import { cfg } from "./settings.js";
 
 export class ZoomTool extends Tool {
     constructor() {

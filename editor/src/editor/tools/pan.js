@@ -1,4 +1,4 @@
-import { Pointer } from "./support/pointer.js";
+import { Pointer } from "../../support/pointer.js";
 import { Tool } from "./tool.js";
 
 export class PanTool extends Tool {

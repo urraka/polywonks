@@ -1,6 +1,6 @@
-import { cfg } from "./settings.js";
-import { SceneryNode } from "./map/map.js";
-import { distance2 } from "./support/geometry.js";
+import { cfg } from "../settings.js";
+import { SceneryNode } from "../map/map.js";
+import { distance2 } from "../support/geometry.js";
 
 export class SnapSource {
     constructor(node, filter = null) {

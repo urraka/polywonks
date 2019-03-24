@@ -1,24 +1,24 @@
-import * as PMS from "./pms/pms.js";
-import * as ui from "./ui/ui.js";
-import { Path } from "./support/path.js";
-import { MapDocument, LayerNode, ConnectionNode, ResourceNode, ClonedNodesCollection, TriangleNode } from "./map/map.js";
-import { File } from "./file.js";
-import { RenderView } from "./render.view.js";
-import { cfg, Settings } from "./settings.js";
-import { SelectTool } from "./tool.select.js";
-import { PanTool } from "./tool.pan.js";
-import { ZoomTool } from "./tool.zoom.js";
-import { MoveTool } from "./tool.move.js";
+import * as PMS from "../pms/pms.js";
+import * as ui from "../ui/ui.js";
+import { Path } from "../support/path.js";
+import { iter } from "../support/iter.js";
+import { MapDocument, LayerNode, ConnectionNode, ResourceNode, ClonedNodesCollection, TriangleNode } from "../map/map.js";
+import { File } from "../file.js";
+import { Clipboard } from "../clipboard.js";
+import { SaveDialog } from "../dialog.save.js";
+import { RenderView } from "../render.view.js";
+import { cfg, Settings } from "../settings.js";
 import { MapExplorer } from "./map.explorer.js";
-import { Selection } from "./selection.js";
 import { MapProperties } from "./map.properties.js";
-import { SaveDialog } from "./dialog.save.js";
-import { EditorCommand } from "./editor.command.js";
-import { Clipboard } from "./clipboard.js";
-import { iter } from "./support/iter.js";
+import { Selection } from "./selection.js";
+import { EditorCommand } from "./command.js";
 import { Grid } from "./grid.js";
-import { PolygonTool } from "./tool.polygon.js";
-import { CursorTool } from "./tool.cursor.js";
+import { SelectTool } from "./tools/select.js";
+import { PanTool } from "./tools/pan.js";
+import { ZoomTool } from "./tools/zoom.js";
+import { MoveTool } from "./tools/move.js";
+import { PolygonTool } from "./tools/polygon.js";
+import { CursorTool } from "./tools/cursor.js";
 
 export class Editor extends ui.Panel {
     constructor(renderer, map = MapDocument.default()) {

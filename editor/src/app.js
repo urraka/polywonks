@@ -1,7 +1,7 @@
 import * as ui from "./ui/ui.js";
 import { Path } from "./support/path.js";
 import { Renderer } from "./render.js";
-import { Editor } from "./editor.js";
+import { Editor } from "./editor/editor.js";
 import { Sidebar } from "./sidebar.js";
 import { Settings, cfg } from "./settings.js";
 import { KeyBindings } from "./keybindings.js";
