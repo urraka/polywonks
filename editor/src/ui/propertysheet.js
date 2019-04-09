@@ -47,7 +47,7 @@ export class PropertyItem extends EventEmitter {
 
             case "array": {
                 this.control = new Select();
-                type.forEach(item => this.control.addOption(item.toString(), item));
+                type.forEach(item => this.control.addOption(item ? item.toString() : "None", item));
                 this.control.value = value;
                 this.control.on("change", this.onSelectChange);
                 break;

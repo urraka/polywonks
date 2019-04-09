@@ -37,7 +37,7 @@ export class MapProperties extends EventEmitter {
                 if (key === "image") {
                     dataType = [...map.resources.descendants("image")];
                 } else if (key === "texture") {
-                    dataType = [...map.resources.descendants("texture")];
+                    dataType = [null, ...map.resources.descendants("texture")];
                 } else if (key === "waypoint") {
                     dataType = [...map.waypoints.children("waypoint")];
                 }
