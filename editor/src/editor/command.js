@@ -24,12 +24,16 @@ class InsertCommand {
 
     do(sel) {
         this.parent.insert(this.position, this.node);
-        sel.add(this.node);
+        for (const node of this.node.tree()) {
+            sel.add(node);
+        }
     }
 
     undo(sel) {
         this.node.remove();
-        sel.delete(this.node);
+        for (const node of this.node.tree()) {
+            sel.delete(node);
+        }
     }
 }
 
@@ -43,12 +47,16 @@ class RemoveCommand {
 
     do(sel) {
         this.node.remove();
-        sel.delete(this.node);
+        for (const node of this.node.tree()) {
+            sel.delete(node);
+        }
     }
 
     undo(sel) {
         this.parent.insert(this.position, this.node);
-        sel.add(this.node);
+        for (const node of this.node.tree()) {
+            sel.add(node);
+        }
     }
 }
 
