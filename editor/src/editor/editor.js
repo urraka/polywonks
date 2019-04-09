@@ -156,9 +156,10 @@ export class Editor extends ui.Panel {
         if (this.saveName.startsWith("/")) {
             File.refresh(Path.mount(this.saveName), () => {
                 if (File.exists(this.saveName)) {
+                    const saveIndex = this.undone;
                     File.write(this.saveName, this.map.serialize(), ok => {
                         if (ok) {
-                            this.saveIndex = this.undone;
+                            this.saveIndex = saveIndex;
                             this.emit("change");
                         } else {
                             ui.msgbox("Save", "Failed to write file " + this.saveName);
@@ -177,14 +178,16 @@ export class Editor extends ui.Panel {
         const dialog = new SaveDialog("Save as...", Path.filename(this.saveName), Path.dir(this.saveName) || "/polydrive/");
 
         dialog.on("save", event => {
+            const saveIndex = this.undone;
             const editor = new Editor(this.renderer, this.map.clone());
             editor.relocateMap(event.path);
 
             File.write(event.path, editor.map.serialize(), ok => {
                 if (ok) {
+                    const changed = (saveIndex !== this.undone);
                     this.relocateMap(event.path);
                     this.saveName = event.path;
-                    this.saveIndex = this.undone;
+                    this.saveIndex = changed ? saveIndex : this.undone;
                     this.emit("change");
                 } else {
                     ui.msgbox("Save as...", "Failed to write file " + event.path);
