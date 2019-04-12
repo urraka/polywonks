@@ -106,7 +106,6 @@ export class Renderer {
 
     loadColliderIcon() {
         this.icons["collider"] = this.context.createTexture(512, 512, gradientCircle());
-        this.icons["collider"].generateMipmaps();
     }
 
     loadWaypointsIcon() {
@@ -366,20 +365,18 @@ export class Renderer {
         return this.rectVertices(p.x - dx, p.y - dy, w / s, h / s, color);
     }
 
-    nodeVertices(node, color, align = false) {
+    nodeVertices(node, color) {
         switch (node.constructor) {
             case TriangleNode: {
                 const vertices = Array.from(node.children()).map(v => {
                     return new Gfx.Vertex(v.attr("x"), v.attr("y"), v.attr("u"), v.attr("v"), color || v.attr("color"));
                 });
-                if (align) vertices.forEach(v => Object.assign(v, this.editor.view.mapToPixelGrid(v.x, v.y)));
                 return vertices;
             }
 
             case SceneryNode: {
                 const vertices = node.computeVertices(this.texture(node.attr("image")));
                 if (color) vertices.forEach(v => v.color.set(color));
-                if (align) vertices.forEach(v => Object.assign(v, this.editor.view.mapToPixelGrid(v.x, v.y)));
                 return vertices;
             }
 
@@ -401,14 +398,58 @@ export class Renderer {
             case ConnectionNode: {
                 const a = node.parentNode;
                 const b = node.attr("waypoint");
-                return [
+                const halfPixel = 0.5 / this.editor.view.scale;
+                const vertices = [
                     new Gfx.Vertex(a.attr("x"), a.attr("y"), 0, 0, color),
                     new Gfx.Vertex(b.attr("x"), b.attr("y"), 0, 0, color)
                 ];
+                vertices.forEach(v => {
+                    const p = this.editor.view.mapToPixelGrid(v.x, v.y);
+                    v.x = p.x + halfPixel;
+                    v.y = p.y + halfPixel;
+                });
+                return vertices;
             }
 
             default: return null;
         }
+    }
+
+    nodeSelVertices(node, color) {
+        const vertices = this.nodeVertices(node, color);
+
+        if (vertices) {
+            const px = 1 / this.editor.view.scale;
+
+            switch (node.constructor) {
+                case ColliderNode:
+                    [0, 3].forEach(i => vertices[i].x -= px);
+                    [0, 1].forEach(i => vertices[i].y -= px);
+                    vertices.forEach(v => Object.assign(v, this.editor.view.mapToPixelGrid(v.x, v.y)));
+                    break;
+
+                case SpawnNode:
+                case WaypointNode: {
+                    [1, 2].forEach(i => vertices[i].x -= px);
+                    [2, 3].forEach(i => vertices[i].y -= px);
+                    break;
+                }
+
+                case TriangleNode:
+                case SceneryNode:
+                    vertices.forEach(v => Object.assign(v, this.editor.view.mapToPixelGrid(v.x, v.y)));
+                    break;
+            }
+
+            if (vertices.length > 2) {
+                vertices.forEach(v => {
+                    v.x += 0.5 * px;
+                    v.y += 0.5 * px;
+                });
+            }
+        }
+
+        return vertices;
     }
 
     drawNodes(nodes) {
@@ -448,12 +489,7 @@ export class Renderer {
                 break;
 
             case ConnectionNode: {
-                const a = node.parentNode;
-                const b = node.attr("waypoint");
-                this.batch.add(Gfx.Lines, null, [
-                    new Gfx.Vertex(a.attr("x"), a.attr("y"), 0, 0, this.theme.waypointColor),
-                    new Gfx.Vertex(b.attr("x"), b.attr("y"), 0, 0, this.theme.waypointColor)
-                ]);
+                this.batch.add(Gfx.Lines, null, this.nodeVertices(node, this.theme.waypointColor));
                 break;
             }
         }
@@ -473,9 +509,9 @@ export class Renderer {
     }
 
     drawNodeWireframe(node) {
-        const vertices = this.nodeVertices(node, null, true);
+        const vertices = this.nodeSelVertices(node, null);
         vertices.forEach(v => v.color.a = 255);
-        this.drawLineLoop(vertices);
+        this.drawLineLoop(vertices, null);
     }
 
     drawPreview(nodes) {
@@ -505,7 +541,7 @@ export class Renderer {
         } else {
             if (color = this.chooseSelectionColor(node, this.theme.selectionPalette.overlay, preview)) {
                 const idx = [0, 1, 2, 2, 3, 0];
-                const vtx = this.nodeVertices(node, color.fill || color.border, true);
+                const vtx = this.nodeSelVertices(node, color.fill || color.border, true);
                 const vtxFill = vtx && (vtx.length === 3 ? vtx : vtx.length === 4 ? idx.map(i => vtx[i]) : null);
                 if (vtxFill && color.fill) this.batch.add(Gfx.Triangles, null, vtxFill);
                 if (vtx && color.border) this.drawLineLoop(vtx, color.border);
@@ -544,6 +580,9 @@ export class Renderer {
             const p1 = this.editor.view.mapToPixelGrid(sel.rect.x0, sel.rect.y0);
             const p2 = this.editor.view.mapToPixelGrid(sel.rect.x1, sel.rect.y1);
             const rc = new Rect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+            const halfPixel = 0.5 / this.editor.view.scale;
+            rc.x += halfPixel;
+            rc.y += halfPixel;
             this.drawRect(rc, this.theme.selectionRectFill, this.theme.selectionRectBorder);
         }
     }
@@ -621,26 +660,7 @@ export class Renderer {
         if (vertices.length === 2) {
             this.batch.add(Gfx.Lines, null, vertices);
         } else {
-            const n = vertices.length;
-            const halfPixel = 0.5 / this.editor.view.scale;
-
-            vertices.forEach((vertex, i) => {
-                const prev = vertices[mod(i - 1, n)];
-                const next = vertices[mod(i + 1, n)];
-                const a = { x: prev.x - vertex.x, y: prev.y - vertex.y };
-                const b = { x: next.x - vertex.x, y: next.y - vertex.y };
-                const alen = Math.hypot(a.x, a.y);
-                const blen = Math.hypot(b.x, b.y);
-                const c = { x: 0.5 * (a.x / alen + b.x / blen), y: 0.5 * (a.y / alen + b.y / blen) };
-                const clen = Math.hypot(c.x, c.y);
-
-                if (Number.isFinite(clen)) {
-                    vertex.x += halfPixel * c.x / clen;
-                    vertex.y += halfPixel * c.y / clen;
-                }
-            });
-
-            for (let i = vertices.length - 1, j = 0; j < n; i = j++) {
+            for (let n = vertices.length, i = n - 1, j = 0; j < n; i = j++) {
                 this.batch.add(Gfx.Lines, null, [vertices[i], vertices[j]]);
             }
         }
