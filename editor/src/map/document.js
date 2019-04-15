@@ -32,11 +32,11 @@ function createDefaultLayers() {
         return layers;
     })([
         ["resources", resources],
-        ["backgroundPolygons", new LayerNode("Background polygons", LayerType.PolygonsBack)],
-        ["backgroundScenery", new LayerNode("Background scenery", LayerType.SceneryBack)],
-        ["middleScenery", new LayerNode("Middle scenery", LayerType.SceneryMiddle)],
-        ["frontPolygons", new LayerNode("Front polygons", LayerType.PolygonsFront)],
-        ["frontScenery", new LayerNode("Front scenery", LayerType.SceneryFront)],
+        ["backgroundPolygons", new LayerNode("Background Polygons", LayerType.PolygonsBack)],
+        ["backgroundScenery", new LayerNode("Background Scenery", LayerType.SceneryBack)],
+        ["middleScenery", new LayerNode("Middle Scenery", LayerType.SceneryMiddle)],
+        ["frontPolygons", new LayerNode("Front Polygons", LayerType.PolygonsFront)],
+        ["frontScenery", new LayerNode("Front Scenery", LayerType.SceneryFront)],
         ["colliders", new LayerNode("Colliders", LayerType.Colliders)],
         ["waypoints", new LayerNode("Waypoints", LayerType.Waypoints)],
         ["spawns", new LayerNode("Spawns", LayerType.Spawns)],
@@ -139,13 +139,6 @@ export class MapDocument extends Node {
         const waypoints = pms.waypoints.map(() => new WaypointNode());
         waypoints.forEach((node, i) => node.fromPMS(pms.waypoints[i], waypoints));
         waypoints.forEach(node => node.appendTo(layers.waypoints));
-
-        for (const node of doc.descendants()) {
-            if (!node.attr("text")) {
-                const index = node.id.indexOf("#") + 1;
-                node.attr("text", `${fmt.capitalize(node.nodeName)} #${node.id.slice(index)}`);
-            }
-        }
 
         return doc;
     }

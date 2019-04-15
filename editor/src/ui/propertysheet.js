@@ -11,8 +11,8 @@ export class PropertySheet extends Panel {
         this.properties = {};
     }
 
-    addProperty(key, value, type, title = key, autocomplete = null) {
-        const property = new PropertyItem(key, value, type, title, autocomplete);
+    addProperty(key, value, type, title = key, autocomplete = null, placeholder = null) {
+        const property = new PropertyItem(key, value, type, title, autocomplete, placeholder);
         this.properties[key] = property;
         this.columns[0].append(property.label);
         this.columns[1].append(property.control.element || property.control);
@@ -26,7 +26,7 @@ export class PropertySheet extends Panel {
 }
 
 export class PropertyItem extends EventEmitter {
-    constructor(key, value, type, title, autocomplete = null) {
+    constructor(key, value, type, title, autocomplete = null, placeholder = null) {
         super();
         this.key = key;
         this.value = value;
@@ -63,6 +63,7 @@ export class PropertyItem extends EventEmitter {
                 } else {
                     this.control = elem("input");
                     this.control.value = ValueType.toString(type, value);
+                    this.control.placeholder = placeholder || "";
                     this.control.addEventListener("change", this.onTextChange);
                     this.control.addEventListener("input", () => this.onTextInput());
                     this.control.addEventListener("keydown", e => this.onTextKeyDown(e));
@@ -98,7 +99,7 @@ export class PropertyItem extends EventEmitter {
         }
     }
 
-    reset(value) {
+    reset(value, placeholder = null) {
         this.value = value;
 
         if (this.control instanceof ComboBox) {
@@ -114,6 +115,7 @@ export class PropertyItem extends EventEmitter {
         } else {
             this.control.removeEventListener("change", this.onTextChange);
             this.control.value = ValueType.toString(this.type, value);
+            this.control.placeholder = placeholder || "";
             this.control.addEventListener("change", this.onTextChange);
             this.toggleState("modified", false);
             this.toggleState("invalid", false);

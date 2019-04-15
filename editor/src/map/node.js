@@ -1,6 +1,7 @@
 import { EventEmitter, Event } from "../support/event.js";
 import { ValueType } from "../support/type.js";
 import { Attribute } from "./attribute.js";
+import { capitalize } from "../support/format.js";
 
 export class Node extends EventEmitter {
     constructor() {
@@ -20,8 +21,12 @@ export class Node extends EventEmitter {
         return "#node";
     }
 
+    get defaultText() {
+        return capitalize(this.nodeName) + (this.id ? " #" + this.id.split("#").pop() : "");
+    }
+
     toString() {
-        return this.attr("text") || this.id || this.nodeName;
+        return this.attr("text") || this.defaultText;
     }
 
     emit(...args) {

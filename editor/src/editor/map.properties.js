@@ -43,15 +43,20 @@ export class MapProperties extends EventEmitter {
                 }
             }
 
-            this.sheet.addProperty(key, attr.value, dataType);
+            this.sheet.addProperty(key, attr.value, dataType, key, null, this.placeholder(key, this.node));
         }
 
         this.emit("nodechange");
     }
 
+    placeholder(key, node) {
+        return key === "text" ? node.defaultText : "";
+    }
+
     onAttributeChange(event) {
         if (event.target === this.node && this.sheet.properties[event.attribute]) {
-            this.sheet.properties[event.attribute].reset(this.node.attr(event.attribute));
+            const placeholder = this.placeholder(event.attribute, this.node);
+            this.sheet.properties[event.attribute].reset(this.node.attr(event.attribute), placeholder);
         }
     }
 
