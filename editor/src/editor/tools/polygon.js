@@ -1,6 +1,6 @@
 import { iter } from "../../support/iter.js";
 import { Pointer } from "../../support/pointer.js";
-import { VertexNode, TriangleNode } from "../../map/map.js";
+import { VertexNode, TriangleNode, LayerNode } from "../../map/map.js";
 import { EditorCommand } from "../command.js";
 import { SnapHandle, SnapSource } from "../snapping.js";
 import { Tool } from "./tool.js";
@@ -8,42 +8,82 @@ import { Tool } from "./tool.js";
 export class PolygonTool extends Tool {
     constructor() {
         super();
+        this.targetLayer = null;
         this.triangle = null;
         this.handle = null;
         this.pointer = new Pointer();
         this.pointer.on("begin", e => this.onPointerBegin(e.mouseEvent));
         this.pointer.on("move", e => this.onPointerMove(e.mouseEvent));
-        this.pointer.on("end", e => this.onPointerEnd(e.mouseEvent));
-        this.onMouseEnter = this.onMouseEnter.bind(this);
-        this.onMouseLeave = this.onMouseLeave.bind(this);
         this.onMouseDown = this.onMouseDown.bind(this);
+        this.onKeyDown = this.onKeyDown.bind(this);
+        this.onEditorStatusChange = this.onEditorStatusChange.bind(this);
+    }
+
+    get status() {
+        if (!this.targetLayer) {
+            return "Select a layer";
+        } else {
+            return "Create polygons";
+        }
     }
 
     onActivate() {
+        this.targetLayer = null;
         this.triangle = null;
         this.handle = new SnapHandle(this.editor);
-        this.handle.visible = this.editor.cursor.active;
         this.handle.snapSources = [new SnapSource(this.editor.map)];
         this.handle.moveTo(this.editor.cursor.x, this.editor.cursor.y);
+        this.updateTargetLayer();
+        this.updateHandle();
         this.pointer.activate(this.editor.element, 0);
-        this.editor.element.addEventListener("mouseenter", this.onMouseEnter);
-        this.editor.element.addEventListener("mouseleave", this.onMouseLeave);
+        this.editor.on("statuschange", this.onEditorStatusChange);
         this.editor.element.addEventListener("mousedown", this.onMouseDown);
+        document.addEventListener("keydown", this.onKeyDown);
+        this.emit("statuschange");
     }
 
     onDeactivate() {
         this.pointer.deactivate();
-        this.editor.element.removeEventListener("mouseenter", this.onMouseEnter);
-        this.editor.element.removeEventListener("mouseleave", this.onMouseLeave);
+        this.editor.off("statuschange", this.onEditorStatusChange);
         this.editor.element.removeEventListener("mousedown", this.onMouseDown);
+        document.removeEventListener("keydown", this.onKeyDown);
+    }
+
+    onEditorStatusChange(event) {
+        if (!this.triangle && ("layer" in event.status)) {
+            this.updateTargetLayer();
+        }
+
+        if ("cursor" in event.status) {
+            this.updateHandle();
+            this.editor.redraw();
+        }
+    }
+
+    updateHandle() {
+        this.handle.visible = this.editor.cursor.active && !!this.targetLayer;
+        this.editor.redraw();
+    }
+
+    updateTargetLayer() {
+        const current = this.targetLayer;
+        this.targetLayer = null;
+        if (this.editor.activeLayer && this.editor.activeLayer.isNodeAllowed(new TriangleNode())) {
+            this.targetLayer = this.editor.activeLayer;
+        }
+        if (this.targetLayer !== current) {
+            this.updateHandle();
+            this.emit("statuschange");
+        }
     }
 
     onPointerBegin() {
-        if (this.editor.activeLayer) {
+        if (this.targetLayer) {
             if (!this.triangle) {
                 this.editor.selection.clear();
                 this.triangle = new TriangleNode();
                 this.triangle.attr("texture", iter(this.editor.map.resources.children("texture")).first());
+                this.triangle.attr("poly-type", this.targetLayer.polyTypes().defaultName());
                 this.addVertex();
                 this.addVertex();
                 this.handle.snapSources.push(new SnapSource(this.triangle, n => !n.parentNode || n !== n.parentNode.lastChild));
@@ -53,10 +93,11 @@ export class PolygonTool extends Tool {
                 } else {
                     this.editor.selection.clear();
                     const command = new EditorCommand(this.editor);
-                    command.insert(this.editor.activeLayer, null, this.triangle);
+                    command.insert(this.targetLayer, null, this.triangle);
                     this.editor.do(command);
                     this.triangle = null;
                     this.handle.snapSources.pop();
+                    this.updateTargetLayer();
                 }
             }
             this.editor.redraw();
@@ -81,9 +122,6 @@ export class PolygonTool extends Tool {
         }
     }
 
-    onPointerEnd() {
-    }
-
     onPointerMove() {
         this.handle.moveTo(this.editor.cursor.x, this.editor.cursor.y);
         if (this.triangle) {
@@ -92,19 +130,16 @@ export class PolygonTool extends Tool {
         this.editor.redraw();
     }
 
-    onMouseLeave() {
-        this.handle.visible = false;
-        this.editor.redraw();
-    }
-
-    onMouseEnter() {
-        this.handle.visible = true;
-        this.editor.redraw();
-    }
-
     onMouseDown(event) {
         if (event.button === 2) {
             this.editor.currentTool = this.editor.tools.previous;
+        }
+    }
+
+    onKeyDown(event) {
+        if (event.key === "Escape" && this.triangle) {
+            this.reset();
+            event.stopPropagation();
         }
     }
 }
