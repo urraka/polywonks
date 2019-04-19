@@ -19,7 +19,7 @@ export class ClonedNodesCollection {
     resolveReferences() {
         for (const [clonedNode,] of this.cloneToOriginal) {
             for (const [key, attr] of clonedNode.attributes) {
-                if (attr.dataType === "node") {
+                if (attr.dataType === "node" && attr.value) {
                     if (this.originalToClone.get(attr.value)) {
                         clonedNode.attr(key, this.originalToClone.get(attr.value));
                     } else {
