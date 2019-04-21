@@ -1,9 +1,11 @@
 import { EventEmitter } from "../../support/event.js";
+import { Node } from "../../map/map.js";
 
 export class Tool extends EventEmitter {
     constructor() {
         super();
         this.editor = null;
+        this.attributes = new Map();
     }
 
     get activated() {
@@ -12,6 +14,10 @@ export class Tool extends EventEmitter {
 
     get status() {
         return "";
+    }
+
+    attr(name, value) {
+        return Node.prototype.attr.call(this, name, value);
     }
 
     activate(editor) {

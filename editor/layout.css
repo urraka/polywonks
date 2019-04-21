@@ -601,6 +601,15 @@ body {
     display: none;
 }
 
+.list-view li.tool-properties {
+    height: auto;
+    display: none;
+}
+
+.list-view li.active + li.tool-properties {
+    display: block;
+}
+
 .tools-icon {
     mask-image: var(--icon-tools);
     -webkit-mask-image: var(--icon-tools);

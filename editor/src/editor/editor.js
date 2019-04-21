@@ -19,6 +19,7 @@ import { ZoomTool } from "./tools/zoom.js";
 import { MoveTool } from "./tools/move.js";
 import { PolygonTool } from "./tools/polygon.js";
 import { CursorTool } from "./tools/cursor.js";
+import { ToolPropertiesItem } from "./tool.properties.js";
 
 export class Editor extends ui.Panel {
     constructor(renderer, map = MapDocument.default()) {
@@ -80,6 +81,7 @@ export class Editor extends ui.Panel {
         sidebar.tools.content.addItem(new ui.ListViewItem("Select", this.tools.select));
         sidebar.tools.content.addItem(new ui.ListViewItem("Move", this.tools.move));
         sidebar.tools.content.addItem(new ui.ListViewItem("Create Polygons", this.tools.polygon));
+        sidebar.tools.content.addItem(new ToolPropertiesItem(this, this.tools.polygon));
         return sidebar;
     }
 

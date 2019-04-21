@@ -121,6 +121,10 @@ input:focus, .select:focus, .select:focus-within, .select.active, .select-option
     background-color: #37373d;
 }
 
+.list-view li.tool-properties {
+    background-color: transparent;
+}
+
 .tab-view > .tab-container {
     background-color: #252526;
 }

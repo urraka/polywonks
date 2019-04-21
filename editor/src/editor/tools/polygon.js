@@ -1,22 +1,27 @@
 import { iter } from "../../support/iter.js";
 import { Pointer } from "../../support/pointer.js";
-import { VertexNode, TriangleNode, LayerNode } from "../../map/map.js";
+import { VertexNode, TriangleNode, Attribute } from "../../map/map.js";
 import { EditorCommand } from "../command.js";
 import { SnapHandle, SnapSource } from "../snapping.js";
 import { Tool } from "./tool.js";
+import { Color } from "../../support/color.js";
 
 export class PolygonTool extends Tool {
     constructor() {
         super();
+        this.attributes.set("color", new Attribute("color", new Color("#fff")));
+        this.attributes.set("texture", new Attribute("node", null));
         this.targetLayer = null;
         this.triangle = null;
         this.handle = null;
         this.pointer = new Pointer();
         this.pointer.on("begin", e => this.onPointerBegin(e.mouseEvent));
         this.pointer.on("move", e => this.onPointerMove(e.mouseEvent));
+        this.onAttrChange = this.onAttrChange.bind(this);
         this.onMouseDown = this.onMouseDown.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
         this.onEditorStatusChange = this.onEditorStatusChange.bind(this);
+        this.onNodeRemove = this.onNodeRemove.bind(this);
     }
 
     get status() {
@@ -28,6 +33,13 @@ export class PolygonTool extends Tool {
     }
 
     onActivate() {
+        if (!this._onActivateOnce) {
+            this._onActivateOnce = true;
+            if (!iter(this.editor.map.resources.descendants("texture")).includes(this.attr("texture"))) {
+                this.attr("texture", iter(this.editor.map.resources.descendants("texture")).first() || null);
+            }
+        }
+
         this.targetLayer = null;
         this.triangle = null;
         this.handle = new SnapHandle(this.editor);
@@ -36,7 +48,9 @@ export class PolygonTool extends Tool {
         this.updateTargetLayer();
         this.updateHandle();
         this.pointer.activate(this.editor.element, 0);
+        this.on("attributechange", this.onAttrChange);
         this.editor.on("statuschange", this.onEditorStatusChange);
+        this.editor.map.on("remove", this.onNodeRemove);
         this.editor.element.addEventListener("mousedown", this.onMouseDown);
         document.addEventListener("keydown", this.onKeyDown);
         this.emit("statuschange");
@@ -44,9 +58,17 @@ export class PolygonTool extends Tool {
 
     onDeactivate() {
         this.pointer.deactivate();
+        this.off("attributechange", this.onAttrChange);
         this.editor.off("statuschange", this.onEditorStatusChange);
+        this.editor.map.off("remove", this.onNodeRemove);
         this.editor.element.removeEventListener("mousedown", this.onMouseDown);
         document.removeEventListener("keydown", this.onKeyDown);
+    }
+
+    onNodeRemove(event) {
+        if (event.node === this.attr("texture")) {
+            this.attr("texture", iter(this.editor.map.resources.descendants("texture")).first() || null);
+        }
     }
 
     onEditorStatusChange(event) {
@@ -82,7 +104,7 @@ export class PolygonTool extends Tool {
             if (!this.triangle) {
                 this.editor.selection.clear();
                 this.triangle = new TriangleNode();
-                this.triangle.attr("texture", iter(this.editor.map.resources.children("texture")).first());
+                this.triangle.attr("texture", this.attr("texture"));
                 this.triangle.attr("poly-type", this.targetLayer.polyTypes().defaultName());
                 this.addVertex();
                 this.addVertex();
@@ -94,6 +116,10 @@ export class PolygonTool extends Tool {
                     this.editor.selection.clear();
                     const command = new EditorCommand(this.editor);
                     command.insert(this.targetLayer, null, this.triangle);
+                    const texture = this.triangle.attr("texture");
+                    if (texture && !iter(this.editor.map.resources.descendants("texture")).includes(texture)) {
+                        command.insert(this.editor.map.resources, null, texture);
+                    }
                     this.editor.do(command);
                     this.triangle = null;
                     this.handle.snapSources.pop();
@@ -111,14 +137,40 @@ export class PolygonTool extends Tool {
     }
 
     updateVertex(vertex) {
-        const texture = this.triangle.attr("texture");
+        vertex.attr("color", this.attr("color"));
         vertex.attr("x", this.handle.x);
         vertex.attr("y", this.handle.y);
+        this.updateTextureCoords(vertex);
+    }
+
+    updateTextureCoords(vertex) {
+        const texture = this.triangle.attr("texture");
+        let u = 0, v = 0;
         if (texture) {
             const w = texture.attr("width") || this.editor.renderer.textureInfo(texture).width;
             const h = texture.attr("height") || this.editor.renderer.textureInfo(texture).height;
-            if (w) vertex.attr("u", vertex.x / w);
-            if (h) vertex.attr("v", vertex.y / h);
+            if (w) u = vertex.x / w;
+            if (h) v = vertex.y / h;
+        }
+        vertex.attr("u", u);
+        vertex.attr("v", v);
+    }
+
+    onAttrChange(event) {
+        if (this.triangle) {
+            switch (event.attribute) {
+                case "color":
+                    this.updateVertex(this.triangle.lastChild);
+                    break;
+                case "texture": {
+                    this.triangle.attr("texture", this.attr("texture"));
+                    for (const vertex of this.triangle.children()) {
+                        this.updateTextureCoords(vertex);
+                    }
+                    break;
+                }
+            }
+            this.editor.redraw();
         }
     }
 

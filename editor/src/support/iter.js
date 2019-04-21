@@ -39,6 +39,13 @@ class Iter {
         }
     }
 
+    includes(searchItem) {
+        for (const item of this.iterable) {
+            if (item === searchItem) return true;
+        }
+        return false;
+    }
+
     first() {
         for (const item of this.iterable) {
             return item;
