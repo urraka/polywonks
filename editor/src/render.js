@@ -3,7 +3,6 @@ import { Color } from "./support/color.js";
 import { processImage, gradientCircle, rectangle } from "./support/image.js";
 import { dashToCamel } from "./support/format.js";
 import { Rect } from "./support/rect.js";
-import { mod } from "./support/math.js";
 import { SpawnTeam } from "./pms/pms.js";
 import { File } from "./file.js";
 import { cfg, Settings } from "./settings.js";
@@ -607,10 +606,23 @@ export class Renderer {
     }
 
     drawTools() {
-        const polygonTool = this.editor.tools.polygon;
-        if (polygonTool.activated && polygonTool.triangle) {
-            this.drawNode(polygonTool.triangle);
-            this.drawNodeWireframe(polygonTool.triangle);
+        const tool = this.editor.tools.current;
+        if (tool.activated) {
+            switch (tool) {
+                case this.editor.tools.polygon: {
+                    if (tool.triangle) {
+                        this.drawNode(tool.triangle);
+                        this.drawNodeWireframe(tool.triangle);
+                    }
+                    break;
+                }
+                case this.editor.tools.scenery: {
+                    if (tool.scenery && tool.handle.visible) {
+                        this.drawNode(tool.scenery);
+                    }
+                    break;
+                }
+            }
         }
     }
 
