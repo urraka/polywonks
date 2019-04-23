@@ -9,6 +9,14 @@ export class TreeView extends Panel {
         this.element.addEventListener("dblclick", e => this.onDoubleClick(e));
     }
 
+    get contextMenu() {
+        return this._contextMenu;
+    }
+
+    set contextMenu(contextMenu) {
+        this._contextMenu = contextMenu;
+    }
+
     get selectedItems() {
         return Array.from(this.items.querySelectorAll(".selected"), element => TreeItem.from(element));
     }
@@ -36,31 +44,41 @@ export class TreeView extends Panel {
     }
 
     onMouseDown(event) {
-        if (event.button === 0) {
-            const item = TreeItem.from(event.target);
+        const item = TreeItem.from(event.target);
 
-            if (item) {
-                switch (event.target) {
-                    case item.element:
+        if (item) {
+            switch (event.target) {
+                case item.element: {
+                    if (event.button === 0) {
                         item.expanded = !item.expanded;
-                        break;
-
-                    case item.label:
-                        if (!item.selected) {
-                            this.clearSelected();
-                            item.selected = true;
-                            this.emit("selectionchange");
-                        }
-                        break;
-
-                    case item.iconElement:
-                        this.emit("itemiconclick", { item });
-                        break;
+                    }
+                    break;
                 }
-            } else {
-                const selectedItem = this.selectedItem;
-                this.clearSelected();
-                if (selectedItem) this.emit("selectionchange");
+
+                case item.label:
+                    if (!item.selected) {
+                        this.clearSelected();
+                        item.selected = true;
+                        this.emit("selectionchange");
+                    }
+                    break;
+
+                case item.iconElement: {
+                    if (event.button === 0) {
+                        this.emit("itemiconclick", { item });
+                    }
+                    break;
+                }
+            }
+        } else {
+            const selectedItem = this.selectedItem;
+            this.clearSelected();
+            if (selectedItem) this.emit("selectionchange");
+        }
+
+        if (event.button === 2) {
+            if (this.contextMenu && this.emit("contextmenu")) {
+                this.contextMenu.open(event.clientX, event.clientY);
             }
         }
     }

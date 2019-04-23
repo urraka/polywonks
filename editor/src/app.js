@@ -37,6 +37,7 @@ export class App extends ui.Panel {
         this.tabs.on("willchange", e => this.onTabWillChange(e));
         this.tabs.on("close", e => this.onTabClose(e));
         this.sidebar.explorers.forEach(explorer => explorer.on("open", e => this.onExplorerOpen(e.path)));
+        this.sidebar.explorers.forEach(explorer => explorer.on("menuitemclick", e => this.onCommand(e.item.key, { explorer })));
 
         ui.Dialog.on("modalstart", () => this.onModalStart());
         ui.Dialog.on("modalend", () => this.onModalEnd());
@@ -375,7 +376,7 @@ export class App extends ui.Panel {
         }
     }
 
-    onCommand(command) {
+    onCommand(command, params = null) {
         const commands = this.commands || (this.commands = {
             "new-map": () => {
                 this.open();
@@ -406,9 +407,9 @@ export class App extends ui.Panel {
         });
 
         if (commands[command]) {
-            commands[command]();
+            commands[command](params);
         } else if (this.editor) {
-            this.editor.onCommand(command);
+            this.editor.onCommand(command, params);
         }
     }
 }

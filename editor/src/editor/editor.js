@@ -2,7 +2,7 @@ import * as PMS from "../pms/pms.js";
 import * as ui from "../ui/ui.js";
 import { Path } from "../support/path.js";
 import { iter } from "../support/iter.js";
-import { MapDocument, LayerNode, ConnectionNode, ResourceNode, ClonedNodesCollection, TriangleNode } from "../map/map.js";
+import { MapDocument, LayerNode, ConnectionNode, ResourceNode, ClonedNodesCollection, TriangleNode, ImageNode, TextureNode } from "../map/map.js";
 import { File } from "../file.js";
 import { Clipboard } from "../clipboard.js";
 import { SaveDialog } from "../dialog.save.js";
@@ -432,8 +432,48 @@ export class Editor extends ui.Panel {
         }
     }
 
-    onCommand(command) {
-        this.tools.current.onCommand(command);
+    addResources(type, paths) {
+        const onLoaded = resources => {
+            const command = new EditorCommand(this);
+            const mount = Path.mount(this.map.path);
+            const dir = Path.dir(this.map.path);
+            for (const res of resources) {
+                const node = type === "image" ? new ImageNode() : new TextureNode();
+                if (Path.mount(res.path) === mount) {
+                    node.attr("src", Path.relative(dir, res.path));
+                } else {
+                    node.attr("src", res.path);
+                }
+                node.attr("export-name", Path.filename(res.path));
+                node.attr("width", res.image.width);
+                node.attr("height", res.image.height);
+                command.insert(this.map.resources, null, node);
+            }
+            this.do(command);
+        };
+
+        const resources = [];
+        for (const path of paths) {
+            File.readImage(path, image => {
+                resources.push({ image, path });
+                if (resources.length === paths.length) {
+                    onLoaded(resources.filter(res => !!res.image));
+                }
+            });
+        }
+    }
+
+    onCommand(command, params) {
+        switch (command) {
+            case "add-image":
+            case "add-texture": {
+                const fn = path => [".png", ".jpg", ".gif", ".bmp"].includes(Path.ext(path).toLowerCase());
+                const paths = params.explorer.selectedPaths.filter(fn);
+                this.addResources(command.replace(/^add-/, ""), paths);
+                break;
+            }
+            default: this.tools.current.onCommand(command, params);
+        }
     }
 
     onClose(event) {

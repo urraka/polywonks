@@ -1,10 +1,60 @@
 import { Panel, elem } from "./common.js";
+import { EventEmitter } from "../support/event.js";
 
 export class TitleBar extends Panel {
     constructor() {
         super("titlebar");
         this.append(elem("div", "titlebar-icon"));
         this.menu = this.append(new MenuBar());
+    }
+}
+
+export class ContextMenu extends EventEmitter {
+    constructor(menu) {
+        super();
+        this.element = elem("div", "context-menu");
+        this.menuItem = new MenuItem();
+        this.element.append(this.menuItem.element);
+        this.menuItem.ownerMenu = this;
+        this.menuItem.submenu = menu;
+        this.menuItem.element.style.position = "absolute";
+        this.menuItem.submenu.ownerItem = this.menuItem;
+        this.onWindowMouseDown = this.onWindowMouseDown.bind(this);
+    }
+
+    get menu() {
+        return this.menuItem.submenu;
+    }
+
+    open(x, y) {
+        if (!this.element.parentElement) {
+            const overlay = Menu.overlay(true);
+            this.menuItem.element.style.left = `${x}px`;
+            this.menuItem.element.style.top = `${y}px`;
+            overlay.append(this.element);
+            this.menuItem.submenu.open();
+            window.addEventListener("mousedown", this.onWindowMouseDown, true);
+        }
+    }
+
+    close() {
+        if (this.element.parentElement) {
+            this.menuItem.submenu.close();
+            this.element.remove();
+            Menu.removeOverlay();
+            window.removeEventListener("mousedown", this.onWindowMouseDown, true);
+        }
+    }
+
+    onWindowMouseDown(event) {
+        const isMenu = e => e && (e.classList.contains("menu") || isMenu(e.parentElement));
+        if (!isMenu(event.target)) {
+            this.close();
+        }
+    }
+
+    onItemClick(item) {
+        this.emit("itemclick", { item });
     }
 }
 
@@ -104,6 +154,10 @@ export class Menu {
         this.onMouseOut = this.onMouseOut.bind(this);
         this.onMouseDown = this.onMouseDown.bind(this);
         this.onMouseUp = this.onMouseUp.bind(this);
+    }
+
+    get items() {
+        return Array.from(this.element.querySelectorAll(".menu-item")).map(e => MenuItem.from(e));
     }
 
     addItem(item) {
@@ -223,7 +277,7 @@ export class Menu {
             const overlay = Menu.overlay(true);
             const rect = menuItem.element.getBoundingClientRect();
 
-            if (menuItem.ownerMenu instanceof MenuBar) {
+            if ((menuItem.ownerMenu instanceof MenuBar) || (menuItem.ownerMenu instanceof ContextMenu)) {
                 this.element.style.left = rect.left + "px";
                 this.element.style.top = (rect.top + rect.height) + "px";
             } else {

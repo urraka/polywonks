@@ -9,8 +9,22 @@ export class FileExplorer extends EventEmitter {
         this.mount = mount;
         this.tree = new ui.TreeView();
         this.tree.on("itemdblclick", e => this.onItemDblClick(e.item.data));
+        this.tree.on("contextmenu", () => this.onContextMenu());
+        this.tree.contextMenu = new ui.ContextMenu(this.createMenu());
+        this.tree.contextMenu.on("itemclick", e => this.onContextMenuItemClick(e.item));
         File.on("write", e => this.onFileWrite(e));
         setTimeout(() => this.refresh());
+    }
+
+    get selectedPaths() {
+        return this.tree.selectedItems.map(item => item.data);
+    }
+
+    createMenu() {
+        const menu = new ui.Menu();
+        menu.addItem(new ui.MenuItem("Add As Scenery", "add-image"));
+        menu.addItem(new ui.MenuItem("Add As Texture", "add-texture"));
+        return menu;
     }
 
     onFileWrite(event) {
@@ -21,6 +35,18 @@ export class FileExplorer extends EventEmitter {
 
     onItemDblClick(path) {
         this.emit("open", { path });
+    }
+
+    onContextMenu() {
+        const fn = path => [".png", ".jpg", ".gif", ".bmp"].includes(Path.ext(path).toLowerCase());
+        const selImages = this.selectedPaths.filter(fn);
+        for (const item of this.tree.contextMenu.menu.items) {
+            item.enabled = selImages.length > 0;
+        }
+    }
+
+    onContextMenuItemClick(item) {
+        this.emit("menuitemclick", { item });
     }
 
     refresh() {
