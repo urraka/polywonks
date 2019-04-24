@@ -396,19 +396,21 @@ export class Renderer {
             }
 
             case ConnectionNode: {
-                const a = node.parentNode;
-                const b = node.attr("waypoint");
-                const halfPixel = 0.5 / this.editor.view.scale;
-                const vertices = [
-                    new Gfx.Vertex(a.attr("x"), a.attr("y"), 0, 0, color),
-                    new Gfx.Vertex(b.attr("x"), b.attr("y"), 0, 0, color)
-                ];
-                vertices.forEach(v => {
-                    const p = this.editor.view.mapToPixelGrid(v.x, v.y);
-                    v.x = p.x + halfPixel;
-                    v.y = p.y + halfPixel;
-                });
-                return vertices;
+                if (node.parentNode) {
+                    const a = node.parentNode;
+                    const b = node.attr("waypoint");
+                    const halfPixel = 0.5 / this.editor.view.scale;
+                    const vertices = [
+                        new Gfx.Vertex(a.attr("x"), a.attr("y"), 0, 0, color),
+                        new Gfx.Vertex(b.attr("x"), b.attr("y"), 0, 0, color)
+                    ];
+                    vertices.forEach(v => {
+                        const p = this.editor.view.mapToPixelGrid(v.x, v.y);
+                        v.x = p.x + halfPixel;
+                        v.y = p.y + halfPixel;
+                    });
+                    return vertices;
+                }
             }
 
             default: return null;
@@ -489,7 +491,8 @@ export class Renderer {
                 break;
 
             case ConnectionNode: {
-                this.batch.add(Gfx.Lines, null, this.nodeVertices(node, this.theme.waypointColor));
+                const vertices = this.nodeVertices(node, this.theme.waypointColor);
+                if (vertices) this.batch.add(Gfx.Lines, null, vertices);
                 break;
             }
         }
@@ -510,8 +513,10 @@ export class Renderer {
 
     drawNodeWireframe(node) {
         const vertices = this.nodeSelVertices(node);
-        vertices.forEach(v => v.color.a = 255);
-        this.drawLineLoop(vertices, null);
+        if (vertices) {
+            vertices.forEach(v => v.color.a = 255);
+            this.drawLineLoop(vertices, null);
+        }
     }
 
     drawPreview(nodes) {

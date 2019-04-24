@@ -24,6 +24,7 @@ import { SceneryTool } from "./tools/scenery.js";
 import { SpawnTool } from "./tools/spawn.js";
 import { ColliderTool } from "./tools/collider.js";
 import { WaypointTool } from "./tools/waypoint.js";
+import { ConnectionTool } from "./tools/connection.js";
 
 export class Editor extends ui.Panel {
     constructor(renderer, map = MapDocument.default()) {
@@ -76,6 +77,7 @@ export class Editor extends ui.Panel {
             spawn: new SpawnTool(),
             collider: new ColliderTool(),
             waypoint: new WaypointTool(),
+            connection: new ConnectionTool(),
         };
     }
 
@@ -98,6 +100,7 @@ export class Editor extends ui.Panel {
         sidebar.tools.content.addItem(new ToolPropertiesItem(this, this.tools.collider));
         sidebar.tools.content.addItem(new ui.ListViewItem("Create Waypoints", this.tools.waypoint));
         sidebar.tools.content.addItem(new ToolPropertiesItem(this, this.tools.waypoint));
+        sidebar.tools.content.addItem(new ui.ListViewItem("Create Connections", this.tools.connection));
         return sidebar;
     }
 

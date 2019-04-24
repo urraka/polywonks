@@ -23,6 +23,32 @@ export class SnapHandle {
         this.position = { x: 0, y: 0 };
         this.snapSources = [];
         this.snapResult = null;
+        this._snapToGrid = undefined;
+        this._snapToObjects = undefined;
+    }
+
+    get snapToObjects() {
+        if (this._snapToObjects === undefined) {
+            return cfg("editor.snap-to-objects");
+        } else {
+            return this._snapToObjects;
+        }
+    }
+
+    set snapToObjects(value) {
+        this._snapToObjects = value;
+    }
+
+    get snapToGrid() {
+        if (this._snapToGrid === undefined) {
+            return cfg("view.grid") && cfg("editor.snap-to-grid");
+        } else {
+            return this._snapToGrid;
+        }
+    }
+
+    set snapToGrid(value) {
+        this._snapToGrid = value;
     }
 
     get x() {
@@ -98,7 +124,7 @@ export class SnapHandle {
     }
 
     snapNodes(x, y) {
-        if (cfg("editor.snap-to-objects")) {
+        if (this.snapToObjects) {
             const s = this.editor.view.scale;
             const d = cfg("editor.snap-radius") / s;
             return this.snapSources.map(src => src.nodesAt(x, y, d, s)).flat();
@@ -107,7 +133,7 @@ export class SnapHandle {
     }
 
     snapGrid(x, y) {
-        if (cfg("view.grid") && cfg("editor.snap-to-grid")) {
+        if (this.snapToGrid) {
             const d = this.editor.grid.effectiveSize;
             const x0 = d * Math.floor(x / d);
             const y0 = d * Math.floor(y / d);

@@ -116,7 +116,7 @@ export class CreateTool extends Tool {
     }
 
     onKeyDown(event) {
-        if (event.key === "Escape" && this.triangle) {
+        if (event.key === "Escape") {
             this.reset();
             event.stopPropagation();
         }
@@ -144,11 +144,15 @@ export class CreateTool extends Tool {
         this.editing = false;
         this.editor.selection.clear();
         const command = new EditorCommand(this.editor);
-        command.insert(this.targetLayer, null, this.node);
+        this.insertNode(command);
         this.editor.do(command);
         this.updateTargetLayer();
         this.node = this.createNode();
         this.updateNode();
+    }
+
+    insertNode(command) {
+        command.insert(this.targetLayer, null, this.node);
     }
 
     updateHandle() {
