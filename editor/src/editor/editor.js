@@ -21,6 +21,7 @@ import { PolygonTool } from "./tools/polygon.js";
 import { CursorTool } from "./tools/cursor.js";
 import { ToolPropertiesItem } from "./tool.properties.js";
 import { SceneryTool } from "./tools/scenery.js";
+import { SpawnTool } from "./tools/spawn.js";
 
 export class Editor extends ui.Panel {
     constructor(renderer, map = MapDocument.default()) {
@@ -70,6 +71,7 @@ export class Editor extends ui.Panel {
             move: new MoveTool(),
             polygon: new PolygonTool(),
             scenery: new SceneryTool(),
+            spawn: new SpawnTool(),
         };
     }
 
@@ -86,6 +88,8 @@ export class Editor extends ui.Panel {
         sidebar.tools.content.addItem(new ToolPropertiesItem(this, this.tools.polygon));
         sidebar.tools.content.addItem(new ui.ListViewItem("Create Scenery", this.tools.scenery));
         sidebar.tools.content.addItem(new ToolPropertiesItem(this, this.tools.scenery));
+        sidebar.tools.content.addItem(new ui.ListViewItem("Create Spawns", this.tools.spawn));
+        sidebar.tools.content.addItem(new ToolPropertiesItem(this, this.tools.spawn));
         return sidebar;
     }
 

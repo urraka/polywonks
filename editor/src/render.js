@@ -347,7 +347,7 @@ export class Renderer {
         }
     }
 
-    rectVertices(x, y, w, h, color) {
+    rectVertices(x, y, w, h, color = new Color(255, 255, 255)) {
         const rect = new Rect(x, y, w, h);
         return [
             new Gfx.Vertex(rect.x0, rect.y0, 0, 0, color),
@@ -509,7 +509,7 @@ export class Renderer {
     }
 
     drawNodeWireframe(node) {
-        const vertices = this.nodeSelVertices(node, null);
+        const vertices = this.nodeSelVertices(node);
         vertices.forEach(v => v.color.a = 255);
         this.drawLineLoop(vertices, null);
     }

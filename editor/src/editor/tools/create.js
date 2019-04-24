@@ -1,6 +1,7 @@
 import { iter } from "../../support/iter.js";
 import { Pointer } from "../../support/pointer.js";
 import { SnapHandle, SnapSource } from "../snapping.js";
+import { EditorCommand } from "../command.js";
 import { Tool } from "./tool.js";
 
 export class CreateTool extends Tool {
@@ -20,9 +21,15 @@ export class CreateTool extends Tool {
         this.onNodeRemove = this.onNodeRemove.bind(this);
     }
 
-    onAttrChange() {}
-    onPointerBegin() {}
-    onPointerMove() {}
+    get status() {
+        if (!this.targetLayer) {
+            return "Select a layer";
+        } else {
+            return this.statusText;
+        }
+    }
+
+    updateNode() { throw new Error("Must implement"); }
     createNode() { throw new Error("Must implement"); }
 
     onActivate() {
@@ -30,10 +37,7 @@ export class CreateTool extends Tool {
             this._onActivateOnce = true;
             for (const [key] of this.attributes) {
                 if (key === "image" || key === "texture") {
-                    const res = this.editor.map.resources;
-                    if (!iter(res.descendants(key)).includes(this.attr(key))) {
-                        this.attr(key, iter(res.descendants(key)).first() || null);
-                    }
+                    this.setDefaultAttribute(key);
                 }
             }
         }
@@ -44,6 +48,7 @@ export class CreateTool extends Tool {
         this.handle.snapSources = [new SnapSource(this.editor.map)];
         this.handle.moveTo(this.editor.cursor.x, this.editor.cursor.y);
         this.node = this.createNode();
+        this.updateNode();
         this.updateTargetLayer();
         this.updateHandle();
 
@@ -80,11 +85,28 @@ export class CreateTool extends Tool {
         for (const [key] of this.attributes) {
             if (key === "image" || key === "texture") {
                 if (event.node === this.attr(key)) {
-                    const res = this.editor.map.resources;
-                    this.attr(key, iter(res.descendants(key)).first() || null);
+                    this.setDefaultAttribute(key);
                 }
             }
         }
+    }
+
+    onAttrChange() {
+        this.updateNode();
+        this.editor.redraw();
+    }
+
+    onPointerBegin() {
+        if (this.handle.visible) {
+            this.beginEditing();
+            this.endEditing();
+        }
+    }
+
+    onPointerMove() {
+        this.handle.moveTo(this.editor.cursor.x, this.editor.cursor.y);
+        this.updateNode();
+        this.editor.redraw();
     }
 
     onMouseDown(event) {
@@ -100,14 +122,33 @@ export class CreateTool extends Tool {
         }
     }
 
+    setDefaultAttribute(key) {
+        switch (key) {
+            case "image":
+            case "texture": {
+                const res = this.editor.map.resources;
+                if (!iter(res.descendants(key)).includes(this.attr(key))) {
+                    this.attr(key, iter(res.descendants(key)).first() || null);
+                }
+                break;
+            }
+        }
+    }
+
     beginEditing() {
         this.editing = true;
+        this.editor.selection.clear();
     }
 
     endEditing() {
         this.editing = false;
+        this.editor.selection.clear();
+        const command = new EditorCommand(this.editor);
+        command.insert(this.targetLayer, null, this.node);
+        this.editor.do(command);
         this.updateTargetLayer();
         this.node = this.createNode();
+        this.updateNode();
     }
 
     updateHandle() {

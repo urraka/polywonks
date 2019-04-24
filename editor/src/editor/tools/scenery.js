@@ -1,7 +1,5 @@
-import { iter } from "../../support/iter.js";
 import { Color } from "../../support/color.js";
-import { SceneryNode, Attribute, PivotNode } from "../../map/map.js";
-import { EditorCommand } from "../command.js";
+import { SceneryNode, Attribute, PivotNode, ImageNode } from "../../map/map.js";
 import { CreateTool } from "./create.js";
 
 export class SceneryTool extends CreateTool {
@@ -9,45 +7,26 @@ export class SceneryTool extends CreateTool {
         super();
         this.attributes.set("color", new Attribute("color", new Color("#fff")));
         this.attributes.set("image", new Attribute("node", null));
+        this.onNodeInsert = this.onNodeInsert.bind(this);
     }
 
-    get status() {
-        if (!this.targetLayer) {
-            return "Select a layer";
-        } else {
-            return "Create scenery";
-        }
-    }
+    get statusText() { return "Create scenery"; }
 
     onActivate() {
         super.onActivate();
-        this.updateScenery();
+        this.setDefaultAttribute("image");
+        this.editor.map.on("insert", this.onNodeInsert);
     }
 
-    onAttrChange() {
-        this.updateScenery();
-        this.editor.redraw();
+    onDeactivate() {
+        super.onDeactivate();
+        this.editor.map.off("insert", this.onNodeInsert);
     }
 
-    onPointerBegin() {
-        if (this.targetLayer && this.handle.visible) {
-            this.beginEditing();
-            this.editor.selection.clear();
-            const command = new EditorCommand(this.editor);
-            command.insert(this.targetLayer, null, this.node);
-            const image = this.node.attr("image");
-            if (image && !iter(this.editor.map.resources.descendants("image")).includes(image)) {
-                command.insert(this.editor.map.resources, null, image);
-            }
-            this.editor.do(command);
-            this.endEditing();
+    onNodeInsert(event) {
+        if (!this.attr("image") && (event.node instanceof ImageNode)) {
+            this.setDefaultAttribute("image");
         }
-    }
-
-    onPointerMove() {
-        this.handle.moveTo(this.editor.cursor.x, this.editor.cursor.y);
-        this.updateScenery();
-        this.editor.redraw();
     }
 
     createNode() {
@@ -56,7 +35,7 @@ export class SceneryTool extends CreateTool {
         return scenery;
     }
 
-    updateScenery() {
+    updateNode() {
         const image = this.attr("image");
         if (image) {
             this.node.attr("image", image);
