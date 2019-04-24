@@ -444,6 +444,7 @@ export class Editor extends ui.Panel {
                 } else {
                     node.attr("src", res.path);
                 }
+                node.attr("text", Path.filename(res.path));
                 node.attr("export-name", Path.filename(res.path));
                 node.attr("width", res.image.width);
                 node.attr("height", res.image.height);
