@@ -22,6 +22,8 @@ import { CursorTool } from "./tools/cursor.js";
 import { ToolPropertiesItem } from "./tool.properties.js";
 import { SceneryTool } from "./tools/scenery.js";
 import { SpawnTool } from "./tools/spawn.js";
+import { ColliderTool } from "./tools/collider.js";
+import { WaypointTool } from "./tools/waypoint.js";
 
 export class Editor extends ui.Panel {
     constructor(renderer, map = MapDocument.default()) {
@@ -72,6 +74,8 @@ export class Editor extends ui.Panel {
             polygon: new PolygonTool(),
             scenery: new SceneryTool(),
             spawn: new SpawnTool(),
+            collider: new ColliderTool(),
+            waypoint: new WaypointTool(),
         };
     }
 
@@ -90,6 +94,10 @@ export class Editor extends ui.Panel {
         sidebar.tools.content.addItem(new ToolPropertiesItem(this, this.tools.scenery));
         sidebar.tools.content.addItem(new ui.ListViewItem("Create Spawns", this.tools.spawn));
         sidebar.tools.content.addItem(new ToolPropertiesItem(this, this.tools.spawn));
+        sidebar.tools.content.addItem(new ui.ListViewItem("Create Colliders", this.tools.collider));
+        sidebar.tools.content.addItem(new ToolPropertiesItem(this, this.tools.collider));
+        sidebar.tools.content.addItem(new ui.ListViewItem("Create Waypoints", this.tools.waypoint));
+        sidebar.tools.content.addItem(new ToolPropertiesItem(this, this.tools.waypoint));
         return sidebar;
     }
 
