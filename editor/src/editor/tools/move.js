@@ -1,8 +1,7 @@
 import { cfg } from "../../settings.js";
-import { Matrix } from "../../support/matrix.js";
 import { iter } from "../../support/iter.js";
 import { Pointer, MovementThreshold } from "../../support/pointer.js";
-import { TriangleNode, ConnectionNode, PivotNode, VertexNode, WaypointNode, SpawnNode, ColliderNode } from "../../map/map.js";
+import { PivotNode, VertexNode, WaypointNode, SpawnNode, ColliderNode } from "../../map/map.js";
 import { EditorCommand } from "../command.js";
 import { Tool } from "./tool.js";
 import { SnapHandle, SnapSource } from "../snapping.js";
@@ -31,7 +30,7 @@ export class MoveTool extends Tool {
             if (this.selectTool.activated) {
                 return this.selectTool.status;
             } else {
-                return "Move";
+                return this.statusText;
             }
         }
         return "";
@@ -89,34 +88,23 @@ export class MoveTool extends Tool {
         const handle = new SnapHandle(this.editor);
         handle.visible = false;
         if (this.nodes.size > 0) {
-            const node = iter(this.nodes).first();
             if (position) {
-                handle.reset(position.x, position.y, node);
+                handle.reset(position.x, position.y, this.referenceNode());
             } else {
-                handle.reset(node.x, node.y, node);
+                const node = iter(this.nodes).first();
+                handle.reset(node.x, node.y, this.referenceNode());
             }
             handle.visible = true;
         }
         return handle;
     }
 
+    referenceNode() {
+        return iter(this.nodes).first();
+    }
+
     filterSelection() {
-        const nodes = new Set();
-        for (const node of this.editor.selection.nodes) {
-            if (node.hasPosition && !(node instanceof PivotNode)) {
-                nodes.add(node);
-            } else if (node instanceof TriangleNode) {
-                for (const vertex of node.children("vertex")) {
-                    nodes.add(vertex);
-                }
-            } else if (node instanceof ConnectionNode) {
-                nodes.add(node.parentNode);
-                nodes.add(node.attr("waypoint"));
-            } else if ((node instanceof PivotNode) && this.editor.selection.nodes.size === 1) {
-                nodes.add(node);
-            }
-        }
-        return nodes;
+        throw new Error("Must implement");
     }
 
     onPointerBegin(event) {
@@ -208,27 +196,20 @@ export class MoveTool extends Tool {
         this.handle.moveTo(this.handleStart.x + offset.x, this.handleStart.y + offset.y);
         offset.x = this.handle.x - this.handleStart.x;
         offset.y = this.handle.y - this.handleStart.y;
-        this.handle.reset(p.x, p.y, this.handle.referenceNode);
+
+        if (this.handle.referenceNode) {
+            this.handle.reset(p.x, p.y, this.handle.referenceNode);
+        }
 
         for (const node of this.nodes) {
-            if (node instanceof PivotNode) {
-                const scenery = node.parentNode;
-                const sx = scenery.attr("width") >= 0 ? 1 : -1;
-                const sy = scenery.attr("height") >= 0 ? 1 : -1;
-                const pivotOffset = Matrix.scale(sx, sy)
-                    .multiply(Matrix.rotate(-scenery.attr("rotation")))
-                    .multiply(offset);
-                this.command.attr(node, "offsetX", node.attr("offsetX") + pivotOffset.x);
-                this.command.attr(node, "offsetY", node.attr("offsetY") + pivotOffset.y);
-                this.command.attr(scenery, "x", scenery.attr("x") + offset.x);
-                this.command.attr(scenery, "y", scenery.attr("y") + offset.y);
-            } else {
-                this.command.attr(node, "x", node.attr("x") + offset.x);
-                this.command.attr(node, "y", node.attr("y") + offset.y);
-            }
+            this.moveNode(node, offset);
         }
 
         this.command = this.editor.do(this.command);
+    }
+
+    moveNode(node, offset) {
+        throw new Error("Must implement");
     }
 
     cursorNodes() {

@@ -16,7 +16,8 @@ import { Grid } from "./grid.js";
 import { SelectTool } from "./tools/select.js";
 import { PanTool } from "./tools/pan.js";
 import { ZoomTool } from "./tools/zoom.js";
-import { MoveTool } from "./tools/move.js";
+import { MovePositionTool } from "./tools/move.position.js";
+import { MoveTextureTool } from "./tools/move.texture.js";
 import { PolygonTool } from "./tools/polygon.js";
 import { CursorTool } from "./tools/cursor.js";
 import { ToolPropertiesItem } from "./tool.properties.js";
@@ -71,7 +72,8 @@ export class Editor extends ui.Panel {
             pan: new PanTool(),
             zoom: new ZoomTool(),
             select: new SelectTool(),
-            move: new MoveTool(),
+            move: new MovePositionTool(),
+            texture: new MoveTextureTool(),
             polygon: new PolygonTool(),
             scenery: new SceneryTool(),
             spawn: new SpawnTool(),
@@ -90,6 +92,7 @@ export class Editor extends ui.Panel {
         sidebar.properties = sidebar.mainPanel.addPanel("Map Properties", new MapProperties(this));
         sidebar.tools.content.addItem(new ui.ListViewItem("Select", this.tools.select));
         sidebar.tools.content.addItem(new ui.ListViewItem("Move", this.tools.move));
+        sidebar.tools.content.addItem(new ui.ListViewItem("Texture", this.tools.texture));
         sidebar.tools.content.addItem(new ui.ListViewItem("Create Polygons", this.tools.polygon));
         sidebar.tools.content.addItem(new ToolPropertiesItem(this, this.tools.polygon));
         sidebar.tools.content.addItem(new ui.ListViewItem("Create Scenery", this.tools.scenery));
