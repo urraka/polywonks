@@ -1,4 +1,4 @@
-import { Matrix } from "../../support/matrix.js";
+import { Mat2d } from "../../support/matrix.js";
 import { TriangleNode, ConnectionNode, PivotNode } from "../../map/map.js";
 import { MoveTool } from "./move.js";
 
@@ -31,8 +31,8 @@ export class MovePositionTool extends MoveTool {
             const scenery = node.parentNode;
             const sx = scenery.attr("width") >= 0 ? 1 : -1;
             const sy = scenery.attr("height") >= 0 ? 1 : -1;
-            const pivotOffset = Matrix.scale(sx, sy)
-                .multiply(Matrix.rotate(-scenery.attr("rotation")))
+            const pivotOffset = Mat2d.scale(sx, sy)
+                .multiply(Mat2d.rotate(-scenery.attr("rotation")))
                 .multiply(offset);
             this.command.attr(node, "offsetX", node.attr("offsetX") + pivotOffset.x);
             this.command.attr(node, "offsetY", node.attr("offsetY") + pivotOffset.y);

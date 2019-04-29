@@ -1,7 +1,7 @@
 import * as PMS from "../pms/pms.js";
 import * as Geometry from "../support/geometry.js";
 import { Color } from "../support/color.js";
-import { Matrix } from "../support/matrix.js";
+import { Mat2d } from "../support/matrix.js";
 import { Sprite } from "../gfx/gfx.js";
 import { Node } from "./node.js";
 import { LayerType, LayerNode } from "./layer.js";
@@ -46,9 +46,9 @@ export class SceneryNode extends Node {
         let offset = { x: 0, y: 0 };
 
         if (version === ExportMode.Soldat171) {
-            offset = Matrix.translate(0, 1)
-                .multiply(Matrix.rotate(prop.rotation))
-                .multiply(Matrix.translate(0, -1))
+            offset = Mat2d.translate(0, 1)
+                .multiply(Mat2d.rotate(prop.rotation))
+                .multiply(Mat2d.translate(0, -1))
                 .multiply({ x: 0, y: 0 });
         }
 
@@ -65,7 +65,7 @@ export class SceneryNode extends Node {
     }
 
     toPMS(imageNodes, version) {
-        const topleft = Matrix.transform(
+        const topleft = Mat2d.transform(
             this.attr("x"),
             this.attr("y"),
             this.pivotX,
@@ -77,9 +77,9 @@ export class SceneryNode extends Node {
         let offset = { x: 0, y: 0 };
 
         if (version === ExportMode.Soldat171) {
-            offset = Matrix.translate(0, 1)
-                .multiply(Matrix.rotate(this.attr("rotation")))
-                .multiply(Matrix.translate(0, -1))
+            offset = Mat2d.translate(0, 1)
+                .multiply(Mat2d.rotate(this.attr("rotation")))
+                .multiply(Mat2d.translate(0, -1))
                 .multiply({ x: 0, y: 0 });
         }
 
@@ -125,7 +125,7 @@ export class SceneryNode extends Node {
             dx, 1 - dx, dy, 1 - dy
         );
 
-        const transform = Matrix.transform(
+        const transform = Mat2d.transform(
             this.attr("x"),
             this.attr("y"),
             this.pivotX,

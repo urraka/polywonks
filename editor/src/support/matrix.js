@@ -1,4 +1,4 @@
-export class Matrix extends Float32Array {
+export class Mat2d extends Float32Array {
     constructor() {
         super(9);
         this[0] = this[4] = this[8] = 1;
@@ -7,7 +7,7 @@ export class Matrix extends Float32Array {
     multiplyMatrix(matrix) {
         const m = this;
         const n = matrix;
-        const r = new Matrix();
+        const r = new Mat2d();
         r[0] = m[0] * n[0] + m[3] * n[1];
         r[1] = m[1] * n[0] + m[4] * n[1];
         r[2] = 0;
@@ -37,7 +37,7 @@ export class Matrix extends Float32Array {
     }
 
     multiply(rhs) {
-        if (rhs instanceof Matrix) {
+        if (rhs instanceof Mat2d) {
             return this.multiplyMatrix(rhs);
         } else {
             return this.multiplyVector(rhs);
@@ -45,7 +45,7 @@ export class Matrix extends Float32Array {
     }
 
     static ortho(left, right, bottom, top) {
-        const m = new Matrix();
+        const m = new Mat2d();
         const w = right - left;
         const h = top - bottom;
         m[0] = 2 / w; m[3] = 0.0; m[6] = -(right + left) / w;
@@ -55,7 +55,7 @@ export class Matrix extends Float32Array {
     }
 
     static transform(x, y, cx, cy, sx, sy, r) {
-        const m = new Matrix();
+        const m = new Mat2d();
         const s = Math.sin(-r);
         const c = Math.cos(-r);
         m[0] = c * sx; m[3] = -s * sy; m[6] = x - cy * m[3] - cx * m[0];
@@ -65,21 +65,21 @@ export class Matrix extends Float32Array {
     }
 
     static translate(x, y) {
-        const m = new Matrix();
+        const m = new Mat2d();
         m[6] = x;
         m[7] = y;
         return m;
     }
 
     static scale(sx, sy) {
-        const m = new Matrix();
+        const m = new Mat2d();
         m[0] = sx;
         m[4] = sy;
         return m;
     }
 
     static rotate(r) {
-        const m = new Matrix();
+        const m = new Mat2d();
         const s = Math.sin(-r);
         const c = Math.cos(-r);
         m[0] = c;

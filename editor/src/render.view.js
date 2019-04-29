@@ -1,4 +1,4 @@
-import { Matrix } from "./support/matrix.js";
+import { Mat2d } from "./support/matrix.js";
 import { EventEmitter } from "./support/event.js";
 
 // {x, y} is in map coordinates and always maps to the center of the canvas
@@ -54,7 +54,7 @@ export class RenderView extends EventEmitter {
     get transform() {
         const w = this.width / 2;
         const h = this.height / 2;
-        return Matrix.ortho(this.x - w, this.x + w, this.y + h, this.y - h);
+        return Mat2d.ortho(this.x - w, this.x + w, this.y + h, this.y - h);
     }
 
     canvasToMap(x, y) {
