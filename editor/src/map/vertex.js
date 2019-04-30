@@ -19,6 +19,8 @@ export class VertexNode extends Node {
     get hasPosition() { return true; }
     get x() { return this.attr("x"); }
     get y() { return this.attr("y"); }
+    get u() { return this.attr("u"); }
+    get v() { return this.attr("v"); }
 
     static fromPMS(vertex) {
         const node = new VertexNode();

@@ -89,3 +89,74 @@ export class Mat2d extends Float32Array {
         return m;
     }
 }
+
+
+export class Mat3x3 extends Float32Array {
+    constructor() {
+        super(9);
+        this[0] = this[4] = this[8] = 1;
+    }
+
+    multiply(rhs) {
+        if (rhs instanceof Mat3x3) {
+            return this.multiplyMatrix(rhs);
+        } else {
+            return this.multiplyVector(rhs);
+        }
+    }
+
+    multiplyMatrix(matrix) {
+        const m = this;
+        const n = matrix;
+        const r = new Mat3x3();
+		r[0] = m[0] * n[0] + m[3] * n[1] + m[6] * n[2];
+		r[1] = m[1] * n[0] + m[4] * n[1] + m[7] * n[2];
+		r[2] = m[2] * n[0] + m[5] * n[1] + m[8] * n[2];
+		r[3] = m[0] * n[3] + m[3] * n[4] + m[6] * n[5];
+		r[4] = m[1] * n[3] + m[4] * n[4] + m[7] * n[5];
+		r[5] = m[2] * n[3] + m[5] * n[4] + m[8] * n[5];
+		r[6] = m[0] * n[6] + m[3] * n[7] + m[6] * n[8];
+		r[7] = m[1] * n[6] + m[4] * n[7] + m[7] * n[8];
+        r[8] = m[2] * n[6] + m[5] * n[7] + m[8] * n[8];
+        return r;
+    }
+
+    multiplyVectorX(v) {
+        return this[0] * v.x + this[3] * v.y + this[6];
+    }
+
+    multiplyVectorY(v) {
+        return this[1] * v.x + this[4] * v.y + this[7];
+    }
+
+    multiplyVector(v) {
+        const r = Object.create(Object.getPrototypeOf(v));
+        Object.assign(r, v);
+        r.x = this.multiplyVectorX(v);
+        r.y = this.multiplyVectorY(v);
+        return r;
+    }
+
+    inverse() {
+        const m = this;
+        const a = m[8] * m[4] - m[5] * m[7];
+        const b = m[5] * m[6] - m[8] * m[3];
+        const c = m[7] * m[3] - m[4] * m[6];
+        const det = m[0] * a + m[1] * b + m[2] * c;
+
+        if (det !== 0) {
+            const r = new Mat3x3();
+            const detInv = 1 / det;
+            r[0] = a * detInv;
+            r[1] = (m[2] * m[7] - m[8] * m[1]) * detInv;
+            r[2] = (m[5] * m[1] - m[2] * m[4]) * detInv;
+            r[3] = b * detInv;
+            r[4] = (m[8] * m[0] - m[2] * m[6]) * detInv;
+            r[5] = (m[2] * m[3] - m[5] * m[0]) * detInv;
+            r[6] = c * detInv;
+            r[7] = (m[1] * m[6] - m[7] * m[0]) * detInv;
+            r[8] = (m[4] * m[0] - m[1] * m[3]) * detInv;
+            return r;
+        }
+    }
+}

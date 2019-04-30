@@ -14,6 +14,7 @@ export class MoveTool extends Tool {
         this.handleStart = null;
         this.handleOffset = null;
         this.dragging = false;
+        this.snapSources = null;
         this.handle = null;
         this.selectTool = null;
         this.movement = new MovementThreshold();
@@ -42,6 +43,7 @@ export class MoveTool extends Tool {
         this.handleStart = null;
         this.handleOffset = null;
         this.dragging = false;
+        this.snapSources = [new SnapSource(this.editor.map)];
         this.handle = this.createHandle();
         this.selectTool = this.editor.tools.select;
         this.movement.reset(cfg("editor.drag-threshold"));
@@ -86,6 +88,7 @@ export class MoveTool extends Tool {
 
     createHandle(position = null) {
         const handle = new SnapHandle(this.editor);
+        handle.snapSources = this.snapSources;
         handle.visible = false;
         if (this.nodes.size > 0) {
             if (position) {
@@ -173,7 +176,6 @@ export class MoveTool extends Tool {
     moveHandle() {
         const cursor = this.editor.cursor;
         const offset = this.handleOffset;
-        this.handle.snapSources = [new SnapSource(this.editor.map)];
         this.handle.moveTo(cursor.x + offset.x, cursor.y + offset.y);
     }
 
@@ -191,8 +193,6 @@ export class MoveTool extends Tool {
         };
 
         const p = { x: this.handle.x, y: this.handle.y };
-        const fn = n => !this.nodes.has(n) && (!(n instanceof PivotNode) || !this.nodes.has(n.parentNode));
-        this.handle.snapSources = [new SnapSource(this.editor.map, fn)];
         this.handle.moveTo(this.handleStart.x + offset.x, this.handleStart.y + offset.y);
         offset.x = this.handle.x - this.handleStart.x;
         offset.y = this.handle.y - this.handleStart.y;
@@ -201,8 +201,10 @@ export class MoveTool extends Tool {
             this.handle.reset(p.x, p.y, this.handle.referenceNode);
         }
 
-        for (const node of this.nodes) {
-            this.moveNode(node, offset);
+        if (offset.x !== 0 || offset.y !== 0) {
+            for (const node of this.nodes) {
+                this.moveNode(node, offset);
+            }
         }
 
         this.command = this.editor.do(this.command);

@@ -1,10 +1,26 @@
 import { Mat2d } from "../../support/matrix.js";
 import { TriangleNode, ConnectionNode, PivotNode } from "../../map/map.js";
+import { SnapSource } from "../snapping.js";
 import { MoveTool } from "./move.js";
 
 export class MovePositionTool extends MoveTool {
+    constructor() {
+        super();
+        this.moveSnapSources = null;
+        this.snapFilter = this.snapFilter.bind(this);
+    }
+
     get statusText() {
         return "Move";
+    }
+
+    onActivate() {
+        this.moveSnapSources = [new SnapSource(this.editor.map, this.snapFilter)];
+        super.onActivate();
+    }
+
+    snapFilter(node) {
+        return !this.nodes.has(node) && (!(node instanceof PivotNode) || !this.nodes.has(node.parentNode));
     }
 
     filterSelection() {
@@ -24,6 +40,12 @@ export class MovePositionTool extends MoveTool {
             }
         }
         return nodes;
+    }
+
+    moveNodes() {
+        this.handle.snapSources = this.moveSnapSources;
+        super.moveNodes();
+        this.handle.snapSources = this.snapSources;
     }
 
     moveNode(node, offset) {
