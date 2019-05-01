@@ -24,6 +24,7 @@ export class MoveTool extends Tool {
         this.pointer.on("end", e => this.onPointerEnd(e.mouseEvent));
         this.onSelectStatusChange = this.onSelectStatusChange.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
+        this.onEditorChange = this.onEditorChange.bind(this);
     }
 
     get status() {
@@ -51,12 +52,14 @@ export class MoveTool extends Tool {
         this.selectTool.activate(this.editor);
         this.selectTool.on("statuschange", this.onSelectStatusChange);
         this.editor.selection.on("change", this.onSelectionChange);
+        this.editor.on("change", this.onEditorChange);
         this.emit("statuschange");
     }
 
     onDeactivate() {
         this.selectTool.off("statuschange", this.onSelectStatusChange);
         this.editor.selection.off("change", this.onSelectionChange);
+        this.editor.off("change", this.onEditorChange);
         this.selectTool.deactivate();
         this.pointer.deactivate();
         this.emit("statuschange");
@@ -86,24 +89,24 @@ export class MoveTool extends Tool {
         setTimeout(() => this.onPointerMove());
     }
 
+    onEditorChange() {
+        setTimeout(() => this.onPointerMove());
+    }
+
     createHandle(position = null) {
         const handle = new SnapHandle(this.editor);
         handle.snapSources = this.snapSources;
         handle.visible = false;
         if (this.nodes.size > 0) {
+            const refNode = iter(this.nodes).first();
             if (position) {
-                handle.reset(position.x, position.y, this.referenceNode());
+                handle.reset(position.x, position.y, refNode);
             } else {
-                const node = iter(this.nodes).first();
-                handle.reset(node.x, node.y, this.referenceNode());
+                handle.reset(refNode.x, refNode.y, refNode);
             }
             handle.visible = true;
         }
         return handle;
-    }
-
-    referenceNode() {
-        return iter(this.nodes).first();
     }
 
     filterSelection() {
@@ -180,34 +183,37 @@ export class MoveTool extends Tool {
     }
 
     moveNodes() {
+        this.editor.off("change", this.onEditorChange);
+
         if (this.command && !this.editor.undo(this.command)) {
-            this.onPointerEnd();
-            return;
-        }
+            this.pointer.cancel();
+        } else {
+            this.command = new EditorCommand(this.editor);
 
-        this.command = new EditorCommand(this.editor);
+            const offset = {
+                x: this.editor.cursor.x - (this.handleStart.x - this.handleOffset.x),
+                y: this.editor.cursor.y - (this.handleStart.y - this.handleOffset.y),
+            };
 
-        const offset = {
-            x: this.editor.cursor.x - (this.handleStart.x - this.handleOffset.x),
-            y: this.editor.cursor.y - (this.handleStart.y - this.handleOffset.y),
-        };
+            const p = { x: this.handle.x, y: this.handle.y };
+            this.handle.moveTo(this.handleStart.x + offset.x, this.handleStart.y + offset.y);
+            offset.x = this.handle.x - this.handleStart.x;
+            offset.y = this.handle.y - this.handleStart.y;
 
-        const p = { x: this.handle.x, y: this.handle.y };
-        this.handle.moveTo(this.handleStart.x + offset.x, this.handleStart.y + offset.y);
-        offset.x = this.handle.x - this.handleStart.x;
-        offset.y = this.handle.y - this.handleStart.y;
-
-        if (this.handle.referenceNode) {
-            this.handle.reset(p.x, p.y, this.handle.referenceNode);
-        }
-
-        if (offset.x !== 0 || offset.y !== 0) {
-            for (const node of this.nodes) {
-                this.moveNode(node, offset);
+            if (this.handle.referenceNode) {
+                this.handle.reset(p.x, p.y, this.handle.referenceNode);
             }
+
+            if (offset.x !== 0 || offset.y !== 0) {
+                for (const node of this.nodes) {
+                    this.moveNode(node, offset);
+                }
+            }
+
+            this.command = this.editor.do(this.command);
         }
 
-        this.command = this.editor.do(this.command);
+        this.editor.on("change", this.onEditorChange);
     }
 
     moveNode(node, offset) {

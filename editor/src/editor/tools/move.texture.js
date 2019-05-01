@@ -13,6 +13,14 @@ export class MoveTextureTool extends MoveTool {
         return "Move texture";
     }
 
+    onPointerEnd(event) {
+        if (this.dragging && !this.handle.active) {
+            const node = this.handle.referenceNode;
+            this.handle.reset(this.handleStart.x, this.handleStart.y, node);
+        }
+        super.onPointerEnd(event);
+    }
+
     filterSelection() {
         const nodes = new Set();
         for (const node of this.editor.selection.nodes) {
@@ -28,9 +36,12 @@ export class MoveTextureTool extends MoveTool {
     }
 
     moveNodes() {
+        const refNode = this.handle.referenceNode;
+        this.handle.reset(this.handle.x, this.handle.y);
         this.transforms = new Map();
         super.moveNodes();
         this.transforms = null;
+        this.handle.reset(this.handle.x, this.handle.y, refNode);
     }
 
     moveNode(node, offset) {
@@ -76,9 +87,5 @@ export class MoveTextureTool extends MoveTool {
 
         const mInv = m.inverse();
         return mInv ? n.multiply(mInv) : null;
-    }
-
-    referenceNode() {
-        return null;
     }
 }
