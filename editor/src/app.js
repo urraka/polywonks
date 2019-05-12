@@ -29,7 +29,7 @@ export class App extends ui.Panel {
     setupEvents() {
         this.onEditorStatusChange = this.onEditorStatusChange.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
-        this.onKeyBindingsCommand = e => this.onCommand(e.command);
+        this.onKeyBindingsCommand = e => this.onCommand(e.command, e.params);
 
         this.keybindings.on("command", this.onKeyBindingsCommand);
         this.titlebar.menu.on("itemclick", e => this.onCommand(e.item.key));
@@ -153,7 +153,7 @@ export class App extends ui.Panel {
             const activePanel = this.tabs.activePanel;
             const activeEditor = this.editor;
 
-            Editor.loadFile(this.renderer, path, editor => {
+            Editor.loadFile(this, path, editor => {
                 if (editor) {
                     const panel = this.tabs.addPanel(new ui.TabPanel(Path.filename(editor.saveName), editor));
                     editor.on("change", () => this.onEditorChange({ editor, panel }));
@@ -171,7 +171,7 @@ export class App extends ui.Panel {
         }
     }
 
-    openEditor(editor = new Editor(this.renderer)) {
+    openEditor(editor = new Editor(this)) {
         const panel = this.tabs.addPanel(new ui.TabPanel(Path.filename(editor.saveName), editor));
         editor.on("change", () => this.onEditorChange({ editor, panel }));
         return editor;
@@ -301,8 +301,8 @@ export class App extends ui.Panel {
 
                 reader.addEventListener("load", () => {
                     const editor = ext === ".pms" ?
-                        Editor.loadPms(this.renderer, reader.result, file.name) :
-                        Editor.loadPolywonks(this.renderer, reader.result, file.name);
+                        Editor.loadPms(this, reader.result, file.name) :
+                        Editor.loadPolywonks(this, reader.result, file.name);
                     if (editor) {
                         this.open(editor);
                         this.sidebar.activeTab = "sidebar-tools";

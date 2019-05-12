@@ -2,14 +2,15 @@ import { Pointer } from "../../support/pointer.js";
 import { Tool } from "./tool.js";
 
 export class PanTool extends Tool {
-    constructor() {
+    constructor(button = 0) {
         super();
+        this.button = button;
         this.pointer = new Pointer();
         this.pointer.on("move", e => this.onPointerMove(e.mouseEvent));
     }
 
     onActivate() {
-        this.pointer.activate(this.editor.element, 1);
+        this.pointer.activate(this.editor.element, this.button);
     }
 
     onDeactivate() {

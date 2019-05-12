@@ -384,10 +384,19 @@ body {
 }
 
 .list-view li {
+    display: flex;
     white-space: nowrap;
     height: 22px;
     line-height: 22px;
     padding: 0 16px;
+}
+
+.list-view li > label {
+    flex: 1;
+}
+
+.list-view li > label + label {
+    text-align: right;
 }
 
 .property-sheet {

@@ -16,11 +16,23 @@ const DefaultBindings = {
     "Ctrl+Shift+S": "save-as",
     "Delete": "delete",
     "Ctrl+0": "reset-viewport",
+    "Ctrl++": "zoom-in",
+    "Ctrl+-": "zoom-out",
     "Ctrl": "select.cycle",
     "Shift+Ctrl": "select.cycle",
     "Alt+Ctrl": "select.cycle",
     "Shift": "+select.add",
     "Alt": "+select.subtract",
+    "E": ["set-tool", { tool: "pan" }],
+    "Q": ["set-tool", { tool: "select" }],
+    "M": ["set-tool", { tool: "move" }],
+    "T": ["set-tool", { tool: "texture" }],
+    "P": ["set-tool", { tool: "polygon" }],
+    "S": ["set-tool", { tool: "scenery" }],
+    "A": ["set-tool", { tool: "spawn" }],
+    "C": ["set-tool", { tool: "collider" }],
+    "W": ["set-tool", { tool: "waypoint" }],
+    "N": ["set-tool", { tool: "connection" }],
 };
 
 export class KeyBindings extends EventEmitter {
@@ -29,11 +41,15 @@ export class KeyBindings extends EventEmitter {
         this.bindings = {};
         this.pushed = new Set();
         for (const [key, command] of Object.entries(DefaultBindings)) {
-            this.add(key, command);
+            if (typeof command === "string") {
+                this.add(key, command);
+            } else {
+                this.add(key, command[0], command[1]);
+            }
         }
     }
 
-    add(key, command) {
+    add(key, command, params) {
         const keys = key.endsWith("+") ? key.slice(0, -1).split("+").concat(['+']) : key.split("+");
         let modifiers = keys.slice(0, -1);
         key = Modifiers.map(m => modifiers.includes(m) ? "1" : "0").join("") + "_" + keys.pop();
@@ -49,20 +65,34 @@ export class KeyBindings extends EventEmitter {
             }
         }
 
-        this.bindings[key.toUpperCase()] = { command, key };
+        this.bindings[key.toUpperCase()] = { command, params, key };
+    }
+
+    keysText(binding) {
+        const modifiers = binding.key.slice(0, 4).split("")
+            .map((ch, i) => ch === "1" ? Modifiers[i] : "")
+            .filter(m => m !== "")
+            .join("+");
+        return modifiers ? modifiers + "+" + binding.key.slice(5) : binding.key.slice(5);
     }
 
     find(command) {
         for (const binding of Object.values(this.bindings)) {
             if (binding.command === command) {
-                const modifiers = binding.key.slice(0, 4).split("")
-                    .map((ch, i) => ch === "1" ? Modifiers[i] : "")
-                    .filter(m => m !== "")
-                    .join("+");
-                return modifiers ? modifiers + "+" + binding.key.slice(5) : binding.key.slice(5);
+                return this.keysText(binding);
             }
         }
         return null;
+    }
+
+    findAll(command) {
+        const result = [];
+        for (const binding of Object.values(this.bindings)) {
+            if (binding.command === command) {
+                result.push({ command, params: binding.params, keys: this.keysText(binding) });
+            }
+        }
+        return result;
     }
 
     onKeyDown(event) {
@@ -83,7 +113,7 @@ export class KeyBindings extends EventEmitter {
         if (binding) {
             event.preventDefault();
             if (binding.command.startsWith("+")) this.pushed.add(binding.command);
-            this.emit("command", { command: binding.command });
+            this.emit("command", { command: binding.command, params: binding.params });
         }
     }
 

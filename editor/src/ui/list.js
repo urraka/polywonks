@@ -47,11 +47,14 @@ export class ListView extends Panel {
 
 export class ListViewItem {
     constructor(text, data) {
+        const label = elem("label");
+        label.textContent = text;
         this.element = elem("li");
-        this.element.textContent = text;
         this.element.setAttribute("tabindex", 0);
+        this.element.append(label);
         this.data = data;
         ListViewItem.itemByElement.set(this.element, this);
+        ListViewItem.itemByElement.set(label, this);
     }
 
     get active() {
@@ -60,6 +63,21 @@ export class ListViewItem {
 
     set active(value) {
         this.element.classList.toggle("active", value);
+    }
+
+    set keyBinding(value) {
+        if (value) {
+            this._keyBinding = this._keyBinding || (this._keyBinding = elem("label"));
+            this._keyBinding.textContent = value;
+            if (!this._keyBinding.parentElement) {
+                this.element.append(this._keyBinding);
+                ListViewItem.itemByElement.set(this._keyBinding, this);
+            }
+        } else if (this._keyBinding) {
+            ListViewItem.itemByElement.delete(this._keyBinding);
+            this._keyBinding.remove();
+            this._keyBinding = null;
+        }
     }
 
     static get itemByElement() {

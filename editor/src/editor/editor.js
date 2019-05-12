@@ -28,13 +28,13 @@ import { WaypointTool } from "./tools/waypoint.js";
 import { ConnectionTool } from "./tools/connection.js";
 
 export class Editor extends ui.Panel {
-    constructor(renderer, map = MapDocument.default()) {
+    constructor(app, map = MapDocument.default()) {
         super("editor");
 
-        this.renderer = renderer;
+        this.renderer = app.renderer;
         this.activated = false;
         this.openedAsDefault = false;
-        this.view = new RenderView(renderer);
+        this.view = new RenderView(this.renderer);
         this.grid = new Grid(this.view);
         this.map = map;
         this.map.iconsInfo = this.renderer.iconsInfo;
@@ -50,7 +50,7 @@ export class Editor extends ui.Panel {
 
         this.cursor.activate(this);
         this.tools = this.createTools();
-        this.sidebar = this.createSidebarPanels();
+        this.sidebar = this.createSidebarPanels(app.keybindings);
         this.setupEvents();
         this.currentTool = this.tools.select;
     }
@@ -69,8 +69,11 @@ export class Editor extends ui.Panel {
         return {
             current: null,
             previous: null,
-            pan: new PanTool(),
-            zoom: new ZoomTool(),
+            passive: {
+                pan: new PanTool(1),
+                zoom: new ZoomTool(),
+            },
+            pan: new PanTool(0),
             select: new SelectTool(),
             move: new MovePositionTool(),
             texture: new MoveTextureTool(),
@@ -83,27 +86,42 @@ export class Editor extends ui.Panel {
         };
     }
 
-    createSidebarPanels() {
+    createSidebarPanels(keybindings) {
         const sidebar = {};
         sidebar.mainPanel = new ui.MultiPanelView();
         sidebar.mainPanel.element.classList.add("editor-sidebar-panels");
         sidebar.tools = sidebar.mainPanel.addPanel(null, new ui.ListView());
         sidebar.explorer = sidebar.mainPanel.addPanel("Map", new MapExplorer(this));
         sidebar.properties = sidebar.mainPanel.addPanel("Map Properties", new MapProperties(this));
-        sidebar.tools.content.addItem(new ui.ListViewItem("Select", this.tools.select));
-        sidebar.tools.content.addItem(new ui.ListViewItem("Move", this.tools.move));
-        sidebar.tools.content.addItem(new ui.ListViewItem("Texture", this.tools.texture));
-        sidebar.tools.content.addItem(new ui.ListViewItem("Create Polygons", this.tools.polygon));
-        sidebar.tools.content.addItem(new ToolPropertiesItem(this, this.tools.polygon));
-        sidebar.tools.content.addItem(new ui.ListViewItem("Create Scenery", this.tools.scenery));
-        sidebar.tools.content.addItem(new ToolPropertiesItem(this, this.tools.scenery));
-        sidebar.tools.content.addItem(new ui.ListViewItem("Create Spawns", this.tools.spawn));
-        sidebar.tools.content.addItem(new ToolPropertiesItem(this, this.tools.spawn));
-        sidebar.tools.content.addItem(new ui.ListViewItem("Create Colliders", this.tools.collider));
-        sidebar.tools.content.addItem(new ToolPropertiesItem(this, this.tools.collider));
-        sidebar.tools.content.addItem(new ui.ListViewItem("Create Waypoints", this.tools.waypoint));
-        sidebar.tools.content.addItem(new ToolPropertiesItem(this, this.tools.waypoint));
-        sidebar.tools.content.addItem(new ui.ListViewItem("Create Connections", this.tools.connection));
+
+        const bindings = keybindings.findAll("set-tool");
+
+        const tools = [
+            ["pan", "Pan"],
+            ["select", "Select"],
+            ["move", "Move"],
+            ["texture", "Texture"],
+            ["polygon", "Polygons"],
+            ["scenery", "Scenery"],
+            ["spawn", "Spawns"],
+            ["collider", "Colliders"],
+            ["waypoint", "Waypoints"],
+            ["connection", "Connections"],
+        ];
+
+        tools.forEach(([key, text]) => {
+            const tool = this.tools[key];
+            const item = new ui.ListViewItem(text, tool);
+            const binding = bindings.find(b => b.params.tool === key);
+            sidebar.tools.content.addItem(item);
+            if (binding) {
+                item.keyBinding = binding.keys;
+            }
+            if (tool.attributes.size > 0) {
+                sidebar.tools.content.addItem(new ToolPropertiesItem(this, tool));
+            }
+        });
+
         return sidebar;
     }
 
@@ -318,8 +336,8 @@ export class Editor extends ui.Panel {
     activate() {
         if (!this.activated) {
             this.activated = true;
-            this.tools.pan.activate(this);
-            this.tools.zoom.activate(this);
+            this.tools.passive.pan.activate(this);
+            this.tools.passive.zoom.activate(this);
             this.tools.current.activate(this);
             this.statusChange();
         }
@@ -329,8 +347,8 @@ export class Editor extends ui.Panel {
         if (this.activated) {
             this.activated = false;
             this.tools.current.deactivate();
-            this.tools.zoom.deactivate();
-            this.tools.pan.deactivate();
+            this.tools.passive.zoom.deactivate();
+            this.tools.passive.pan.deactivate();
         }
     }
 
@@ -491,7 +509,15 @@ export class Editor extends ui.Panel {
                 this.addResources(command.replace(/^add-/, ""), paths);
                 break;
             }
-            default: this.tools.current.onCommand(command, params);
+            case "set-tool": {
+                this.currentTool = this.tools[params.tool];
+                break;
+            }
+            default: {
+                this.tools.passive.pan.onCommand(command, params);
+                this.tools.passive.zoom.onCommand(command, params);
+                this.tools.current.onCommand(command, params);
+            }
         }
     }
 
@@ -566,7 +592,7 @@ export class Editor extends ui.Panel {
         }
     }
 
-    static loadFile(renderer, path, fn) {
+    static loadFile(app, path, fn) {
         const ext = Path.ext(path).toLowerCase();
 
         if (!path.startsWith("/")) {
@@ -580,29 +606,29 @@ export class Editor extends ui.Panel {
         File.refresh(Path.mount(path), () => {
             if (ext === ".pms") {
                 File.readBuffer(path, buffer => {
-                    fn(buffer ? Editor.loadPms(renderer, buffer, path) : null);
+                    fn(buffer ? Editor.loadPms(app, buffer, path) : null);
                 });
             } else if (ext === ".polywonks") {
                 File.readText(path, text => {
-                    fn(text ? Editor.loadPolywonks(renderer, text, path) : null);
+                    fn(text ? Editor.loadPolywonks(app, text, path) : null);
                 });
             }
         });
     }
 
-    static loadPms(renderer, buffer, path = "") {
+    static loadPms(app, buffer, path = "") {
         try {
             const pms = PMS.Map.fromArrayBuffer(buffer);
-            return new Editor(renderer, MapDocument.fromPMS(pms, path));
+            return new Editor(app, MapDocument.fromPMS(pms, path));
         } catch (e) {
             return null;
         }
     }
 
-    static loadPolywonks(renderer, text, path = "") {
+    static loadPolywonks(app, text, path = "") {
         try {
             const map = MapDocument.unserialize(text, path);
-            return new Editor(renderer, map);
+            return new Editor(app, map);
         } catch (e) {
             return null;
         }
