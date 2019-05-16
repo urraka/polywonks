@@ -1,4 +1,4 @@
-import { npot } from "./math.js";
+import * as xMath from "./math.js";
 
 /**
  * @param {Image} image - The image to process.
@@ -29,8 +29,8 @@ export function processImage(image, params) {
         }
 
         if (params.npot) {
-            w = npot(w);
-            h = npot(h);
+            w = xMath.npot(w);
+            h = xMath.npot(h);
             dw = w - (params.padding ? 2 : 0);
             dh = h - (params.padding ? 2 : 0);
         }

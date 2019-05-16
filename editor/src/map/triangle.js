@@ -1,5 +1,5 @@
 import * as PMS from "../pms/pms.js";
-import * as Geometry from "../support/geometry.js";
+import * as xMath from "../support/math.js";
 import { iter } from "../support/iter.js";
 import { Node } from "./node.js";
 import { VertexNode } from "./vertex.js";
@@ -63,14 +63,14 @@ export class TriangleNode extends Node {
         }
         if (tri.length === 6) {
             let d = cfg("editor.vertex-size") / scale;
-            const A = Geometry.signedTriangleArea(...tri);
+            const A = xMath.signedTriangleArea(...tri);
             if (Math.abs(A * (scale * scale)) < (d * d)) {
                 d = 0.25 * d * d;
-                return Geometry.pointToSegmentDistance2(x, y, tri[0], tri[1], tri[2], tri[3]) <= d ||
-                    Geometry.pointToSegmentDistance2(x, y, tri[0], tri[1], tri[4], tri[5]) <= d ||
-                    Geometry.pointToSegmentDistance2(x, y, tri[2], tri[3], tri[4], tri[5]) <= d;
+                return xMath.pointToSegmentDistance2(x, y, tri[0], tri[1], tri[2], tri[3]) <= d ||
+                    xMath.pointToSegmentDistance2(x, y, tri[0], tri[1], tri[4], tri[5]) <= d ||
+                    xMath.pointToSegmentDistance2(x, y, tri[2], tri[3], tri[4], tri[5]) <= d;
             } else {
-                return Geometry.triangleContainsPoint(...tri, x, y, A);
+                return xMath.triangleContainsPoint(...tri, x, y, A);
             }
         }
     }
@@ -80,7 +80,7 @@ export class TriangleNode extends Node {
         for (const childNode of this.children()) {
             triangle.push(childNode.attr("x"), childNode.attr("y"));
         }
-        return triangle.length === 6 && Geometry.rectIntersectsTriangle(x, y, w, h, ...triangle);
+        return triangle.length === 6 && xMath.rectIntersectsTriangle(x, y, w, h, ...triangle);
     }
 
     containedByRect(x, y, w, h) {
@@ -88,6 +88,6 @@ export class TriangleNode extends Node {
         for (const childNode of this.children()) {
             triangle.push(childNode.attr("x"), childNode.attr("y"));
         }
-        return triangle.length === 6 && Geometry.rectContainsTriangle(x, y, w, h, ...triangle);
+        return triangle.length === 6 && xMath.rectContainsTriangle(x, y, w, h, ...triangle);
     }
 }

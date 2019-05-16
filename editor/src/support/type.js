@@ -1,6 +1,6 @@
+import * as xMath from "./math.js";
 import { Color } from "./color.js";
 import { Node } from "../map/node.js";
-import { clamp } from "./math.js";
 import { Enum } from "./enum.js";
 
 export class ValueType {
@@ -114,12 +114,12 @@ export class ValueType {
                     throw new Error("Value must be a valid number");
                 } else switch (type) {
                     case "number": return value;
-                    case "int8": return clamp(Math.trunc(value), -0x80, 0x7f);
-                    case "int16": return clamp(Math.trunc(value), -0x8000, 0x7fff);
-                    case "int32": return clamp(Math.trunc(value), -0x80000000, 0x7fffffff);
-                    case "uint8": return clamp(Math.trunc(value), 0, 0xff);
-                    case "uint16": return clamp(Math.trunc(value), 0, 0xffff);
-                    case "uint32": return clamp(Math.trunc(value), 0, 0xffffffff);
+                    case "int8": return xMath.clamp(Math.trunc(value), -0x80, 0x7f);
+                    case "int16": return xMath.clamp(Math.trunc(value), -0x8000, 0x7fff);
+                    case "int32": return xMath.clamp(Math.trunc(value), -0x80000000, 0x7fffffff);
+                    case "uint8": return xMath.clamp(Math.trunc(value), 0, 0xff);
+                    case "uint16": return xMath.clamp(Math.trunc(value), 0, 0xffff);
+                    case "uint32": return xMath.clamp(Math.trunc(value), 0, 0xffffffff);
                     case "float": return Math.fround(value);
                     case "angle": return Math.fround(value);
                 }

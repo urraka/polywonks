@@ -1,6 +1,6 @@
-import { cfg } from "../settings.js";
+import * as xMath from "../support/math.js";
 import { SceneryNode } from "../map/map.js";
-import { distance2 } from "../support/geometry.js";
+import { cfg } from "../settings.js";
 
 export class SnapSource {
     constructor(node, filter = null) {
@@ -108,13 +108,13 @@ export class SnapHandle {
                     return node.computeVertices().map(v => ({
                         node,
                         position: { x: v.x, y: v.y },
-                        dist: distance2(x, y, v.x, v.y)
+                        dist: xMath.distance2(x, y, v.x, v.y)
                     }));
                 } else {
                     return {
                         node,
                         position: { x: node.x, y: node.y },
-                        dist: distance2(x, y, node.x, node.y)
+                        dist: xMath.distance2(x, y, node.x, node.y)
                     };
                 }
             })
@@ -146,7 +146,7 @@ export class SnapHandle {
             ].map(p => ({
                 node: null,
                 position: p,
-                dist: distance2(x, y, p.x, p.y)
+                dist: xMath.distance2(x, y, p.x, p.y)
             }));
         }
         return [];

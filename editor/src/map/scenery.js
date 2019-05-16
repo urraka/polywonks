@@ -1,5 +1,5 @@
 import * as PMS from "../pms/pms.js";
-import * as Geometry from "../support/geometry.js";
+import * as xMath from "../support/math.js";
 import { Color } from "../support/color.js";
 import { Mat2d } from "../support/matrix.js";
 import { Sprite } from "../gfx/gfx.js";
@@ -143,8 +143,8 @@ export class SceneryNode extends Node {
             [0, 1, 2].reduce((accum, i) => (accum.push(vertices[i].x, vertices[i].y), accum), []),
             [2, 3, 0].reduce((accum, i) => (accum.push(vertices[i].x, vertices[i].y), accum), [])
         ];
-        return Geometry.triangleContainsPoint(...triangle[0], x, y) ||
-            Geometry.triangleContainsPoint(...triangle[1], x, y);
+        return xMath.triangleContainsPoint(...triangle[0], x, y) ||
+            xMath.triangleContainsPoint(...triangle[1], x, y);
     }
 
     intersectsRect(x, y, w, h) {
@@ -153,12 +153,12 @@ export class SceneryNode extends Node {
             [0, 1, 2].reduce((accum, i) => (accum.push(vertices[i].x, vertices[i].y), accum), []),
             [2, 3, 0].reduce((accum, i) => (accum.push(vertices[i].x, vertices[i].y), accum), [])
         ];
-        return Geometry.rectIntersectsTriangle(x, y, w, h, ...triangle[0]) ||
-            Geometry.rectIntersectsTriangle(x, y, w, h, ...triangle[1]);
+        return xMath.rectIntersectsTriangle(x, y, w, h, ...triangle[0]) ||
+            xMath.rectIntersectsTriangle(x, y, w, h, ...triangle[1]);
     }
 
     containedByRect(x, y, w, h) {
         const vertices = this.computeVertices();
-        return vertices.every(v => Geometry.rectContainsPoint(x, y, w, h, v.x, v.y));
+        return vertices.every(v => xMath.rectContainsPoint(x, y, w, h, v.x, v.y));
     }
 }

@@ -2,10 +2,9 @@
 
 import * as PMS from "./pms/pms.js";
 import * as Gfx from "./gfx/gfx.js";
-import * as Geometry from "./support/geometry.js";
 import * as fmt from "./support/format.js";
 import * as img from "./support/image.js";
-import * as math from "./support/math.js";
+import * as xMath from "./support/math.js";
 import * as ui from "./ui/ui.js";
 
 // everything else
@@ -52,11 +51,10 @@ import * as dialog_save from "./dialog.save.js";
 export const Polywonks = (() => {
     const namespace = {
         PMS,
-        Geometry,
         Gfx,
         fmt,
         img,
-        math,
+        xMath,
         ui,
     };
 

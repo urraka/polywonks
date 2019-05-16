@@ -1,7 +1,7 @@
-import { rectContainsPoint } from "../support/geometry.js";
+import * as xMath from "../support/math.js";
+import { cfg } from "../settings.js";
 import { Node } from "./node.js";
 import { Attribute } from "./attribute.js";
-import { cfg } from "../settings.js";
 
 export class PivotNode extends Node {
     constructor() {
@@ -21,10 +21,10 @@ export class PivotNode extends Node {
     }
 
     intersectsRect(x, y, w, h) {
-        return rectContainsPoint(x, y, w, h, this.x, this.y);
+        return xMath.rectContainsPoint(x, y, w, h, this.x, this.y);
     }
 
     containedByRect(x, y, w, h) {
-        return rectContainsPoint(x, y, w, h, this.x, this.y);
+        return xMath.rectContainsPoint(x, y, w, h, this.x, this.y);
     }
 }

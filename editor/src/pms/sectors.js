@@ -1,4 +1,4 @@
-import { rectIntersectsTriangle as intersects } from "../support/geometry.js";
+import * as xMath from "../support/math.js";
 import { PolyType } from "./pms.js";
 
 export function sectorsDivision(bounds) {
@@ -35,7 +35,7 @@ export function generateSectors(pms) {
                     const rect = [d * (x - 0.5) - 1, d * (y - 0.5) - 1, d + 2, d + 2];
                     const triangle = [].concat(...polygon.vertices.map(v => [v.x, v.y]));
 
-                    if (intersects(...rect, ...triangle)) {
+                    if (xMath.rectIntersectsTriangle(...rect, ...triangle)) {
                         sectors[(n + x) * (2 * n + 1) + (n + y)].push(polyIndex);
                     }
                 }

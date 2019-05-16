@@ -1,9 +1,9 @@
+import * as xMath from "../support/math.js";
 import { Color } from "../support/color.js";
 import { Path } from "../support/path.js";
 import { File } from "../file.js";
 import { ResourceNode } from "./resource.js";
 import { Attribute } from "./attribute.js";
-import { signedTriangleArea } from "../support/geometry.js";
 
 export class TextureNode extends ResourceNode {
     constructor() {
@@ -47,7 +47,7 @@ export class TextureNode extends ResourceNode {
             height: new Map()
         };
 
-        const area = (a, b, c) => Math.abs(signedTriangleArea(a.x, a.y, b.x, b.y, c.x, c.y));
+        const area = (a, b, c) => Math.abs(xMath.signedTriangleArea(a.x, a.y, b.x, b.y, c.x, c.y));
 
         const sizeFn = {
             width: (a, b) => Math.abs(b.u - a.u) > 0 ? (b.x - a.x) / (b.u - a.u) : 0,

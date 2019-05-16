@@ -1,5 +1,5 @@
 import * as PMS from "../pms/pms.js";
-import * as Geometry from "../support/geometry.js";
+import * as xMath from "../support/math.js";
 import { Rect } from "../support/rect.js";
 import { cfg } from "../settings.js";
 import { Node } from "./node.js";
@@ -43,7 +43,7 @@ export class ColliderNode extends Node {
     }
 
     intersectsRect(x, y, w, h) {
-        return Geometry.rectIntersectsCircle(x, y, w, h, this.attr("x"), this.attr("y"), this.attr("radius"));
+        return xMath.rectIntersectsCircle(x, y, w, h, this.attr("x"), this.attr("y"), this.attr("radius"));
     }
 
     containedByRect(x, y, w, h) {
@@ -51,6 +51,6 @@ export class ColliderNode extends Node {
         const rect = new Rect(0, 0, d, d);
         rect.centerX = this.attr("x");
         rect.centerY = this.attr("y");
-        return Geometry.rectContainsRect(x, y, w, h, ...rect.values());
+        return xMath.rectContainsRect(x, y, w, h, ...rect.values());
     }
 }

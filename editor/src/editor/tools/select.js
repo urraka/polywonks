@@ -1,7 +1,7 @@
-import { cfg } from "../../settings.js";
+import * as xMath from "../../support/math.js";
 import { Rect } from "../../support/rect.js";
-import { mod } from "../../support/math.js";
 import { Pointer, MovementThreshold } from "../../support/pointer.js";
+import { cfg } from "../../settings.js";
 import { Tool } from "./tool.js";
 
 export class SelectTool extends Tool {
@@ -115,7 +115,7 @@ export class SelectTool extends Tool {
 
                 if (nodes.length > 0) {
                     this.cycle = this.cycle % nodes.length;
-                    nodes = [nodes[mod(-1 - this.cycle, nodes.length)]];
+                    nodes = [nodes[xMath.mod(-1 - this.cycle, nodes.length)]];
                 }
 
                 this.editor.previewNodes = new Set(nodes);
@@ -139,7 +139,7 @@ export class SelectTool extends Tool {
 
                     if (nodes.length > 0) {
                         this.cycle = this.cycle % nodes.length;
-                        this.editor.reactiveNode = nodes[mod(index - this.cycle, nodes.length)];
+                        this.editor.reactiveNode = nodes[xMath.mod(index - this.cycle, nodes.length)];
                         this.editor.previewNodes = new Set(nodes);
                     }
                 }

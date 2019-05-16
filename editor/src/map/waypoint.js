@@ -1,5 +1,5 @@
 import * as PMS from "../pms/pms.js";
-import * as Geometry from "../support/geometry.js";
+import * as xMath from "../support/math.js";
 import { Rect } from "../support/rect.js";
 import { cfg } from "../settings.js";
 import { Node } from "./node.js";
@@ -71,7 +71,7 @@ export class WaypointNode extends Node {
         const rect = new Rect(0, 0, d, d);
         rect.centerX = this.attr("x");
         rect.centerY = this.attr("y");
-        return Geometry.rectIntersectsRect(x, y, w, h, ...rect.values());
+        return xMath.rectIntersectsRect(x, y, w, h, ...rect.values());
     }
 
     containedByRect(x, y, w, h, scale) {
@@ -79,6 +79,6 @@ export class WaypointNode extends Node {
         const rect = new Rect(0, 0, d, d);
         rect.centerX = this.attr("x");
         rect.centerY = this.attr("y");
-        return Geometry.rectContainsRect(x, y, w, h, ...rect.values());
+        return xMath.rectContainsRect(x, y, w, h, ...rect.values());
     }
 }

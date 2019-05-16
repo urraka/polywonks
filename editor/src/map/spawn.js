@@ -1,5 +1,5 @@
 import * as PMS from "../pms/pms.js";
-import * as Geometry from "../support/geometry.js";
+import * as xMath from "../support/math.js";
 import { Rect } from "../support/rect.js";
 import { Node } from "./node.js";
 import { Attribute } from "./attribute.js";
@@ -58,12 +58,12 @@ export class SpawnNode extends Node {
 
         if (info) {
             if (info.radius) {
-                return Geometry.rectIntersectsCircle(x, y, w, h, this.attr("x"), this.attr("y"), info.radius / scale);
+                return xMath.rectIntersectsCircle(x, y, w, h, this.attr("x"), this.attr("y"), info.radius / scale);
             } else {
                 const rect = new Rect(0, 0, info.width / scale, info.height / scale);
                 rect.centerX = this.attr("x");
                 rect.centerY = this.attr("y");
-                return Geometry.rectIntersectsRect(x, y, w, h, ...rect.values());
+                return xMath.rectIntersectsRect(x, y, w, h, ...rect.values());
             }
         }
 
@@ -77,7 +77,7 @@ export class SpawnNode extends Node {
             const rect = new Rect(0, 0, info.width / scale, info.height / scale);
             rect.centerX = this.attr("x");
             rect.centerY = this.attr("y");
-            return Geometry.rectContainsRect(x, y, w, h, ...rect.values());
+            return xMath.rectContainsRect(x, y, w, h, ...rect.values());
         }
 
         return false;

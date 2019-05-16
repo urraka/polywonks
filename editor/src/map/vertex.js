@@ -1,6 +1,6 @@
 import * as PMS from "../pms/pms.js";
 import { Color } from "../support/color.js";
-import { rectContainsPoint } from "../support/geometry.js";
+import * as xMath from "../support/math.js";
 import { cfg } from "../settings.js";
 import { Node } from "./node.js";
 import { Attribute } from "./attribute.js";
@@ -50,10 +50,10 @@ export class VertexNode extends Node {
     }
 
     intersectsRect(x, y, w, h) {
-        return rectContainsPoint(x, y, w, h, this.attr("x"), this.attr("y"));
+        return xMath.rectContainsPoint(x, y, w, h, this.attr("x"), this.attr("y"));
     }
 
     containedByRect(x, y, w, h) {
-        return rectContainsPoint(x, y, w, h, this.attr("x"), this.attr("y"));
+        return xMath.rectContainsPoint(x, y, w, h, this.attr("x"), this.attr("y"));
     }
 }
