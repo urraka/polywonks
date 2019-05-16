@@ -93,6 +93,7 @@ export class CreateTool extends Tool {
 
     onAttrChange() {
         this.updateNode();
+        this.updateHandle();
         this.editor.redraw();
     }
 
