@@ -353,15 +353,54 @@ export class Editor extends ui.Panel {
     }
 
     delete() {
-        const command = new EditorCommand(this);
-        for (const node of this.selection.nodes) {
-            if (node !== this.map && node.parentNode !== this.map &&
-                [...node.ancestors()].every(n => !this.selection.nodes.has(n))
-            ) {
+        const isNodeDeletable = node => {
+            return node !== this.map && node.parentNode !== this.map &&
+                [...node.ancestors()].every(n => !this.selection.nodes.has(n));
+        };
+
+        const isResourceUsedByNode = (resNode, node) => {
+            const attrs = iter(node.attributes.values());
+            return !!attrs.find(attr => attr.value === resNode);
+        };
+
+        const nodesUsingResource = resNode => {
+            return iter(this.map.tree()).filter(node => isResourceUsedByNode(resNode, node));
+        };
+
+        const deleteNodes = (nodes, linkedNodes) => {
+            const command = new EditorCommand(this);
+            for (const node of nodes) {
                 command.remove(node);
             }
+            for (const node of linkedNodes) {
+                if (node.attributes.has("image")) {
+                    command.remove(node);
+                } else if (node.attributes.has("texture")) {
+                    command.attr(node, "texture", null);
+                }
+            }
+            this.do(command);
+        };
+
+        const nodes = [...this.selection.nodes].filter(isNodeDeletable);
+        const resNodes = nodes.filter(node => node instanceof ResourceNode);
+        const linkedNodes = resNodes.flatMap(resNode => {
+            return [...nodesUsingResource(resNode)].filter(node => {
+                return !this.selection.nodes.has(node) && isNodeDeletable(node);
+            });
+        });
+
+        if (linkedNodes.length > 0) {
+            const message = "Some of the selected resources are still being used. " +
+                "Objects using such resources may be deleted in turn. Continue?";
+            ui.confirm("Delete", message, "no", result => {
+                if (result === "yes") {
+                    deleteNodes(nodes, linkedNodes);
+                }
+            });
+        } else {
+            deleteNodes(nodes, linkedNodes);
         }
-        this.do(command);
     }
 
     canCopy() {
