@@ -2,17 +2,11 @@ import * as PMS from "../pms/pms.js";
 import * as ui from "../ui/ui.js";
 import { Path } from "../support/path.js";
 import { iter } from "../support/iter.js";
-import { MapDocument, LayerNode, ConnectionNode, ResourceNode, ClonedNodesCollection, TriangleNode, ImageNode, TextureNode } from "../map/map.js";
+import { MapDocument, LayerNode } from "../map/map.js";
 import { File } from "../file.js";
-import { Clipboard } from "../clipboard.js";
-import { SaveDialog } from "../dialog.save.js";
 import { RenderView } from "../render.view.js";
 import { cfg, Settings } from "../settings.js";
-import { MapExplorer } from "./map.explorer.js";
-import { MapProperties } from "./map.properties.js";
-import { Selection } from "./selection.js";
-import { EditorCommand } from "./command.js";
-import { Grid } from "./grid.js";
+import { EditorFunction } from "./func/func.js";
 import { SelectTool } from "./tools/select.js";
 import { PanTool } from "./tools/pan.js";
 import { ZoomTool } from "./tools/zoom.js";
@@ -26,12 +20,18 @@ import { SpawnTool } from "./tools/spawn.js";
 import { ColliderTool } from "./tools/collider.js";
 import { WaypointTool } from "./tools/waypoint.js";
 import { ConnectionTool } from "./tools/connection.js";
+import { MapExplorer } from "./map.explorer.js";
+import { MapProperties } from "./map.properties.js";
+import { Selection } from "./selection.js";
+import { Grid } from "./grid.js";
 
 export class Editor extends ui.Panel {
     constructor(app, map = MapDocument.default()) {
         super("editor");
 
         this.renderer = app.renderer;
+        this.keybindings = app.keybindings;
+
         this.activated = false;
         this.openedAsDefault = false;
         this.view = new RenderView(this.renderer);
@@ -48,9 +48,10 @@ export class Editor extends ui.Panel {
         this.undone = 0;
         this.commandHistory = [];
 
+        this.functions = EditorFunction.instantiate(this);
         this.cursor.activate(this);
         this.tools = this.createTools();
-        this.sidebar = this.createSidebarPanels(app.keybindings);
+        this.sidebar = this.createSidebarPanels();
         this.setupEvents();
         this.currentTool = this.tools.select;
     }
@@ -86,7 +87,7 @@ export class Editor extends ui.Panel {
         };
     }
 
-    createSidebarPanels(keybindings) {
+    createSidebarPanels() {
         const sidebar = {};
         sidebar.mainPanel = new ui.MultiPanelView();
         sidebar.mainPanel.element.classList.add("editor-sidebar-panels");
@@ -94,7 +95,7 @@ export class Editor extends ui.Panel {
         sidebar.explorer = sidebar.mainPanel.addPanel("Map", new MapExplorer(this));
         sidebar.properties = sidebar.mainPanel.addPanel("Map Properties", new MapProperties(this));
 
-        const bindings = keybindings.findAll("set-tool");
+        const bindings = this.keybindings.findAll("set-tool");
 
         const tools = [
             ["pan", "Pan"],
@@ -135,10 +136,10 @@ export class Editor extends ui.Panel {
         this.cursor.on("change", () => this.onCursorChange());
         this.selection.on("change", () => this.onSelectionChange());
         Settings.on("change", e => this.onSettingChange(e.setting));
-    }
 
-    get modified() {
-        return this.saveIndex !== this.undone;
+        for (const [name, func] of Object.entries(this.functions)) {
+            func.on("change", () => this.emit("functionchange", { name }));
+        }
     }
 
     get currentTool() {
@@ -167,110 +168,19 @@ export class Editor extends ui.Panel {
         this.redraw();
     }
 
-    relocateMap(newPath) {
-        if (!newPath.startsWith("/")) {
-            throw new Error("Editor.relocateMap() - directory must be absolute");
+    get modified() {
+        return this.saveIndex !== this.undone;
+    }
+
+    onSave(saveIndex, saveName) {
+        if (saveName !== this.saveName) {
+            const changed = (saveIndex !== this.undone);
+            this.exec("relocate", { path: saveName });
+            this.saveName = saveName;
+            saveIndex = changed ? saveIndex : this.undone;
         }
-
-        const command = new EditorCommand(this);
-        const mount = Path.mount(newPath);
-        const dir = Path.dir(newPath);
-
-        command.relocate(this.map, newPath);
-
-        for (const node of this.map.resources.descendants()) {
-            if (node.attributes.has("src")) {
-                const path = node.path;
-                if (path) {
-                    if (Path.mount(path) === mount) {
-                        command.attr(node, "src", Path.relative(dir, path));
-                    } else {
-                        command.attr(node, "src", path);
-                    }
-                }
-            }
-        }
-
-        this.do(command);
-    }
-
-    save() {
-        if (this.saveName.startsWith("/")) {
-            File.refresh(Path.mount(this.saveName), () => {
-                if (File.exists(this.saveName)) {
-                    const saveIndex = this.undone;
-                    File.write(this.saveName, this.map.serialize(), ok => {
-                        if (ok) {
-                            this.saveIndex = saveIndex;
-                            this.emit("change");
-                        } else {
-                            ui.msgbox("Save", "Failed to write file " + this.saveName);
-                        }
-                    });
-                } else {
-                    this.saveAs();
-                }
-            });
-        } else {
-            this.saveAs();
-        }
-    }
-
-    saveAs() {
-        const dialog = new SaveDialog("Save as...", Path.filename(this.saveName), Path.dir(this.saveName) || "/polydrive/");
-
-        dialog.on("save", event => {
-            const saveIndex = this.undone;
-            const editor = new Editor(this.renderer, this.map.clone());
-            editor.relocateMap(event.path);
-
-            File.write(event.path, editor.map.serialize(), ok => {
-                if (ok) {
-                    const changed = (saveIndex !== this.undone);
-                    this.relocateMap(event.path);
-                    this.saveName = event.path;
-                    this.saveIndex = changed ? saveIndex : this.undone;
-                    this.emit("change");
-                } else {
-                    ui.msgbox("Save as...", "Failed to write file " + event.path);
-                }
-            });
-        });
-
-        dialog.show();
-    }
-
-    export() {
-        const filename = Path.replaceExtension(Path.filename(this.saveName), ".pms");
-        const path = Path.resolve(cfg("app.export-location"), filename);
-
-        File.refresh(Path.mount(path), () => {
-            if (File.exists(path)) {
-                File.write(path, this.map.toPMS().toArrayBuffer(), ok => {
-                    if (!ok) {
-                        ui.msgbox("Export", "Failed to write file " + path);
-                    }
-                });
-            } else {
-                this.exportAs();
-            }
-        });
-    }
-
-    exportAs() {
-        const filename = Path.replaceExtension(Path.filename(this.saveName), ".pms");
-        const path = Path.resolve(cfg("app.export-location"), filename);
-        const dialog = new SaveDialog("Export as...", Path.filename(path), Path.dir(path));
-
-        dialog.on("save", event => {
-            File.write(event.path, this.map.toPMS().toArrayBuffer(), ok => {
-                if (!ok) {
-                    ui.msgbox("Export as...", "Failed to write file " + event.path);
-                }
-            });
-        });
-
-        dialog.show();
+        this.saveIndex = saveIndex;
+        this.emit("change");
     }
 
     do(command) {
@@ -352,211 +262,15 @@ export class Editor extends ui.Panel {
         }
     }
 
-    delete() {
-        const isNodeDeletable = node => {
-            return node !== this.map && node.parentNode !== this.map &&
-                [...node.ancestors()].every(n => !this.selection.nodes.has(n));
-        };
-
-        const isResourceUsedByNode = (resNode, node) => {
-            const attrs = iter(node.attributes.values());
-            return !!attrs.find(attr => attr.value === resNode);
-        };
-
-        const nodesUsingResource = resNode => {
-            return iter(this.map.tree()).filter(node => isResourceUsedByNode(resNode, node));
-        };
-
-        const deleteNodes = (nodes, linkedNodes) => {
-            const command = new EditorCommand(this);
-            for (const node of nodes) {
-                command.remove(node);
-            }
-            for (const node of linkedNodes) {
-                if (node.attributes.has("image")) {
-                    command.remove(node);
-                } else if (node.attributes.has("texture")) {
-                    command.attr(node, "texture", null);
-                }
-            }
-            this.do(command);
-        };
-
-        const nodes = [...this.selection.nodes].filter(isNodeDeletable);
-        const resNodes = nodes.filter(node => node instanceof ResourceNode);
-        const linkedNodes = resNodes.flatMap(resNode => {
-            return [...nodesUsingResource(resNode)].filter(node => {
-                return !this.selection.nodes.has(node) && isNodeDeletable(node);
-            });
-        });
-
-        if (linkedNodes.length > 0) {
-            const message = "Some of the selected resources are still being used. " +
-                "Objects using such resources may be deleted in turn. Continue?";
-            ui.confirm("Delete", message, "no", result => {
-                if (result === "yes") {
-                    deleteNodes(nodes, linkedNodes);
-                }
-            });
-        } else {
-            deleteNodes(nodes, linkedNodes);
-        }
-    }
-
-    canCopy() {
-        for (const node of this.selection.nodes) {
-            if (node.parentNode && (node.parentNode instanceof LayerNode)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    cut() {
-        this.copy();
-        this.delete();
-    }
-
-    copy() {
-        const clonedNodes = new ClonedNodesCollection();
-
-        const clones = [...this.selection.nodes]
-            .filter(node => node.parentNode && (node.parentNode instanceof LayerNode))
-            .map(node => clonedNodes.clone(node));
-
-        if (clones.length > 0) {
-            clones.forEach(clone => {
-                for (const clonedNode of [...clone.descendants()]) {
-                    if (clonedNode instanceof ConnectionNode) {
-                        const originalNode = clonedNodes.cloneToOriginal.get(clonedNode);
-                        if (!this.selection.has(originalNode) ||
-                            !this.selection.has(originalNode.parentNode) ||
-                            !this.selection.has(originalNode.attr("waypoint"))
-                        ) {
-                            clonedNode.remove();
-                        }
-                    }
-                }
-            });
-
-            clonedNodes.resolveReferences();
-
-            Clipboard.save({
-                path: this.map.path,
-                nodes: clones
-            });
-        }
-    }
-
-    paste() {
-        if (this.activeLayer && !Clipboard.empty()) {
-            const data = Clipboard.load();
-            data.nodes = data.nodes.filter(node => this.activeLayer.isNodeAllowed(node));
-
-            if (data.nodes.length === 0) {
-                return;
-            }
-
-            const resources = this.map.resources;
-            const mount = Path.mount(this.map.path);
-            const dir = Path.dir(this.map.path);
-
-            this.selection.clear();
-            const command = new EditorCommand(this);
-
-            data.nodes.forEach(nodeEntry => {
-                for (const node of nodeEntry.tree()) {
-                    for (const [, attr] of node.attributes) {
-                        if (attr.dataType === "node" && attr.value && (attr.value instanceof ResourceNode)) {
-                            const resourceNode = attr.value;
-                            const path = resourceNode.pathFrom(Path.dir(data.path)).toLowerCase();
-
-                            for (const res of resources.children()) {
-                                if (res.nodeName === resourceNode.nodeName && res.path.toLowerCase() === path) {
-                                    attr.value = res;
-                                    break;
-                                }
-                            }
-
-                            if (attr.value === resourceNode) {
-                                if (path) {
-                                    if (Path.mount(path) === mount) {
-                                        resourceNode.attr("src", Path.relative(dir, path));
-                                    } else {
-                                        resourceNode.attr("src", path);
-                                    }
-                                }
-
-                                command.insert(resources, null, resourceNode);
-                            }
-                        }
-                    }
-                }
-
-                if (nodeEntry instanceof TriangleNode) {
-                    const polyTypes = this.activeLayer.polyTypes();
-                    if (![...polyTypes.names()].includes(nodeEntry.attr("poly-type"))) {
-                        nodeEntry.attr("poly-type", polyTypes.defaultName());
-                    }
-                }
-
-                command.insert(this.activeLayer, null, nodeEntry);
-            });
-
-            this.do(command);
-        }
-    }
-
-    addResources(type, paths) {
-        const onLoaded = resources => {
-            const command = new EditorCommand(this);
-            const mount = Path.mount(this.map.path);
-            const dir = Path.dir(this.map.path);
-            for (const res of resources) {
-                const node = type === "image" ? new ImageNode() : new TextureNode();
-                if (Path.mount(res.path) === mount) {
-                    node.attr("src", Path.relative(dir, res.path));
-                } else {
-                    node.attr("src", res.path);
-                }
-                node.attr("text", Path.filename(res.path));
-                node.attr("export-name", Path.filename(res.path));
-                node.attr("width", res.image.width);
-                node.attr("height", res.image.height);
-                command.insert(this.map.resources, null, node);
-            }
-            this.do(command);
-        };
-
-        const resources = [];
-        for (const path of paths) {
-            File.readImage(path, image => {
-                resources.push({ image, path });
-                if (resources.length === paths.length) {
-                    onLoaded(resources.filter(res => !!res.image));
-                }
-            });
-        }
+    exec(command, params) {
+        this.functions[command].exec(params);
     }
 
     onCommand(command, params) {
-        switch (command) {
-            case "add-image":
-            case "add-texture": {
-                const fn = path => [".png", ".jpg", ".gif", ".bmp"].includes(Path.ext(path).toLowerCase());
-                const paths = params.explorer.selectedPaths.filter(fn);
-                this.addResources(command.replace(/^add-/, ""), paths);
-                break;
-            }
-            case "set-tool": {
-                this.currentTool = this.tools[params.tool];
-                break;
-            }
-            default: {
-                this.tools.passive.pan.onCommand(command, params);
-                this.tools.passive.zoom.onCommand(command, params);
-                this.tools.current.onCommand(command, params);
-            }
+        if (command in this.functions) {
+            this.exec(command, params);
+        } else {
+            this.tools.current.onCommand(command, params);
         }
     }
 
@@ -629,6 +343,10 @@ export class Editor extends ui.Panel {
             zoom.zoom(1, this.renderer.width / 2, this.renderer.height / 2);
             zoom.deactivate();
         }
+    }
+
+    static isEditorFunction(name) {
+        return EditorFunction.includes(name);
     }
 
     static loadFile(app, path, fn) {

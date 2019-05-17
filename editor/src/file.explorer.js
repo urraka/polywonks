@@ -37,16 +37,25 @@ export class FileExplorer extends EventEmitter {
         this.emit("open", { path });
     }
 
+    isImage(path) {
+        return [".png", ".jpg", ".gif", ".bmp"].includes(Path.ext(path).toLowerCase());
+    }
+
     onContextMenu() {
-        const fn = path => [".png", ".jpg", ".gif", ".bmp"].includes(Path.ext(path).toLowerCase());
-        const selImages = this.selectedPaths.filter(fn);
+        const imagesSelected = this.selectedPaths.some(path => this.isImage(path));
         for (const item of this.tree.contextMenu.menu.items) {
-            item.enabled = selImages.length > 0;
+            item.enabled = imagesSelected;
         }
     }
 
     onContextMenuItemClick(item) {
-        this.emit("menuitemclick", { item });
+        this.emit("command", {
+            command: "add-resources",
+            params: {
+                type: item.key.replace(/^add-/, ""),
+                paths: this.selectedPaths.filter(path => this.isImage(path)),
+            },
+        });
     }
 
     refresh() {

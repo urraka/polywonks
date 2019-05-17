@@ -19,15 +19,6 @@ export class ZoomTool extends Tool {
         this.editor.element.removeEventListener("wheel", this.onMouseWheel);
     }
 
-    onCommand(command) {
-        if (this.activated) {
-            switch (command) {
-                case "zoom-in": this.zoomIn(); break;
-                case "zoom-out": this.zoomOut(); break;
-            }
-        }
-    }
-
     onMouseMove(event) {
         this.moveEvent = event;
     }
@@ -42,8 +33,12 @@ export class ZoomTool extends Tool {
 
     zoomIn() {
         const factor = cfg("editor.zoom-factor");
-        const point = this.editor.view.mapToCanvas(this.editor.cursor.x, this.editor.cursor.y);
-        this.zoom(factor, point.x, point.y);
+        if (this.editor.cursor.active) {
+            const point = this.editor.view.mapToCanvas(this.editor.cursor.x, this.editor.cursor.y);
+            this.zoom(factor, point.x, point.y);
+        } else {
+            this.zoom(factor, this.editor.renderer.width / 2, this.editor.renderer.height / 2);
+        }
     }
 
     zoomOut() {

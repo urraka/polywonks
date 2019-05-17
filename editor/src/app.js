@@ -1,11 +1,10 @@
 import * as ui from "./ui/ui.js";
 import { Path } from "./support/path.js";
-import { Renderer } from "./render.js";
 import { Editor } from "./editor/editor.js";
+import { Renderer } from "./render.js";
 import { Sidebar } from "./sidebar.js";
 import { Settings, cfg } from "./settings.js";
 import { KeyBindings } from "./keybindings.js";
-import { Clipboard } from "./clipboard.js";
 
 export class App extends ui.Panel {
     constructor() {
@@ -27,8 +26,8 @@ export class App extends ui.Panel {
     }
 
     setupEvents() {
+        this.onEditorFunctionChange = this.onEditorFunctionChange.bind(this);
         this.onEditorStatusChange = this.onEditorStatusChange.bind(this);
-        this.onSelectionChange = this.onSelectionChange.bind(this);
         this.onKeyBindingsCommand = e => this.onCommand(e.command, e.params);
 
         this.keybindings.on("command", this.onKeyBindingsCommand);
@@ -37,7 +36,7 @@ export class App extends ui.Panel {
         this.tabs.on("willchange", e => this.onTabWillChange(e));
         this.tabs.on("close", e => this.onTabClose(e));
         this.sidebar.explorers.forEach(explorer => explorer.on("open", e => this.onExplorerOpen(e.path)));
-        this.sidebar.explorers.forEach(explorer => explorer.on("menuitemclick", e => this.onCommand(e.item.key, { explorer })));
+        this.sidebar.explorers.forEach(explorer => explorer.on("command", e => this.onCommand(e.command, e.params)));
 
         ui.Dialog.on("modalstart", () => this.onModalStart());
         ui.Dialog.on("modalend", () => this.onModalEnd());
@@ -54,7 +53,6 @@ export class App extends ui.Panel {
         document.addEventListener("contextmenu", e => e.preventDefault());
 
         Settings.on("change", e => this.onSettingChange(e.setting));
-        Clipboard.on("change", () => this.onClipboardChange());
     }
 
     createUserInterface() {
@@ -98,6 +96,8 @@ export class App extends ui.Panel {
             ]],
             ["View", [
                 ["Reset Viewport", "reset-viewport"],
+                ["Zoom In", "zoom-in"],
+                ["Zoom Out", "zoom-out"],
                 [],
                 ["Snap to Grid", "toggle-snap-to-grid"],
                 ["Snap to Objects", "toggle-snap-to-objects"],
@@ -204,18 +204,10 @@ export class App extends ui.Panel {
         this.renderer.redraw();
     }
 
-    onClipboardChange() {
-        this.updateMenuItems();
-    }
-
     onEditorStatusChange(event) {
         for (const [name, value] of Object.entries(event.status)) {
             this.statusbar.set(name, value);
         }
-    }
-
-    onSelectionChange() {
-        this.updateMenuItems();
     }
 
     onTabWillChange() {
@@ -223,15 +215,15 @@ export class App extends ui.Panel {
 
         if (editor) {
             editor.deactivate();
+            editor.off("functionchange", this.onEditorFunctionChange);
             editor.off("statuschange", this.onEditorStatusChange);
-            editor.off("selectionchange", this.onSelectionChange);
         }
     }
 
     onTabChange() {
         const editor = this.editor;
+        editor.on("functionchange", this.onEditorFunctionChange);
         editor.on("statuschange", this.onEditorStatusChange);
-        editor.on("selectionchange", this.onSelectionChange);
         this.renderer.editor = editor;
         this.sidebar.editor = editor;
         this.updateMenuItems();
@@ -338,15 +330,19 @@ export class App extends ui.Panel {
         this.keybindings.onKeyUp(event);
     }
 
-    isMenuItemEnabled(item) {
-        switch (item.key) {
-            case "undo": return this.editor && this.editor.commandHistory.length > this.editor.undone;
-            case "redo": return this.editor && this.editor.undone > 0;
-            case "cut": return this.editor && this.editor.canCopy();
-            case "copy": return this.editor && this.editor.canCopy();
-            case "paste": return this.editor && this.editor.activeLayer && !Clipboard.empty();
-            default: return true;
+    onEditorFunctionChange(event) {
+        if (event.name in this.menuItems) {
+            const item = this.menuItems[event.name];
+            item.enabled = this.isMenuItemEnabled(item);
         }
+    }
+
+    isMenuItemEnabled(item) {
+        if (Editor.isEditorFunction(item.key)) {
+            const editor = this.editor;
+            return !!(editor && editor.functions[item.key].enabled);
+        }
+        return true;
     }
 
     isMenuItemChecked(item) {
@@ -383,17 +379,6 @@ export class App extends ui.Panel {
                 this.sidebar.activeTab = "sidebar-tools";
             },
             "show-explorer": () => this.sidebar.activeTab = "sidebar-explorer",
-            "save": () => this.editor.save(),
-            "save-as": () => this.editor.saveAs(),
-            "export": () => this.editor.export(),
-            "export-as": () => this.editor.exportAs(),
-            "undo": () => this.editor.undo(),
-            "redo": () => this.editor.redo(),
-            "cut": () => this.editor.cut(),
-            "copy": () => this.editor.copy(),
-            "paste": () => this.editor.paste(),
-            "delete": () => this.editor.delete(),
-            "reset-viewport": () => this.editor.view.reset(),
             "toggle-snap-to-grid": () => cfg("editor.snap-to-grid", !cfg("editor.snap-to-grid")),
             "toggle-snap-to-objects": () => cfg("editor.snap-to-objects", !cfg("editor.snap-to-objects")),
             "toggle-grid": () => cfg("view.grid", !cfg("view.grid")),
