@@ -30,7 +30,6 @@ export class Editor extends ui.Panel {
         super("editor");
 
         this.renderer = app.renderer;
-        this.keybindings = app.keybindings;
 
         this.activated = false;
         this.openedAsDefault = false;
@@ -51,7 +50,6 @@ export class Editor extends ui.Panel {
         this.functions = EditorFunction.instantiate(this);
         this.cursor.activate(this);
         this.tools = this.createTools();
-        this.sidebar = this.createSidebarPanels();
         this.setupEvents();
         this.currentTool = this.tools.select;
     }
@@ -87,7 +85,7 @@ export class Editor extends ui.Panel {
         };
     }
 
-    createSidebarPanels() {
+    createSidebarPanels(keybindings) {
         const sidebar = {};
         sidebar.mainPanel = new ui.MultiPanelView();
         sidebar.mainPanel.element.classList.add("editor-sidebar-panels");
@@ -95,7 +93,7 @@ export class Editor extends ui.Panel {
         sidebar.explorer = sidebar.mainPanel.addPanel("Map", new MapExplorer(this));
         sidebar.properties = sidebar.mainPanel.addPanel("Map Properties", new MapProperties(this));
 
-        const bindings = this.keybindings.findAll("set-tool");
+        const bindings = keybindings.findAll("set-tool");
 
         const tools = [
             ["pan", "Pan"],
@@ -121,15 +119,19 @@ export class Editor extends ui.Panel {
             if (tool.attributes.size > 0) {
                 sidebar.tools.content.addItem(new ToolPropertiesItem(this, tool));
             }
+            if (tool === this.currentTool) {
+                sidebar.tools.content.activeItem = item;
+            }
         });
+
+        sidebar.properties.content.on("nodechange", () => this.onPropertiesNodeChange());
+        sidebar.tools.content.on("itemclick", e => this.currentTool = e.item.data);
 
         return sidebar;
     }
 
     setupEvents() {
         this.onToolStatusChange = this.onToolStatusChange.bind(this);
-        this.sidebar.properties.content.on("nodechange", () => this.onPropertiesNodeChange());
-        this.sidebar.tools.content.on("itemclick", e => this.currentTool = e.item.data);
         this.map.on("attributechange", e => this.onMapAttrChange(e));
         this.map.on("visibilitychange", e => this.onMapVisibilityChange(e));
         this.view.on("change", () => this.onViewChange());
@@ -140,6 +142,13 @@ export class Editor extends ui.Panel {
         for (const [name, func] of Object.entries(this.functions)) {
             func.on("change", () => this.emit("functionchange", { name }));
         }
+    }
+
+    sidebar(keybindings) {
+        if (!this._sidebar && keybindings) {
+            this._sidebar = this.createSidebarPanels(keybindings);
+        }
+        return this._sidebar;
     }
 
     get currentTool() {
@@ -158,8 +167,10 @@ export class Editor extends ui.Panel {
         this.tools.current = value;
         this.tools.current.on("statuschange", this.onToolStatusChange);
 
-        const listView = this.sidebar.tools.content;
-        listView.activeItem = iter(listView.items()).find(item => item.data === value);
+        if (this.sidebar()) {
+            const listView = this.sidebar().tools.content;
+            listView.activeItem = iter(listView.items()).find(item => item.data === value);
+        }
 
         if (activated) {
             this.tools.current.activate(this);
@@ -289,7 +300,7 @@ export class Editor extends ui.Panel {
     }
 
     onPropertiesNodeChange() {
-        this.sidebar.properties.header.title = this.sidebar.properties.content.node.nodeName + " properties";
+        this.sidebar().properties.header.title = this.sidebar().properties.content.node.nodeName + " properties";
     }
 
     onMapAttrChange(event) {

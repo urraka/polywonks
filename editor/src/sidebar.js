@@ -3,8 +3,9 @@ import { FileExplorer } from "./file.explorer.js";
 import { Settings } from "./settings.js";
 
 export class Sidebar extends ui.Panel {
-    constructor() {
+    constructor(app) {
         super("sidebar");
+        this.keybindings = app.keybindings;
         this.panels = new Map();
         this.explorers = [];
         this.append(this.createTabs());
@@ -15,14 +16,18 @@ export class Sidebar extends ui.Panel {
     }
 
     onEditorClose(editor) {
-        editor.sidebar.mainPanel.element.remove();
+        if (editor.sidebar()) {
+            editor.sidebar().mainPanel.element.remove();
+        }
     }
 
     set editor(editor) {
         const panels = this.tools.element.querySelector(".editor-sidebar-panels.active");
         if (panels) panels.classList.remove("active");
-        if (!editor.sidebar.mainPanel.element.parentElement) this.tools.append(editor.sidebar.mainPanel);
-        editor.sidebar.mainPanel.element.classList.add("active");
+
+        const editorSidebar = editor.sidebar(this.keybindings);
+        if (!editorSidebar.mainPanel.element.parentElement) this.tools.append(editorSidebar.mainPanel);
+        editorSidebar.mainPanel.element.classList.add("active");
     }
 
     get activeTab() {

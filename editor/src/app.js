@@ -60,7 +60,7 @@ export class App extends ui.Panel {
         this.menuItems = this.createMenus(this.titlebar.menu);
 
         const clientArea = this.append(new ui.Panel("client-area"));
-        this.sidebar = clientArea.append(new Sidebar());
+        this.sidebar = clientArea.append(new Sidebar(this));
         this.tabs = clientArea.append(new ui.TabView());
         this.tabs.content.element.prepend(this.renderer.context.canvas);
         this.statusbar = this.append(new ui.Statusbar());
