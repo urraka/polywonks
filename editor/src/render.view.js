@@ -3,12 +3,12 @@ import { EventEmitter } from "./support/event.js";
 
 // {x, y} is in map coordinates and always maps to the center of the canvas
 export class RenderView extends EventEmitter {
-    constructor(renderer) {
+    constructor(editor) {
         super();
+        this.editor = editor;
         this._x = 0;
         this._y = 0;
         this._scale = 1;
-        this.renderer = renderer;
     }
 
     get x() { return this._x; }
@@ -44,11 +44,11 @@ export class RenderView extends EventEmitter {
     }
 
     get width() {
-        return this.renderer.width / this.scale;
+        return this.editor.width / this.scale;
     }
 
     get height() {
-        return this.renderer.height / this.scale;
+        return this.editor.height / this.scale;
     }
 
     get transform() {
@@ -59,15 +59,15 @@ export class RenderView extends EventEmitter {
 
     canvasToMap(x, y) {
         return {
-            x: this.x + (x - this.renderer.width / 2) / this.scale,
-            y: this.y + (y - this.renderer.height / 2) / this.scale
+            x: this.x + (x - this.editor.width / 2) / this.scale,
+            y: this.y + (y - this.editor.height / 2) / this.scale
         };
     }
 
     mapToCanvas(x, y) {
         return {
-            x: (x - this.x) * this.scale + this.renderer.width / 2,
-            y: (y - this.y) * this.scale + this.renderer.height / 2
+            x: (x - this.x) * this.scale + this.editor.width / 2,
+            y: (y - this.y) * this.scale + this.editor.height / 2
         };
     }
 

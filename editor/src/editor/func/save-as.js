@@ -12,8 +12,7 @@ class SaveAsFunction extends EditorFunction {
         const dialog = new SaveDialog("Save as...", fname, dir);
         dialog.on("save", event => {
             const saveIndex = this.editor.undone;
-            const { renderer, keybindings } = this.editor;
-            const editor = new Editor({ renderer, keybindings }, this.editor.map.clone());
+            const editor = new Editor(this.editor.map.clone());
             editor.exec("relocate", { path: event.path });
             File.write(event.path, editor.map.serialize(), ok => {
                 if (ok) {

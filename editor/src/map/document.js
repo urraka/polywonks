@@ -49,7 +49,6 @@ export class MapDocument extends Node {
 
         this.owner = this;
         this.path = "";
-        this.iconsInfo = {};
         this.nextId = {};
 
         this.attributes.set("description", new Attribute("string", ""));

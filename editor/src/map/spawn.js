@@ -1,6 +1,7 @@
 import * as PMS from "../pms/pms.js";
 import * as xMath from "../support/math.js";
 import { Rect } from "../support/rect.js";
+import { Renderer } from "../render.js";
 import { Node } from "./node.js";
 import { Attribute } from "./attribute.js";
 
@@ -35,7 +36,7 @@ export class SpawnNode extends Node {
     }
 
     intersectsPoint(x, y, scale) {
-        const info = this.owner.iconsInfo["spawn-" + this.attr("type")];
+        const info = Renderer.iconInfo("spawn-" + this.attr("type"));
 
         if (info) {
             if (info.radius) {
@@ -54,7 +55,7 @@ export class SpawnNode extends Node {
     }
 
     intersectsRect(x, y, w, h, scale) {
-        const info = this.owner.iconsInfo["spawn-" + this.attr("type")];
+        const info = Renderer.iconInfo("spawn-" + this.attr("type"));
 
         if (info) {
             if (info.radius) {
@@ -71,7 +72,7 @@ export class SpawnNode extends Node {
     }
 
     containedByRect(x, y, w, h, scale) {
-        const info = this.owner.iconsInfo["spawn-" + this.attr("type")];
+        const info = Renderer.iconInfo("spawn-" + this.attr("type"));
 
         if (info) {
             const rect = new Rect(0, 0, info.width / scale, info.height / scale);

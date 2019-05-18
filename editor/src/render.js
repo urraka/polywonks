@@ -29,7 +29,6 @@ export class Renderer {
         this.textures = new WeakMap();
         this.texturesInfo = new WeakMap();
         this.icons = {};
-        this.iconsInfo = {};
         this.animFrameId = null;
         this.theme = null;
         this._editor = null;
@@ -39,6 +38,14 @@ export class Renderer {
         Settings.on("change", e => this.onSettingChange(e.setting));
     }
 
+    static get iconsInfo() {
+        return Renderer._iconsInfo || (Renderer._iconsInfo = {});
+    }
+
+    static iconInfo(name) {
+        return Renderer.iconsInfo[name];
+    }
+
     get editor() {
         return this._editor;
     }
@@ -46,16 +53,9 @@ export class Renderer {
     set editor(value) {
         if (this._editor) this._editor.off("redraw", this.onEditorRedraw);
         this._editor = value;
+        this._editor.renderer = this;
         this._editor.on("redraw", this.onEditorRedraw);
         this.redraw();
-    }
-
-    get width() {
-        return this.context.canvas.width;
-    }
-
-    get height() {
-        return this.context.canvas.height;
     }
 
     loadThemeColors() {
@@ -129,7 +129,7 @@ export class Renderer {
             const imageData = processImage(image, { premultiply: true });
             this.icons[name] = this.context.createTexture(imageData);
             this.icons[name].setNearestFilter(true);
-            this.iconsInfo[name] = {
+            Renderer.iconsInfo[name] = {
                 width: imageData.width,
                 height: imageData.height,
                 radius: imageData.data.length >= 3 && imageData.data[3] < 255 ? imageData.width / 2 : 0
@@ -211,10 +211,9 @@ export class Renderer {
 
     updateCanvasSize() {
         const canvas = this.context.canvas;
-        const overlay = this.editor.element;
-        if (canvas.width !== overlay.clientWidth || canvas.height !== overlay.clientHeight) {
-            canvas.width = overlay.clientWidth;
-            canvas.height = overlay.clientHeight;
+        if (canvas.width !== this.editor.width || canvas.height !== this.editor.height) {
+            canvas.width = this.editor.width;
+            canvas.height = this.editor.height;
         }
     }
 
@@ -381,7 +380,7 @@ export class Renderer {
             }
 
             case SpawnNode: {
-                const info = this.iconsInfo["spawn-" + node.attr("type")];
+                const info = Renderer.iconInfo("spawn-" + node.attr("type"));
                 return info && this.pixelRectVertices(node.attr("x"), node.attr("y"), info.width, info.height, color);
             }
 

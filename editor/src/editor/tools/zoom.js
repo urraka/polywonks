@@ -37,21 +37,21 @@ export class ZoomTool extends Tool {
             const point = this.editor.view.mapToCanvas(this.editor.cursor.x, this.editor.cursor.y);
             this.zoom(factor, point.x, point.y);
         } else {
-            this.zoom(factor, this.editor.renderer.width / 2, this.editor.renderer.height / 2);
+            this.zoom(factor, this.editor.width / 2, this.editor.height / 2);
         }
     }
 
     zoomOut() {
         const factor = cfg("editor.zoom-factor");
-        this.zoom(1 / factor, this.editor.renderer.width / 2, this.editor.renderer.height / 2);
+        this.zoom(1 / factor, this.editor.width / 2, this.editor.height / 2);
     }
 
     zoom(factor, centerX, centerY) {
         const z0 = cfg("editor.zoom-min");
         const z1 = cfg("editor.zoom-max");
         const s = this.editor.view.scale;
-        const dx = centerX - this.editor.renderer.width / 2;
-        const dy = centerY - this.editor.renderer.height / 2;
+        const dx = centerX - this.editor.width / 2;
+        const dy = centerY - this.editor.height / 2;
         this.editor.view.scale = Math.max(z0, Math.min(z1, this.editor.view.scale * factor));
         this.editor.view.x -= dx / this.editor.view.scale - dx / s;
         this.editor.view.y -= dy / this.editor.view.scale - dy / s;

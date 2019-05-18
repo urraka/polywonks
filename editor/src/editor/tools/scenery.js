@@ -41,8 +41,8 @@ export class SceneryTool extends CreateTool {
             this.node.attr("image", image);
             this.node.attr("x", this.handle.x);
             this.node.attr("y", this.handle.y);
-            this.node.attr("width", image.attr("width") || this.editor.renderer.textureInfo(image).width);
-            this.node.attr("height", image.attr("height") || this.editor.renderer.textureInfo(image).height);
+            this.node.attr("width", image.attr("width") || this.editor.textureInfo(image).width);
+            this.node.attr("height", image.attr("height") || this.editor.textureInfo(image).height);
             this.node.attr("color", this.attr("color"));
         }
     }

@@ -1,4 +1,5 @@
 import * as ui from "./ui/ui.js";
+import { iter } from "./support/iter.js";
 import { Path } from "./support/path.js";
 import { Editor } from "./editor/editor.js";
 import { Renderer } from "./render.js";
@@ -141,6 +142,10 @@ export class App extends ui.Panel {
         return activePanel ? activePanel.content : null;
     }
 
+    get editors() {
+        return iter(this.tabs.panels()).map(panel => panel.content);
+    }
+
     openDefault() {
         const editor = this.open();
         editor.openedAsDefault = true;
@@ -153,7 +158,7 @@ export class App extends ui.Panel {
             const activePanel = this.tabs.activePanel;
             const activeEditor = this.editor;
 
-            Editor.loadFile(this, path, editor => {
+            Editor.loadFile(path, editor => {
                 if (editor) {
                     const panel = this.tabs.addPanel(new ui.TabPanel(Path.filename(editor.saveName), editor));
                     editor.on("change", () => this.onEditorChange({ editor, panel }));
@@ -171,7 +176,7 @@ export class App extends ui.Panel {
         }
     }
 
-    openEditor(editor = new Editor(this)) {
+    openEditor(editor = new Editor()) {
         const panel = this.tabs.addPanel(new ui.TabPanel(Path.filename(editor.saveName), editor));
         editor.on("change", () => this.onEditorChange({ editor, panel }));
         return editor;
@@ -266,9 +271,7 @@ export class App extends ui.Panel {
     }
 
     onBeforeUnload(event) {
-        for (const tab of this.tabs.tabs.element.querySelectorAll(".tab")) {
-            const panel = ui.TabPanel.from(tab);
-            const editor = panel.content;
+        for (const editor of this.editors) {
             if (editor.modified) {
                 event.preventDefault();
                 event.returnValue = "";
@@ -278,6 +281,7 @@ export class App extends ui.Panel {
     }
 
     onResize() {
+        iter(this.editors).each(editor => editor.onResize());
         this.renderer.redraw();
     }
 
@@ -293,8 +297,8 @@ export class App extends ui.Panel {
 
                 reader.addEventListener("load", () => {
                     const editor = ext === ".pms" ?
-                        Editor.loadPms(this, reader.result, file.name) :
-                        Editor.loadPolywonks(this, reader.result, file.name);
+                        Editor.loadPms(reader.result, file.name) :
+                        Editor.loadPolywonks(reader.result, file.name);
                     if (editor) {
                         this.open(editor);
                         this.sidebar.activeTab = "sidebar-tools";

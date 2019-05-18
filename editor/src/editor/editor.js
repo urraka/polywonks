@@ -26,17 +26,14 @@ import { Selection } from "./selection.js";
 import { Grid } from "./grid.js";
 
 export class Editor extends ui.Panel {
-    constructor(app, map = MapDocument.default()) {
+    constructor(map = MapDocument.default()) {
         super("editor");
-
-        this.renderer = app.renderer;
 
         this.activated = false;
         this.openedAsDefault = false;
-        this.view = new RenderView(this.renderer);
-        this.grid = new Grid(this.view);
         this.map = map;
-        this.map.iconsInfo = this.renderer.iconsInfo;
+        this.view = new RenderView(this);
+        this.grid = new Grid(this.view);
         this.selection = new Selection(this);
         this.activeLayer = null;
         this.previewNodes = new Set();
@@ -151,6 +148,22 @@ export class Editor extends ui.Panel {
         return this._sidebar;
     }
 
+    textureInfo(node) {
+        if (this.renderer) {
+            return this.renderer.textureInfo(node);
+        } else {
+            return { width: 0, height: 0 };
+        }
+    }
+
+    get renderer() {
+        return this._renderer;
+    }
+
+    set renderer(value) {
+        this._renderer = value;
+    }
+
     get currentTool() {
         return this.tools.current;
     }
@@ -254,9 +267,18 @@ export class Editor extends ui.Panel {
         this.emit("statuschange", { status });
     }
 
+    get width() { return this._width || 0; }
+    get height() { return this._height || 0; }
+
+    onResize() {
+        this._width = this.element.clientWidth;
+        this._height = this.element.clientHeight;
+    }
+
     activate() {
         if (!this.activated) {
             this.activated = true;
+            this.onResize();
             this.tools.passive.pan.activate(this);
             this.tools.passive.zoom.activate(this);
             this.tools.current.activate(this);
@@ -294,7 +316,7 @@ export class Editor extends ui.Panel {
                     event.panel.close();
                 }
             });
-        } else {
+        } else if (this.renderer) {
             this.renderer.disposeNodeResources(this.map);
         }
     }
@@ -304,7 +326,7 @@ export class Editor extends ui.Panel {
     }
 
     onMapAttrChange(event) {
-        if (event.attribute === "src" || event.attribute === "color-key") {
+        if (this.renderer && (event.attribute === "src" || event.attribute === "color-key")) {
             this.renderer.disposeNodeResources(event.target);
         }
         this.redraw();
@@ -351,7 +373,7 @@ export class Editor extends ui.Panel {
         if (setting === "editor.zoom-min" || setting === "editor.zoom-max") {
             const zoom = new ZoomTool();
             zoom.activate(this);
-            zoom.zoom(1, this.renderer.width / 2, this.renderer.height / 2);
+            zoom.zoom(1, this.width / 2, this.height / 2);
             zoom.deactivate();
         }
     }
@@ -360,7 +382,7 @@ export class Editor extends ui.Panel {
         return EditorFunction.includes(name);
     }
 
-    static loadFile(app, path, fn) {
+    static loadFile(path, fn) {
         const ext = Path.ext(path).toLowerCase();
 
         if (!path.startsWith("/")) {
@@ -374,29 +396,29 @@ export class Editor extends ui.Panel {
         File.refresh(Path.mount(path), () => {
             if (ext === ".pms") {
                 File.readBuffer(path, buffer => {
-                    fn(buffer ? Editor.loadPms(app, buffer, path) : null);
+                    fn(buffer ? Editor.loadPms(buffer, path) : null);
                 });
             } else if (ext === ".polywonks") {
                 File.readText(path, text => {
-                    fn(text ? Editor.loadPolywonks(app, text, path) : null);
+                    fn(text ? Editor.loadPolywonks(text, path) : null);
                 });
             }
         });
     }
 
-    static loadPms(app, buffer, path = "") {
+    static loadPms(buffer, path = "") {
         try {
             const pms = PMS.Map.fromArrayBuffer(buffer);
-            return new Editor(app, MapDocument.fromPMS(pms, path));
+            return new Editor(MapDocument.fromPMS(pms, path));
         } catch (e) {
             return null;
         }
     }
 
-    static loadPolywonks(app, text, path = "") {
+    static loadPolywonks(text, path = "") {
         try {
             const map = MapDocument.unserialize(text, path);
-            return new Editor(app, map);
+            return new Editor(map);
         } catch (e) {
             return null;
         }
