@@ -6,8 +6,8 @@ import { Attribute } from "./attribute.js";
 export class PivotNode extends Node {
     constructor() {
         super();
-        this.attributes.set("offsetX", new Attribute("float", 0));
-        this.attributes.set("offsetY", new Attribute("float", 0));
+        this.attributes.set("offset-x", new Attribute("float", 0));
+        this.attributes.set("offset-y", new Attribute("float", 0));
     }
 
     get nodeName() { return "pivot"; }

@@ -56,8 +56,8 @@ export class MovePositionTool extends MoveTool {
             const pivotOffset = Mat2d.scale(sx, sy)
                 .multiply(Mat2d.rotate(-scenery.attr("rotation")))
                 .multiply(offset);
-            this.command.attr(node, "offsetX", node.attr("offsetX") + pivotOffset.x);
-            this.command.attr(node, "offsetY", node.attr("offsetY") + pivotOffset.y);
+            this.command.attr(node, "offset-x", node.attr("offset-x") + pivotOffset.x);
+            this.command.attr(node, "offset-y", node.attr("offset-y") + pivotOffset.y);
             this.command.attr(scenery, "x", scenery.attr("x") + offset.x);
             this.command.attr(scenery, "y", scenery.attr("y") + offset.y);
         } else {

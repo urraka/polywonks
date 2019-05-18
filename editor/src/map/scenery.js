@@ -28,7 +28,7 @@ export class SceneryNode extends Node {
 
     get pivotX() {
         if (this.firstChild) {
-            const value = this.firstChild.attr("offsetX");
+            const value = this.firstChild.attr("offset-x");
             return this.attr("width") >= 0 ? value : -value;
         }
         return 0;
@@ -36,7 +36,7 @@ export class SceneryNode extends Node {
 
     get pivotY() {
         if (this.firstChild) {
-            const value = this.firstChild.attr("offsetY");
+            const value = this.firstChild.attr("offset-y");
             return this.attr("height") >= 0 ? value : -value;
         }
         return 0;
