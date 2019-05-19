@@ -1,3 +1,4 @@
+import "./arrange.js";
 import "./relocate.js";
 import "./save.js";
 import "./save-as.js";
