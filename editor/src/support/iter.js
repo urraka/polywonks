@@ -47,17 +47,25 @@ class Iter {
     }
 
     first() {
-        for (const item of this.iterable) {
-            return item;
+        if (Array.isArray(this.iterable)) {
+            return this.iterable[0];
+        } else {
+            for (const item of this.iterable) {
+                return item;
+            }
         }
     }
 
     last() {
-        let result;
-        for (const item of this.iterable) {
-            result = item;
+        if (Array.isArray(this.iterable)) {
+            return this.iterable[this.iterable.length - 1];
+        } else {
+            let result;
+            for (const item of this.iterable) {
+                result = item;
+            }
+            return result;
         }
-        return result;
     }
 
     count() {
