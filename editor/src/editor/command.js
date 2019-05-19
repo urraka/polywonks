@@ -1,7 +1,8 @@
 import { ValueType } from "../support/type.js";
 
 class AttrCommand {
-    constructor(node, key, value) {
+    constructor(ownerCommand, node, key, value) {
+        this.ownerCommand = ownerCommand;
         this.node = node;
         this.key = key;
         this.setValue = value;
@@ -15,7 +16,8 @@ class AttrCommand {
 }
 
 class InsertCommand {
-    constructor(parent, position, node) {
+    constructor(ownerCommand, parent, position, node) {
+        this.ownerCommand = ownerCommand;
         this.parent = parent;
         this.position = position;
         this.node = node;
@@ -23,7 +25,14 @@ class InsertCommand {
     }
 
     do(sel) {
-        this.parent.insert(this.position, this.node);
+        let pos = this.position;
+        while (pos.parentNode !== this.parent) {
+            const cmd = this.ownerCommand.commands.find(cmd => {
+                return (cmd instanceof InsertCommand) && cmd.node === pos;
+            });
+            pos = cmd.position;
+        }
+        this.parent.insert(pos, this.node);
         for (const node of this.node.tree()) {
             sel.add(node);
         }
@@ -38,7 +47,8 @@ class InsertCommand {
 }
 
 class RemoveCommand {
-    constructor(node) {
+    constructor(ownerCommand, node) {
+        this.ownerCommand = ownerCommand;
         this.parent = node.parentNode;
         this.position = node.nextSibling;
         this.node = node;
@@ -53,7 +63,14 @@ class RemoveCommand {
     }
 
     undo(sel) {
-        this.parent.insert(this.position, this.node);
+        let pos = this.position;
+        while (pos.parentNode !== this.parent) {
+            const cmd = this.ownerCommand.commands.find(cmd => {
+                return (cmd instanceof RemoveCommand) && cmd.node === pos;
+            });
+            pos = cmd.position;
+        }
+        this.parent.insert(pos, this.node);
         for (const node of this.node.tree()) {
             sel.add(node);
         }
@@ -61,7 +78,8 @@ class RemoveCommand {
 }
 
 class RelocateCommand {
-    constructor(map, path) {
+    constructor(ownerCommand, map, path) {
+        this.ownerCommand = ownerCommand;
         this.map = map;
         this.setPath = path;
         this.revertPath = map.path;
@@ -100,7 +118,7 @@ export class EditorCommand {
     }
 
     push(cmdType, ...args) {
-        const cmd = new cmdType(...args);
+        const cmd = new cmdType(this, ...args);
         if (cmd.hasChanges) this.commands.push(cmd);
     }
 
