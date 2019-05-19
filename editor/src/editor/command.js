@@ -26,11 +26,13 @@ class InsertCommand {
 
     do(sel) {
         let pos = this.position;
-        while (pos.parentNode !== this.parent) {
-            const cmd = this.ownerCommand.commands.find(cmd => {
-                return (cmd instanceof InsertCommand) && cmd.node === pos;
-            });
-            pos = cmd.position;
+        if (pos) {
+            while (pos.parentNode !== this.parent) {
+                const cmd = this.ownerCommand.commands.find(cmd => {
+                    return (cmd instanceof InsertCommand) && cmd.node === pos;
+                });
+                pos = cmd.position;
+            }
         }
         this.parent.insert(pos, this.node);
         for (const node of this.node.tree()) {
@@ -64,11 +66,13 @@ class RemoveCommand {
 
     undo(sel) {
         let pos = this.position;
-        while (pos.parentNode !== this.parent) {
-            const cmd = this.ownerCommand.commands.find(cmd => {
-                return (cmd instanceof RemoveCommand) && cmd.node === pos;
-            });
-            pos = cmd.position;
+        if (pos) {
+            while (pos.parentNode !== this.parent) {
+                const cmd = this.ownerCommand.commands.find(cmd => {
+                    return (cmd instanceof RemoveCommand) && cmd.node === pos;
+                });
+                pos = cmd.position;
+            }
         }
         this.parent.insert(pos, this.node);
         for (const node of this.node.tree()) {
