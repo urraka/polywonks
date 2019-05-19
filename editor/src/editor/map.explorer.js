@@ -88,6 +88,7 @@ export class MapExplorer extends EventEmitter {
     addNode(parentItem, node, beforeItem = null) {
         const item = parentItem.addItem(new ui.TreeItem(node.toString(), node), beforeItem);
         this.itemsByNode.set(node, item);
+        item.selected = this.editor.selection.nodes.has(node);
 
         if (node instanceof LayerNode) {
             item.icon = node.visible ? "visible-icon" : "hidden-icon";
