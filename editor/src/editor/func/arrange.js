@@ -30,6 +30,28 @@ class ArrangeFunction extends EditorFunction {
         return result;
     }
 
+    filterNodesToFirst(layer, nodes) {
+        let first = layer.firstChild;
+        while (iter(nodes).first() === first) {
+            first = first.nextSibling;
+            nodes.shift();
+        }
+        return first;
+    }
+
+    filterNodesToLast(layer, nodes) {
+        let last = null;
+        if (iter(nodes).last() === layer.lastChild) {
+            last = layer.lastChild;
+            nodes.pop();
+            while (iter(nodes).last() === last.previousSibling) {
+                last = last.previousSibling;
+                nodes.pop();
+            }
+        }
+        return last;
+    }
+
     canBringNodesForward(nodes) {
         const sel = this.editor.selection.nodes;
         return !!iter(nodes).find(node => node.nextSibling !== null && !sel.has(node.nextSibling));
@@ -37,7 +59,7 @@ class ArrangeFunction extends EditorFunction {
 
     canSendNodesBackward(nodes) {
         const sel = this.editor.selection.nodes;
-        return !!iter(nodes).find(node => node.previousSibling !== null && !sel.has(node.previusSibling));
+        return !!iter(nodes).find(node => node.previousSibling !== null && !sel.has(node.previousSibling));
     }
 }
 
@@ -50,14 +72,7 @@ class BringToFrontFunction extends ArrangeFunction {
         const command = new EditorCommand(this.editor);
         for (const [layer, nodes] of this.sort()) {
             if (this.canBringNodesForward(nodes)) {
-                let last = null;
-                if (iter(nodes).last() === layer.lastChild) {
-                    last = layer.lastChild;
-                    while (iter(nodes).last() === layer.lastChild) {
-                        last = last.previousSibling;
-                        nodes.pop();
-                    }
-                }
+                const last = this.filterNodesToLast(layer, nodes);
                 nodes.forEach(node => command.remove(node));
                 nodes.forEach(node => command.insert(layer, last, node));
             }
@@ -71,8 +86,25 @@ class BringForwardFunction extends ArrangeFunction {
         return this.canBringNodesForward(this.nodes());
     }
 
+    nextUnselected(nodes, last, node) {
+        if (node === last) return last;
+        while (node.nextSibling !== last && nodes.has(node.nextSibling)) {
+            node = node.nextSibling;
+        }
+        return node.nextSibling;
+    }
+
     onExec() {
-        // TODO: implement
+        const command = new EditorCommand(this.editor);
+        for (const [layer, nodes] of this.sort()) {
+            if (this.canBringNodesForward(nodes)) {
+                const last = this.filterNodesToLast(layer, nodes);
+                const next = this.nextUnselected.bind(this, new Set(nodes), last);
+                nodes.forEach(node => command.remove(node));
+                nodes.forEach(node => command.insert(layer, next(next(node)), node));
+            }
+        }
+        this.editor.do(command);
     }
 }
 
@@ -81,8 +113,25 @@ class SendBackwardFunction extends ArrangeFunction {
         return this.canSendNodesBackward(this.nodes());
     }
 
+    prevUnselected(nodes, first, node) {
+        if (node === first) return first;
+        while (node.previousSibling !== first && nodes.has(node.previousSibling)) {
+            node = node.previousSibling;
+        }
+        return node.previousSibling;
+    }
+
     onExec() {
-        // TODO: implement
+        const command = new EditorCommand(this.editor);
+        for (const [layer, nodes] of this.sort()) {
+            if (this.canSendNodesBackward(nodes)) {
+                const first = this.filterNodesToFirst(layer, nodes);
+                const prev = this.prevUnselected.bind(this, new Set(nodes), first);
+                nodes.forEach(node => command.remove(node));
+                nodes.forEach(node => command.insert(layer, prev(node), node));
+            }
+        }
+        this.editor.do(command);
     }
 }
 
@@ -95,11 +144,7 @@ class SendToBackFunction extends ArrangeFunction {
         const command = new EditorCommand(this.editor);
         for (const [layer, nodes] of this.sort()) {
             if (this.canSendNodesBackward(nodes)) {
-                let first = layer.firstChild;
-                while (iter(nodes).first() === first) {
-                    first = first.nextSibling;
-                    nodes.shift();
-                }
+                const first = this.filterNodesToFirst(layer, nodes);
                 nodes.forEach(node => command.remove(node));
                 nodes.forEach(node => command.insert(layer, first, node));
             }

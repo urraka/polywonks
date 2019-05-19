@@ -98,6 +98,8 @@ export class App extends ui.Panel {
                 ["Paste", "paste"],
                 [],
                 ["Send to Back", "send-to-back"],
+                ["Send Backward", "send-backward"],
+                ["Bring Forward", "bring-forward"],
                 ["Bring to Front", "bring-to-front"],
             ]],
             ["View", [

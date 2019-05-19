@@ -16,6 +16,8 @@ const DefaultBindings = {
     "Ctrl+Shift+S": "save-as",
     "Delete": "delete",
     "Shift+PageUp": "send-to-back",
+    "PageUp": "send-backward",
+    "PageDown": "bring-forward",
     "Shift+PageDown": "bring-to-front",
     "Ctrl+0": "reset-viewport",
     "Ctrl++": "zoom-in",
