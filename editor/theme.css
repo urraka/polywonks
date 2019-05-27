@@ -16,8 +16,14 @@ input {
     background-color: #3c3c3c;
 }
 
-input:focus, .select:focus, .select:focus-within, .select.active, .select-options {
+.textbox:focus, .textbox:focus-within,
+.select:focus, .select:focus-within,
+.select.active, .select-options {
     outline: 1px solid #007acc;
+}
+
+.select > .textbox:focus, .select > .textbox:focus-within {
+    outline: none;
 }
 
 .property-sheet .invalid {
@@ -38,6 +44,18 @@ input:focus, .select:focus, .select:focus-within, .select.active, .select-option
 
 .select-options > .select-item.current {
     background-color: #062F4A;
+}
+
+.select.readonly, .textbox.readonly {
+    opacity: 0.4;
+}
+
+.combobox.readonly > .textbox.readonly {
+    opacity: 1;
+}
+
+.property-sheet > label.readonly {
+    opacity: 0.4;
 }
 
 .startup-loading > div {

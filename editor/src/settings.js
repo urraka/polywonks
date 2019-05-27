@@ -1,9 +1,10 @@
 import * as ui from "./ui/ui.js";
 import * as PMS from "./pms/pms.js";
-import { File } from "./file.js";
 import { EventEmitter } from "./support/event.js";
 import { Enum } from "./support/enum.js";
 import { Color } from "./support/color.js";
+import { Property } from "./property.js";
+import { File } from "./file.js";
 
 export const PolygonMode = new Enum({
     None: 0,
@@ -88,7 +89,7 @@ export class Settings extends ui.MultiPanelView {
         for (const key of Settings.list()) {
             const [category, name] = key.split(".");
             const sheet = this.sheets[category] || (this.sheets[category] = new ui.PropertySheet());
-            sheet.addProperty(key, Settings.get(key), Settings.type(key), name);
+            sheet.addProperty(Property.item(key, name, Settings.type(key), Settings.get(key)));
         }
 
         for (const [category, sheet] of Object.entries(this.sheets).sort(([a], [b]) => a.localeCompare(b))) {

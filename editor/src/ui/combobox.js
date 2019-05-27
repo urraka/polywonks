@@ -1,30 +1,18 @@
-import { elem } from "./common.js";
 import { Select } from "./select.js";
+import { TextBox } from "./textbox.js";
 
 export class ComboBox extends Select {
     constructor() {
         super();
+        this.label.remove();
         this.element.removeAttribute("tabindex")
         this.element.classList.add("combobox");
         this.unfilteredOptions = [];
-        this.input = elem("input");
-        this.element.append(this.input);
-        this.onTextInput = this.onTextInput.bind(this);
-        this.onTextChange = this.onTextChange.bind(this);
-        this.input.addEventListener("keydown", e => this.onInputKeyDown(e));
-        this.input.addEventListener("input", this.onTextInput);
-        this.input.addEventListener("change", this.onTextChange);
-    }
-
-    set value(v) {
-        if (v !== this.val) {
-            this.val = v;
-            this.input.value = v;
-        }
-    }
-
-    get value() {
-        return this.input.value;
+        this.textBox = new TextBox();
+        this.element.append(this.textBox.element);
+        this.textBox.on("keydown", e => this.onTextKeyDown(e.keyEvent));
+        this.textBox.on("input", () => this.onTextInput());
+        this.textBox.on("change", () => this.emit("change"));
     }
 
     addOption(text, value) {
@@ -34,18 +22,33 @@ export class ComboBox extends Select {
         this.unfilteredOptions.push(option);
     }
 
-    setText(text) {
-        this.input.value = text;
+    selectOption(option) {
+        this.value = option.value;
     }
 
-    selectOption(option) {
-        this.input.removeEventListener("change", this.onTextChange);
-        super.selectOption(option);
-        this.input.addEventListener("change", this.onTextChange);
+    reset(value) {
+        this.textBox.reset(value);
+    }
+
+    set value(value) {
+        this.textBox.value = value;
+    }
+
+    get value() {
+        return this.textBox.value;
+    }
+
+    set readOnly(value) {
+        this.textBox.readOnly = value;
+        super.readOnly = value;
+    }
+
+    get readOnly() {
+        return super.readOnly;
     }
 
     filterOptions() {
-        const filter = this.input.value.toLowerCase();
+        const filter = this.value.toLowerCase();
         this.options = this.unfilteredOptions.filter(({ textLowercased }) => textLowercased.includes(filter));
 
         if (this.options.length === 0) {
@@ -66,15 +69,15 @@ export class ComboBox extends Select {
     close() {
         if (this.list) {
             super.close();
-            this.input.focus();
+            this.textBox.input.focus();
         }
     }
 
-    onInputKeyDown(event) {
+    onTextKeyDown(event) {
         switch (event.key) {
             case "ArrowDown": event.preventDefault(); break;
             case "ArrowUp": event.preventDefault(); break;
-            case "Backspace": if (this.input.value === "") this.close(); break;
+            case "Backspace": if (this.textBox.value === "") this.close(); break;
             case "Tab": {
                 if (this.list) {
                     event.preventDefault();
@@ -87,15 +90,10 @@ export class ComboBox extends Select {
     }
 
     onTextInput() {
-        this.val = this.input.value;
         this.filterOptions();
         if (!this.list) {
             this.open();
         }
-    }
-
-    onTextChange() {
-        this.val = this.input.value;
-        this.emit("change");
+        this.emit("input");
     }
 }

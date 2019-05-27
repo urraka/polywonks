@@ -3,6 +3,8 @@ import * as ui from "../ui/ui.js";
 import { iter } from "../support/iter.js";
 import { EventEmitter } from "../support/event.js";
 import { EditorCommand } from "./command.js";
+import { LayerNode } from "../map/map.js";
+import { Property } from "../property.js";
 
 export class MapProperties extends EventEmitter {
     constructor(editor) {
@@ -24,39 +26,28 @@ export class MapProperties extends EventEmitter {
     set node(node) {
         this._node = node;
         this.sheet.clear();
-        const layer = this.node.closest("layer");
-
         for (const [key, attr] of this.node.attributes) {
-            let dataType = attr.dataType;
-
-            if (layer && dataType === PMS.PolyType) {
-                dataType = layer.polyTypes();
-            } else if (dataType === "node") {
-                const map = this.editor.map;
-
-                if (key === "image") {
-                    dataType = [...map.resources.descendants("image")];
-                } else if (key === "texture") {
-                    dataType = [null, ...map.resources.descendants("texture")];
-                } else if (key === "waypoint") {
-                    dataType = [...map.waypoints.children("waypoint")];
-                }
+            const property = Property.item(key, key, attr.dataType, attr.value, this.node, this.editor.map);
+            if ((this.node instanceof LayerNode) && key === "type") {
+                property.readOnly = true;
             }
-
-            this.sheet.addProperty(key, attr.value, dataType, key, null, this.placeholder(key, this.node));
+            this.updateProperty(property);
+            this.sheet.addProperty(property);
         }
-
         this.emit("nodechange");
     }
 
-    placeholder(key, node) {
-        return key === "text" ? node.defaultText : "";
+    updateProperty(property) {
+        property.reset(this.node.attr(property.key));
+        if (property.key === "text") {
+            property.placeholder = this.node.defaultText;
+        }
     }
 
     onAttributeChange(event) {
-        if (event.target === this.node && this.sheet.properties[event.attribute]) {
-            const placeholder = this.placeholder(event.attribute, this.node);
-            this.sheet.properties[event.attribute].reset(this.node.attr(event.attribute), placeholder);
+        const property = this.sheet.properties[event.attribute];
+        if (event.target === this.node && property) {
+            this.updateProperty(property);
         }
     }
 

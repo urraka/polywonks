@@ -1,6 +1,7 @@
 import * as ui from "./ui/ui.js";
 import { Path } from "./support/path.js";
 import { File } from "./file.js";
+import { Property } from "./property.js";
 
 export class SaveDialog extends ui.Dialog {
     constructor(title, filename = "", location = "") {
@@ -13,8 +14,10 @@ export class SaveDialog extends ui.Dialog {
 
         File.refresh(["polydrive", "soldat"], paths => {
             const dirs = File.sort(paths.filter(f => f.endsWith("/")).concat(["/polydrive/", "/soldat/"]));
-            this.sheet.addProperty("location", location, "string", "Location", dirs);
-            this.sheet.addProperty("filename", filename, "string", "File name");
+            this.sheet.addProperty(new ui.PropertyComboItem("location", "Location", location, Property.toOptions(dirs)));
+            this.sheet.addProperty(new ui.PropertyTextItem("filename", "File name", filename));
+            this.sheet.properties["location"].immediateChange = true;
+            this.sheet.properties["filename"].immediateChange = true;
             this.body.append(this.sheet.element);
             this.element.style.display = "";
         });
@@ -29,7 +32,6 @@ export class SaveDialog extends ui.Dialog {
     onButtonClick(key) {
         if (key === "save") {
             const path = this.path;
-
             if (File.exists(path)) {
                 const message = Path.filename(path) + " already exists. Do you want to replace it?";
                 ui.confirm(this.header.textContent, message, "no", result => {

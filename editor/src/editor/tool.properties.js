@@ -1,4 +1,5 @@
 import * as ui from "../ui/ui.js";
+import { Property } from "../property.js";
 
 export class ToolPropertiesItem extends ui.ListViewItem {
     constructor(editor, tool) {
@@ -33,16 +34,7 @@ export class ToolPropertiesItem extends ui.ListViewItem {
     reset() {
         this.sheet.clear();
         for (const [key, attr] of this.tool.attributes) {
-            let dataType = attr.dataType;
-            if (dataType === "node") {
-                const map = this.editor.map;
-                if (key === "image") {
-                    dataType = [...map.resources.descendants("image")];
-                } else if (key === "texture") {
-                    dataType = [null, ...map.resources.descendants("texture")];
-                }
-            }
-            this.sheet.addProperty(key, attr.value, dataType, key);
+            this.sheet.addProperty(Property.item(key, key, attr.dataType, attr.value, this.tool, this.editor.map));
         }
     }
 }

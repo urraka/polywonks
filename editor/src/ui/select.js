@@ -1,15 +1,16 @@
-import { EventEmitter } from "../support/event.js";
 import { elem } from "./common.js";
+import { Control } from "./control.js";
 
-export class Select extends EventEmitter {
+export class Select extends Control {
     constructor() {
         super();
+        this.label = elem("label");
         this.element = elem("div", "select");
         this.element.setAttribute("tabindex", 0);
+        this.element.append(this.label);
         this.list = null;
         this.options = [];
         this.displayCount = 10;
-        this.val = undefined;
         this.onWindowMouseDown = this.onWindowMouseDown.bind(this);
         this.onWindowMouseDown = this.onWindowMouseDown.bind(this);
         this.onWindowResize = this.onWindowResize.bind(this);
@@ -19,37 +20,57 @@ export class Select extends EventEmitter {
         this.element.addEventListener("focusout", e => this.onFocusOut(e));
     }
 
+    reset(value) {
+        this.resetOption(this.options.find(opt => value === opt.value));
+    }
+
+    set value(value) {
+        this.selectOption(this.options.find(opt => value === opt.value));
+    }
+
+    get value() {
+        return super.value;
+    }
+
+    set readOnly(value) {
+        this.close();
+        super.readOnly = value;
+        if (value) {
+            this.element.removeAttribute("tabindex");
+        } else {
+            this.element.setAttribute("tabindex", 0);
+        }
+    }
+
+    get readOnly() {
+        return super.readOnly;
+    }
+
     addOption(text, value) {
         if (this.list) this.close();
         this.options.push({ text, value });
     }
 
     setText(text) {
-        this.element.textContent = text;
+        this.label.textContent = text;
     }
 
     selectOption(option) {
-        if (option) {
-            if (option.value !== this.val) {
-                this.val = option.value;
-                this.setText(option.text);
-                this.emit("change");
-            }
-        } else if (this.val !== undefined) {
-            this.val = undefined;
-            this.setText("");
+        const value = this.value;
+        this.resetOption(option);
+        if (this.value !== value) {
             this.emit("change");
         }
     }
 
-    set value(v) {
-        if (v !== this.val) {
-            this.selectOption(this.options.find(({ value }) => v === value));
+    resetOption(option) {
+        if (option && this.value !== option.value) {
+            super.reset(option.value);
+            this.setText(option.text);
+        } else if (!option && this.value !== undefined) {
+            super.reset(undefined);
+            this.setText("");
         }
-    }
-
-    get value() {
-        return this.val;
     }
 
     onClick() {
@@ -101,7 +122,17 @@ export class Select extends EventEmitter {
         let handled = true;
 
         switch (event.key) {
-            case "Enter": this.list ? this.submit() : this.open(); break;
+            case "Enter": {
+                if (this.list) {
+                    this.submit();
+                } else if (!this.modified) {
+                    this.open();
+                    handled = !!this.list;
+                } else {
+                    handled = false;
+                }
+                break;
+            }
             case "Escape": this.list ? this.close() : (handled = false); break;
             case "ArrowUp": this.selectPrevious(); break;
             case "ArrowDown": this.selectNext(); break;
@@ -111,6 +142,8 @@ export class Select extends EventEmitter {
         if (handled) {
             event.preventDefault();
             event.stopPropagation();
+        } else {
+            this.emit("keydown", { keyEvent: event });
         }
     }
 
@@ -142,8 +175,8 @@ export class Select extends EventEmitter {
                 prev.classList.add("current");
                 this.scrollToItem(prev);
             }
-        } else {
-            const index = this.options.findIndex(({ value }) => value === this.val) - 1;
+        } else if (!this.readOnly) {
+            const index = this.options.findIndex(({ value }) => value === this.value) - 1;
             if (index >= 0) {
                 this.selectOption(this.options[index]);
             }
@@ -159,8 +192,8 @@ export class Select extends EventEmitter {
                 next.classList.add("current");
                 this.scrollToItem(next);
             }
-        } else {
-            const index = this.options.findIndex(({ value }) => value === this.val) + 1;
+        } else if (!this.readOnly) {
+            const index = this.options.findIndex(({ value }) => value === this.value) + 1;
             if (index < this.options.length) {
                 this.selectOption(this.options[index]);
             }
@@ -216,7 +249,7 @@ export class Select extends EventEmitter {
             this.close();
         }
 
-        if (this.options.length === 0) {
+        if (this.readOnly || this.options.length === 0) {
             return;
         }
 
