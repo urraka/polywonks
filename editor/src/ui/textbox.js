@@ -50,4 +50,12 @@ export class TextBox extends Control {
         super.readOnly = value;
         this.input.readOnly = value;
     }
+
+    get placeholder() {
+        return this.input.placeholder;
+    }
+
+    set placeholder(value) {
+        this.input.placeholder = value;
+    }
 }

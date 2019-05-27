@@ -134,6 +134,14 @@ export class PropertyTextItem extends PropertyItem {
         this._immediateChange = !!value;
     }
 
+    get placeholder() {
+        return this.control.placeholder;
+    }
+
+    set placeholder(value) {
+        this.control.placeholder = value;
+    }
+
     createControl({ valueEquals, valueToString, valueFromString } = {}) {
         this.valueEquals = valueEquals || this.valueEquals;
         this.valueToString = valueToString || this.valueToString;
