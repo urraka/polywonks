@@ -8,6 +8,8 @@ export class Property {
         const options = Property.itemOptions(key, valueType, owner, map);
         if (ValueType.typeOf(valueType) === "boolean") {
             return new ui.PropertyBooleanItem(key, label, value);
+        } else if (ValueType.typeOf(valueType) === "color") {
+            return new ui.PropertyColorItem(key, label, value);
         } else if (options) {
             return new ui.PropertyListItem(key, label, value, options);
         } else {

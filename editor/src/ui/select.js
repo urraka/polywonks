@@ -11,8 +11,7 @@ export class Select extends Control {
         this.list = null;
         this.options = [];
         this.displayCount = 10;
-        this.onWindowMouseDown = this.onWindowMouseDown.bind(this);
-        this.onWindowMouseDown = this.onWindowMouseDown.bind(this);
+        this.onWindowScrollOrMouseDown = this.onWindowScrollOrMouseDown.bind(this);
         this.onWindowResize = this.onWindowResize.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
         this.element.addEventListener("click", () => this.onClick());
@@ -102,14 +101,8 @@ export class Select extends Control {
         }
     }
 
-    onWindowMouseDown(event) {
+    onWindowScrollOrMouseDown(event) {
         if (!this.element.contains(event.target) && !this.list.contains(event.target)) {
-            this.close();
-        }
-    }
-
-    onWindowScroll(event) {
-        if (this.list !== event.target) {
             this.close();
         }
     }
@@ -259,8 +252,8 @@ export class Select extends Control {
 
         this.list.addEventListener("click", e => this.onOptionsClick(e));
         this.list.addEventListener("mouseover", e => this.onOptionsMouseOver(e));
-        window.addEventListener("mousedown", this.onWindowMouseDown, true);
-        window.addEventListener("scroll", this.onWindowMouseDown, true);
+        window.addEventListener("mousedown", this.onWindowScrollOrMouseDown, true);
+        window.addEventListener("scroll", this.onWindowScrollOrMouseDown, true);
         window.addEventListener("resize", this.onWindowResize, true);
 
         const currentItem = this.updateListItems();
@@ -270,8 +263,8 @@ export class Select extends Control {
 
     close() {
         if (this.list) {
-            window.removeEventListener("mousedown", this.onWindowMouseDown, true);
-            window.removeEventListener("scroll", this.onWindowMouseDown, true);
+            window.removeEventListener("mousedown", this.onWindowScrollOrMouseDown, true);
+            window.removeEventListener("scroll", this.onWindowScrollOrMouseDown, true);
             window.removeEventListener("resize", this.onWindowResize, true);
             this.list.remove();
             this.list = null;

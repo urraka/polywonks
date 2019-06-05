@@ -116,10 +116,62 @@ export class Color extends Uint8Array {
         return color;
     }
 
-    toString() {
-        const toStr = x => x.toString(16).padStart(2, "0");
-        return "#" + Array.from(this).slice(0, 3).map(toStr).join("") +
-            (this.a !== 255 ? "." + toStr(this.a) : "");
+    toString(format) {
+        if (!format) {
+            const toStr = x => x.toString(16).padStart(2, "0");
+            return "#" + Array.from(this).slice(0, 3).map(toStr).join("") +
+                (this.a !== 255 ? "." + toStr(this.a) : "");
+        } else if (format === "rgba") {
+            if (this.a === 255) {
+                return `rgb(${this.r},${this.g},${this.b})`;
+            } else {
+                return `rgb(${this.r},${this.g},${this.b},${this.a / 255})`;
+            }
+        }
+    }
+
+    /**
+     * Returns normalized values [0..1]
+     */
+    toHSV() {
+        const r = this.r / 255;
+        const g = this.g / 255;
+        const b = this.b / 255;
+        const a = this.a / 255;
+        const min = Math.min(r, g, b);
+        const max = Math.max(r, g, b);
+        const delta = max - min;
+
+        let h = 0;
+        const s = max > 0 ? delta / max : 0;
+        const v = max;
+
+        if (min !== max) {
+            switch(max) {
+                case r: h = (g - b) / delta + (g < b ? 6 : 0); break;
+                case g: h = (b - r) / delta + 2; break;
+                case b: h = (r - g) / delta + 4; break;
+            }
+        }
+
+        return [h / 6, s, v, a];
+    }
+
+    /**
+     * Takes normalized values [0..1]
+     */
+    static fromHSV(h, s, v, a = 1) {
+        h *= 6;
+        const i = Math.floor(h);
+        const f = h - i;
+        const p = v * (1 - s);
+        const q = v * (1 - f * s);
+        const t = v * (1 - (1 - f) * s);
+        const mod = i % 6;
+        const r = [v, q, p, p, t, v][mod];
+        const g = [t, v, v, q, p, p][mod];
+        const b = [p, p, t, v, v, q][mod];
+        return new Color(r * 255, g * 255, b * 255, a * 255);
     }
 
     equals(b) {

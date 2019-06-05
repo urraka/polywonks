@@ -1,9 +1,11 @@
 import { EventEmitter } from "../support/event.js";
 import { iter } from "../support/iter.js";
+import { Color } from "../support/color.js";
 import { Panel, elem } from "./common.js";
 import { Select } from "./select.js";
 import { ComboBox } from "./combobox.js";
 import { TextBox } from "./textbox.js";
+import { ColorPicker } from "./colorpicker.js";
 
 export class PropertySheet extends Panel {
     constructor() {
@@ -12,27 +14,35 @@ export class PropertySheet extends Panel {
         this.onChange = this.onChange.bind(this);
     }
 
+    get immediateChange() {
+        return !!this._immediateChange;
+    }
+
+    set immediateChange(value) {
+        this._immediateChange = !!value;
+    }
+
     addProperty(property) {
         const key = property.key;
-        if (key in this.properties) {
-            this.properties[key].off("change", this.onChange);
-            this.properties[key].label.remove();
-            this.properties[key].control.element.remove();
-        }
+        this.clear(property);
         this.properties[key] = property;
         this.element.append(property.label);
         this.element.append(property.control.element);
         property.on("change", this.onChange);
+        property.sheet = this;
         return property;
     }
 
     clear(property) {
         if (property) {
-            if (property.key in this.properties) {
+            const key = property.key;
+            if (key in this.properties) {
+                property = this.properties[key];
+                property.sheet = null;
                 property.off("change", this.onChange);
                 property.label.remove();
                 property.control.element.remove();
-                delete this.properties[property.key];
+                delete this.properties[key];
             }
         } else {
             iter(Object.values(this.properties)).each(property => this.clear(property));
@@ -47,6 +57,7 @@ export class PropertySheet extends Panel {
 export class PropertyItem extends EventEmitter {
     constructor(key, label, value, ...args) {
         super();
+        this.sheet = null;
         this.key = key;
         this.label = elem("label");
         this.label.textContent = label;
@@ -121,13 +132,16 @@ export class PropertyBooleanItem extends PropertyListItem {
 }
 
 export class PropertyTextItem extends PropertyItem {
-    constructor(key, label, value, valueHandlers) {
-        super(key, label, value, valueHandlers);
-        this._immediateChange = false;
+    constructor(key, label, value, ...args) {
+        super(key, label, value, ...args);
     }
 
     get immediateChange() {
-        return !!this._immediateChange;
+        if (this._immediateChange !== undefined) {
+            return this._immediateChange;
+        } else {
+            return !!this.sheet._immediateChange;
+        }
     }
 
     set immediateChange(value) {
@@ -220,5 +234,96 @@ export class PropertyComboItem extends PropertyTextItem {
 
     createTextControl() {
         return new ComboBox();
+    }
+}
+
+export class PropertyColorItem extends PropertyTextItem {
+    constructor(key, label, color) {
+        super(key, label, color, {
+            valueToString: color => color.toString(),
+            valueFromString: str => new Color(str),
+            valueEquals: (a, b) => a.equals(b),
+        });
+    }
+
+    get button() {
+        return this._button || (this._button = this.control.element.querySelector(".color-icon-button > span"));
+    }
+
+    createTextControl() {
+        const textbox = super.createTextControl();
+        const button = textbox.addButton("color");
+        button.classList.add("color-icon-button");
+        button.appendChild(elem("span"));
+        textbox.on("buttonclick", () => this.onColorIconClick());
+        return textbox;
+    }
+
+    reset(value) {
+        super.reset(value);
+        this.updateColor(this.value);
+    }
+
+    updateColor(color) {
+        this._currentColor = color;
+        this.button.style.backgroundColor = color.toString("rgba");
+        if (this.picker) {
+            this.picker.reset(color);
+        }
+    }
+
+    onColorIconClick() {
+        if (this.picker) {
+            this.picker.close("iconclick");
+        } else {
+            this.picker = ColorPicker.show(this.control.element, this._currentColor || this.value);
+            this.picker.on("change", () => this.onColorPickerChange());
+            this.picker.on("willclose", e => this.onColorPickerWillClose(e));
+            this.picker.on("close", e => this.onColorPickerClose(e));
+            this.control.active = true;
+        }
+    }
+
+    onColorPickerWillClose(event) {
+        if (event.reason === "focuslost" && this.control.element.contains(event.originalEvent.relatedTarget)) {
+            event.preventDefault();
+        }
+    }
+
+    onColorPickerClose(event) {
+        this.picker = null;
+        const focusBack = event.reason === "iconclick" || (event.reason === "focuslost" &&
+            this.control.element.contains(event.originalEvent.relatedTarget));
+        if (event.reason === "cancel") {
+            this.reset(this.value);
+        } else if (this.control.modified) {
+            this.onChange();
+        }
+        if (event.reason !== "focuslost" || focusBack) {
+            const i = this.control.value.length;
+            this.control.input.focus();
+            this.control.input.setSelectionRange(i, i);
+        }
+        setTimeout(() => this.control.active = false);
+    }
+
+    onColorPickerChange() {
+        this.control.reset(this.valueToString(this.picker.color));
+        this.onInput();
+    }
+
+    onInput() {
+        super.onInput();
+        if (!this.immediateChange) {
+            try {
+                this.updateColor(this.valueFromString(this.control.value));
+            } catch (e) {}
+        }
+    }
+
+    onKeyDown(event) {
+        if (!this.control.active) {
+            super.onKeyDown(event);
+        }
     }
 }

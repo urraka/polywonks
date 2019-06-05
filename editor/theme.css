@@ -12,11 +12,11 @@ button:hover, button:active, button.active {
     background-color: #fff;
 }
 
-input {
+input, .textbox {
     background-color: #3c3c3c;
 }
 
-.textbox:focus, .textbox:focus-within,
+.textbox:focus, .textbox:focus-within, .textbox.active,
 .select:focus, .select:focus-within,
 .select.active, .select-options {
     outline: 1px solid #007acc;
@@ -24,6 +24,16 @@ input {
 
 .select > .textbox:focus, .select > .textbox:focus-within {
     outline: none;
+}
+
+.textbox > button.color-icon-button {
+    border: 1px solid #444;
+}
+
+.textbox > button.color-icon-button:hover,
+.textbox > button.color-icon-button:focus,
+.textbox.active > button.color-icon-button {
+    border: 1px solid #666;
 }
 
 .property-sheet .invalid {
@@ -185,6 +195,37 @@ input {
 
 .dialog button:focus {
     outline: 1px solid #007acc;
+}
+
+.color-picker {
+    outline: 1px solid #007acc;
+    background-color: #252526;
+    box-shadow: 0 2px 4px rgb(0, 0, 0, 0.5);
+}
+
+.color-picker-ctrls > :focus-within {
+    outline: 1px solid #007acc;
+}
+
+.color-picker-handle::before {
+    border-left-color: #ccc;
+}
+
+.color-picker-handle::after {
+    border-right-color: #ccc;
+}
+
+.color-picker-palette button {
+    border: 1px solid #252526;
+}
+
+.color-picker-palette button:hover,
+.color-picker-palette button:focus {
+    border: 1px solid #666;
+}
+
+.color-picker-palette button.active {
+    border: 2px solid #007acc;
 }
 
 .titlebar-icon {

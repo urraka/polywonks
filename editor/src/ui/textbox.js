@@ -5,6 +5,7 @@ export class TextBox extends Control {
     constructor() {
         super();
         this.input = elem("input");
+        this.input.spellcheck = false;
         this.element = elem("div", "textbox");
         this.element.append(this.input);
         this.onInput = this.onInput.bind(this);
@@ -14,8 +15,11 @@ export class TextBox extends Control {
         this.input.addEventListener("keydown", e => this.emit("keydown", { keyEvent: e }));
     }
 
-    addButton() {
-        // TODO: implement
+    addButton(key, icon, title) {
+        const button = this.element.appendChild(elem("button", icon));
+        if (title) button.setAttribute("title", title);
+        button.addEventListener("click", () => this.emit("buttonclick", { button: key }));
+        return button;
     }
 
     onInput() {
@@ -57,5 +61,13 @@ export class TextBox extends Control {
 
     set placeholder(value) {
         this.input.placeholder = value;
+    }
+
+    get active() {
+        return this.element.classList.contains("active");
+    }
+
+    set active(value) {
+        this.element.classList.toggle("active", value);
     }
 }
