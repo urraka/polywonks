@@ -241,6 +241,10 @@ export class ColorPicker extends EventEmitter {
         this.close("submit", event);
     }
 
+    onInitialColorClick(color) {
+        this.forceChange(color);
+    }
+
     onPaletteChange(event) {
         this.updatePaletteColor(event.index);
     }
@@ -248,7 +252,7 @@ export class ColorPicker extends EventEmitter {
     onPaletteClick(event) {
         const button = event.currentTarget;
         const index = [...button.parentElement.children].indexOf(button);
-        this.color = this.palette.getColor(index);
+        this.forceChange(this.palette.getColor(index));
         if (event.type === "dblclick") {
             if (this.activePaletteIndex === index) {
                 this.activePaletteIndex = undefined;
@@ -302,6 +306,15 @@ export class ColorPicker extends EventEmitter {
         this.previewColor = color;
     }
 
+    forceChange(color) {
+        if (this.color.equals(color)) {
+            this.color = color;
+            this.emit("change");
+        } else {
+            this.color = color;
+        }
+    }
+
     reset(color) {
         this._color = color;
         [..."rgba"].forEach(t => this.sheet.properties[t].reset(color[t]));
@@ -345,7 +358,7 @@ export class ColorPicker extends EventEmitter {
         const button = elem("button");
         const span = elem("span");
         button.appendChild(span);
-        button.addEventListener("click", () => this.color = color);
+        button.addEventListener("click", () => this.onInitialColorClick(color));
         span.style.backgroundColor = color.toString("rgba");
         this.element.querySelector(".color-picker-preview > button:last-child").replaceWith(button);
     }

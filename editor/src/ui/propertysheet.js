@@ -182,6 +182,12 @@ export class PropertyTextItem extends PropertyItem {
         } else {
             const valueString = this.valueToString(this.value);
             this.control.modified = this.control.value !== valueString;
+            if (this.control.invalid) {
+                try {
+                    this.valueFromString(this.control.value);
+                    this.control.invalid = false;
+                } catch (e) { }
+            }
         }
     }
 
@@ -295,12 +301,14 @@ export class PropertyColorItem extends PropertyTextItem {
     }
 
     onColorPickerClose(event) {
+        const pickerColor = this.picker.color;
         this.picker = null;
         const focusBack = event.reason === "iconclick" || (event.reason === "focuslost" &&
             this.control.element.contains(event.originalEvent.relatedTarget));
         if (event.reason === "cancel") {
             this.reset(this.value);
         } else if (this.control.modified) {
+            this.control.reset(this.valueToString(pickerColor));
             this.onChange();
         }
         if (event.reason !== "focuslost" || focusBack) {
