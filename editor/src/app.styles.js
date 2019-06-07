@@ -3,14 +3,6 @@ export const styles = /* css */`
     flex-direction: column;
 }
 
-.app .sidebar-panel {
-    background-color: rgb(var(--theme-sidebar));
-}
-
-.app .sidebar-toolbar {
-    background-color: rgb(var(--theme-sidebar-toolbar));
-}
-
 .app > .client-area > .tab-view > .tab-content > canvas {
     position: absolute;
 }

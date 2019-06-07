@@ -8,6 +8,7 @@ export const styles = /* css */`
     width: 50px;
     flex-shrink: 0;
     flex-direction: column;
+    background-color: rgb(var(--theme-sidebar-toolbar));
 }
 
 .sidebar-toolbar > button {
@@ -20,6 +21,7 @@ export const styles = /* css */`
     flex: 1;
     flex-direction: column;
     display: none;
+    background-color: rgb(var(--theme-sidebar));
 }
 
 .sidebar-panel.active {
