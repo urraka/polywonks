@@ -1,4 +1,8 @@
-import { Panel, elem } from "./common.js";
+import { elem, registerStyles } from "./common.js";
+import { Panel } from "./panel.js";
+import { styles } from "./multipanel.styles.js";
+
+registerStyles(styles);
 
 export class MultiPanelView extends Panel {
     constructor() {

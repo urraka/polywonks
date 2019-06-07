@@ -1,11 +1,15 @@
 import { EventEmitter } from "../support/event.js";
 import { iter } from "../support/iter.js";
 import { Color } from "../support/color.js";
-import { Panel, elem } from "./common.js";
+import { elem, registerStyles } from "./common.js";
+import { Panel } from "./panel.js";
 import { Select } from "./select.js";
 import { ComboBox } from "./combobox.js";
 import { TextBox } from "./textbox.js";
 import { ColorPicker } from "./colorpicker.js";
+import { styles } from "./propertysheet.styles.js";
+
+registerStyles(styles);
 
 export class PropertySheet extends Panel {
     constructor() {

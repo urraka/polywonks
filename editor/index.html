@@ -5,15 +5,18 @@
     <title>Polywonks</title>
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" type="text/css" href="layout.css">
-    <link rel="stylesheet" type="text/css" href="theme.css">
+    <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 <body>
     <div class="startup-loading"><div></div></div>
     <script type="module">
-        import { Polywonks } from "./src/polywonks.js";
-        window.Polywonks = Polywonks;
-        window.app = new Polywonks.App();
+        import { Polywonks as pwk } from "./src/polywonks.js";
+        window.pwk = pwk;
+        window.app = new pwk.App();
+        pwk.ui.initializeStyles();
+        document.body.querySelector(".startup-loading").remove();
+        document.body.append(window.app.element);
+        window.app.onResize();
     </script>
 </body>
 </html>

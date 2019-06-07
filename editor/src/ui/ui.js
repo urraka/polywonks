@@ -1,4 +1,5 @@
 export * from "./common.js";
+export * from "./panel.js";
 export * from "./statusbar.js";
 export * from "./multipanel.js";
 export * from "./propertysheet.js";
@@ -11,4 +12,5 @@ export * from "./tree.js";
 export * from "./list.js";
 export * from "./tabs.js";
 export * from "./dialog.js";
+export * from "./dialog.common.js";
 export * from "./colorpicker.js";

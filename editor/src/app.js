@@ -6,6 +6,9 @@ import { Renderer } from "./render.js";
 import { Sidebar } from "./sidebar.js";
 import { Settings, cfg } from "./settings.js";
 import { KeyBindings } from "./keybindings.js";
+import { styles } from "./app.styles.js";
+
+ui.registerStyles(styles);
 
 export class App extends ui.Panel {
     constructor() {
@@ -69,9 +72,6 @@ export class App extends ui.Panel {
         this.statusbar.addItem("layer", "left", 200, "left");
         this.statusbar.addItem("zoom", "right", 100, "right");
         this.statusbar.addItem("cursor", "right", 100, "right");
-
-        document.body.querySelector(".startup-loading").remove();
-        document.body.append(this.element);
     }
 
     createMenus(menubar) {

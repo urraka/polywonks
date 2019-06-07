@@ -1,4 +1,8 @@
-import { Panel, elem } from "./common.js";
+import { elem, registerStyles } from "./common.js";
+import { Panel } from "./panel.js";
+import { styles } from "./tree.styles.js";
+
+registerStyles(styles);
 
 export class TreeView extends Panel {
     constructor() {

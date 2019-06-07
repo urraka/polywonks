@@ -1,4 +1,4 @@
-import { EventEmitter } from "../support/event.js";
+const registeredStyles = [];
 
 export function elem(tag, className) {
     const element = document.createElement(tag);
@@ -14,14 +14,17 @@ export function elem(tag, className) {
     return element;
 }
 
-export class Panel extends EventEmitter {
-    constructor(className = "") {
-        super();
-        this.element = elem("div", ["panel", className]);
-    }
+export function html(source) {
+    return document.createRange().createContextualFragment(source).firstElementChild;
+}
 
-    append(element) {
-        this.element.append(element.element || element);
-        return element;
-    }
+export function registerStyles(styles) {
+    registeredStyles.push(styles);
+}
+
+export function initializeStyles() {
+    const element = document.head.querySelector("#ui-stylesheet") || elem("style");
+    element.id = "ui-stylesheet";
+    element.innerHTML = registeredStyles.join("\n");
+    document.head.appendChild(element);
 }

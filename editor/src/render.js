@@ -24,7 +24,6 @@ import {
 export class Renderer {
     constructor() {
         this.context = new Gfx.Context();
-        this.context.canvas.classList.add("editor-canvas");
         this.batch = this.context.createBatch();
         this.textures = new WeakMap();
         this.texturesInfo = new WeakMap();

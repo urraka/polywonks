@@ -1,4 +1,26 @@
-import { Panel, elem } from "./common.js";
+import { elem, registerStyles } from "./common.js";
+import { Panel } from "./panel.js";
+
+registerStyles(/* css */`
+.statusbar {
+    height: 22px;
+    line-height: 22px;
+    flex-shrink: 0;
+    background-color: rgb(var(--theme-statusbar));
+}
+
+.statusbar > .panel:last-child {
+    justify-content: flex-end;
+}
+
+.statusbar > .panel:first-child .statusbar-item {
+    margin-left: 10px;
+}
+
+.statusbar > .panel:last-child .statusbar-item {
+    margin-right: 10px;
+}
+`);
 
 export class Statusbar extends Panel {
     constructor() {

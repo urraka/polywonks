@@ -24,6 +24,9 @@ import { MapExplorer } from "./map.explorer.js";
 import { MapProperties } from "./map.properties.js";
 import { Selection } from "./selection.js";
 import { Grid } from "./grid.js";
+import { styles } from "./editor.styles.js";
+
+ui.registerStyles(styles);
 
 export class Editor extends ui.Panel {
     constructor(map = MapDocument.default()) {

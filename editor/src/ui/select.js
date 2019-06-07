@@ -1,5 +1,8 @@
-import { elem } from "./common.js";
+import { elem, registerStyles } from "./common.js";
 import { Control } from "./control.js";
+import { styles } from "./select.styles.js";
+
+registerStyles(styles);
 
 export class Select extends Control {
     constructor() {

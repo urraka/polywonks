@@ -1,6 +1,9 @@
 import * as ui from "./ui/ui.js";
 import { FileExplorer } from "./file.explorer.js";
 import { Settings } from "./settings.js";
+import { styles } from "./sidebar.styles.js";
+
+ui.registerStyles(styles);
 
 export class Sidebar extends ui.Panel {
     constructor(app) {

@@ -4,40 +4,11 @@ import { EventEmitter } from "../support/event.js";
 import { ValueType } from "../support/type.js";
 import { Pointer } from "../support/pointer.js";
 import { PropertySheet, PropertyTextItem } from "./propertysheet.js";
-import { elem } from "./common.js";
+import { elem, html, registerStyles } from "./common.js";
+import { styles } from "./colorpicker.styles.js";
+import { template } from "./colorpicker.template.js";
 
-const HTML = /*html*/`
-<div class="color-picker" tabindex="-1">
-    <div class="color-picker-palette">
-        <div class="color-picker-preview">
-            <button><span></span></button>
-            <button><span></span></button>
-        </div>
-        <div class="color-picker-palette-buttons"></div>
-    </div>
-    <div class="color-picker-values">
-        <div class="color-picker-props"></div>
-        <div class="color-picker-ctrls">
-            <div class="color-picker-color">
-                <svg width="1" height="1"></svg>
-                <div class="color-picker-saturation">
-                    <div class="color-picker-value" tabindex="0">
-                        <div class="color-picker-crosshair"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="color-picker-hue" tabindex="0">
-                <div class="color-picker-handle"></div>
-            </div>
-            <div class="color-picker-alpha">
-                <div class="color-picker-alpha-value" tabindex="0">
-                    <div class="color-picker-handle"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-`;
+registerStyles(styles);
 
 const VALUE_HANDLERS = {
     valueToString: value => ValueType.toString("uint8", value),
@@ -183,7 +154,7 @@ export class ColorPicker extends EventEmitter {
         this.onPaletteChange = this.onPaletteChange.bind(this);
         this.onPaletteClick = this.onPaletteClick.bind(this);
 
-        this.element = document.createRange().createContextualFragment(HTML).firstElementChild;
+        this.element = html(template);
         this.createPalette();
 
         const previewButton = this.element.querySelector(".color-picker-preview > button:first-child");

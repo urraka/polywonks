@@ -1,5 +1,17 @@
+import { registerStyles } from "./common.js";
 import { Select } from "./select.js";
 import { TextBox } from "./textbox.js";
+
+registerStyles(/* css */`
+.combobox::after {
+    content: none;
+    display: none;
+}
+
+.combobox > .textbox:focus, .combobox > .textbox:focus-within {
+    outline: none;
+}
+`);
 
 export class ComboBox extends Select {
     constructor() {

@@ -1,5 +1,9 @@
-import { Panel, elem } from "./common.js";
 import { EventEmitter } from "../support/event.js";
+import { elem, registerStyles } from "./common.js";
+import { Panel } from "./panel.js";
+import { styles } from "./menu.styles.js";
+
+registerStyles(styles);
 
 export class TitleBar extends Panel {
     constructor() {
