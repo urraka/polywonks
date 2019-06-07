@@ -83,9 +83,11 @@ export class App extends ui.Panel {
                 [],
                 ["Save", "save"],
                 ["Save As...", "save-as"],
+                ["Download...", "save-download"],
                 [],
                 ["Export", "export"],
                 ["Export As...", "export-as"],
+                ["Export Download...", "export-download"],
             ]],
             ["Edit", [
                 ["Undo", "undo"],

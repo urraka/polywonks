@@ -1,9 +1,7 @@
 import "./arrange.js";
 import "./relocate.js";
 import "./save.js";
-import "./save-as.js";
 import "./export.js";
-import "./export-as.js";
 import "./delete.js";
 import "./set-tool.js";
 import "./zoom-in.js";

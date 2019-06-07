@@ -28,3 +28,15 @@ export function initializeStyles() {
     element.innerHTML = registeredStyles.join("\n");
     document.head.appendChild(element);
 }
+
+export function download(filename, blob) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    document.body.appendChild(a);
+    a.style.display = "none";
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+    a.remove();
+}
