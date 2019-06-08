@@ -56,6 +56,9 @@ export class TextBox extends Control {
     set readOnly(value) {
         super.readOnly = value;
         this.input.readOnly = value;
+        for (const button of this.element.querySelectorAll("button")) {
+            button.disabled = value;
+        }
     }
 
     get placeholder() {

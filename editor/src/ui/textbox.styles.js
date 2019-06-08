@@ -32,9 +32,9 @@ export const styles = /* css */`
     border: 1px solid rgb(var(--theme-control-border));
 }
 
-.textbox > button.color-icon-button:hover,
-.textbox > button.color-icon-button:focus,
-.textbox.active > button.color-icon-button {
+.textbox > button:not(:disabled).color-icon-button:hover,
+.textbox > button:not(:disabled).color-icon-button:focus,
+.textbox.active > button:not(:disabled).color-icon-button {
     border: 1px solid rgb(var(--theme-control-border-active));
 }
 
