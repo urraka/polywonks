@@ -1,4 +1,5 @@
 import { Color } from "../../support/color.js";
+import { iter } from "../../support/iter.js";
 import { SceneryNode, Attribute, PivotNode, ImageNode } from "../../map/map.js";
 import { CreateTool } from "./create.js";
 
@@ -50,5 +51,10 @@ export class SceneryTool extends CreateTool {
     updateHandle() {
         super.updateHandle();
         this.handle.visible = this.handle.visible && !!this.attr("image");
+    }
+
+    chooseDefaultLayer() {
+        const layers = iter(this.editor.map.children("layer"));
+        return layers.find(layer => layer.attr("type") === "scenery-middle") || super.chooseDefaultLayer();
     }
 }

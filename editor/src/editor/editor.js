@@ -348,20 +348,27 @@ export class Editor extends ui.Panel {
         this.statusChange("tool");
     }
 
+    get activeLayer() {
+        return this._activeLayer || null;
+    }
+
+    set activeLayer(layer) {
+        layer = layer || null;
+        if (this.activeLayer !== layer) {
+            this._activeLayer = layer;
+            this.statusChange("layer");
+        }
+    }
+
     onSelectionChange() {
-        const activeLayer = this.activeLayer;
         const node = iter(this.selection.nodes).first();
 
         if (node === this.map) {
             this.activeLayer = null;
         } else if (node instanceof LayerNode) {
             this.activeLayer = node;
-        } else if (node && activeLayer) {
-            this.activeLayer = node.closest("layer") || activeLayer;
-        }
-
-        if (this.activeLayer !== activeLayer) {
-            this.statusChange("layer");
+        } else if (node && this.activeLayer) {
+            this.activeLayer = node.closest("layer") || this.activeLayer;
         }
 
         this.emit("selectionchange");

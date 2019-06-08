@@ -49,6 +49,7 @@ export class CreateTool extends Tool {
         this.handle.moveTo(this.editor.cursor.x, this.editor.cursor.y);
         this.node = this.createNode();
         this.updateNode();
+        this.switchToDefaultLayer();
         this.updateTargetLayer();
         this.updateHandle();
 
@@ -171,5 +172,20 @@ export class CreateTool extends Tool {
             this.updateHandle();
             this.emit("statuschange");
         }
+    }
+
+    switchToDefaultLayer() {
+        if (!this.editor.activeLayer || !this.editor.activeLayer.isNodeAllowed(this.node)) {
+            this.editor.activeLayer = this.chooseDefaultLayer();
+        }
+    }
+
+    chooseDefaultLayer() {
+        for (const layer of this.editor.map.children("layer")) {
+            if (layer.isNodeAllowed(this.node)) {
+                return layer;
+            }
+        }
+        return null;
     }
 }

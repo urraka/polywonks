@@ -77,4 +77,9 @@ export class PolygonTool extends CreateTool {
         vertex.attr("u", u);
         vertex.attr("v", v);
     }
+
+    chooseDefaultLayer() {
+        const layers = iter(this.editor.map.children("layer"));
+        return layers.find(layer => layer.attr("type") === "polygons-front") || super.chooseDefaultLayer();
+    }
 }
