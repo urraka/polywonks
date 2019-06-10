@@ -1,8 +1,8 @@
 import * as Sectors from "./sectors.js";
 import { pms_read } from "./read.js";
 import { pms_write } from "./write.js";
-import { Color } from "../support/color.js";
-import { Enum } from "../support/enum.js";
+import { Color } from "../common/color.js";
+import { Enum } from "../common/enum.js";
 
 // -------------------------------------------------------------------------- //
 // enums

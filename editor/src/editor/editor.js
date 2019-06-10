@@ -1,7 +1,7 @@
 import * as PMS from "../pms/pms.js";
 import * as ui from "../ui/ui.js";
-import { Path } from "../support/path.js";
-import { iter } from "../support/iter.js";
+import { Path } from "../common/path.js";
+import { iter } from "../common/iter.js";
 import { MapDocument, LayerNode } from "../map/map.js";
 import { File } from "../file.js";
 import { RenderView } from "../render.view.js";

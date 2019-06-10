@@ -1,4 +1,4 @@
-import { Color } from "../support/color.js";
+import { Color } from "../common/color.js";
 
 export class Vertex {
     constructor(x = 0, y = 0, u = 0, v = 0, color = new Color(255, 255, 255)) {

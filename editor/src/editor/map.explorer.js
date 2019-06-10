@@ -1,6 +1,6 @@
 import * as ui from "../ui/ui.js";
 import { LayerNode } from "../map/layer.js";
-import { EventEmitter } from "../support/event.js";
+import { EventEmitter } from "../common/event.js";
 
 export class MapExplorer extends EventEmitter {
     constructor(editor) {

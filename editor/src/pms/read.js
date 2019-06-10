@@ -1,6 +1,6 @@
 import * as PMS from "./pms.js";
-import { BufferReader } from "../support/buffer.reader.js";
-import { Color } from "../support/color.js";
+import { BufferReader } from "../common/buffer.reader.js";
+import { Color } from "../common/color.js";
 
 export function pms_read(arrayBuffer) {
     const map = new PMS.Map();

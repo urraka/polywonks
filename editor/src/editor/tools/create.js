@@ -1,5 +1,5 @@
-import { iter } from "../../support/iter.js";
-import { Pointer } from "../../support/pointer.js";
+import { iter } from "../../common/iter.js";
+import { Pointer } from "../../common/pointer.js";
 import { SnapHandle, SnapSource } from "../snapping.js";
 import { EditorCommand } from "../command.js";
 import { Tool } from "./tool.js";

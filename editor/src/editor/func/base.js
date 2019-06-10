@@ -1,6 +1,6 @@
-import { EventEmitter } from "../../support/event.js";
-import { pascalToDash } from "../../support/format.js";
-import { iter } from "../../support/iter.js";
+import { EventEmitter } from "../../common/event.js";
+import { pascalToDash } from "../../common/format.js";
+import { iter } from "../../common/iter.js";
 
 export class EditorFunction extends EventEmitter {
     constructor(editor) {

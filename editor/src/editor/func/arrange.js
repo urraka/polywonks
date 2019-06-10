@@ -1,6 +1,6 @@
 import { EditorFunction } from "./base.js";
 import { LayerNode } from "../../map/map.js";
-import { iter } from "../../support/iter.js";
+import { iter } from "../../common/iter.js";
 import { EditorCommand } from "../command.js";
 
 class ArrangeFunction extends EditorFunction {

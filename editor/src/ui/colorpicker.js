@@ -1,8 +1,8 @@
-import { clamp } from "../support/math.js";
-import { Color } from "../support/color.js";
-import { EventEmitter } from "../support/event.js";
-import { ValueType } from "../support/type.js";
-import { Pointer } from "../support/pointer.js";
+import { clamp } from "../common/math.js";
+import { Color } from "../common/color.js";
+import { EventEmitter } from "../common/event.js";
+import { ValueType } from "../common/type.js";
+import { Pointer } from "../common/pointer.js";
 import { PropertySheet, PropertyTextItem } from "./propertysheet.js";
 import { elem, html, registerStyles } from "./common.js";
 import { styles } from "./colorpicker.styles.js";

@@ -1,7 +1,7 @@
 import * as PMS from "../pms/pms.js";
-import * as xMath from "../support/math.js";
-import { Color } from "../support/color.js";
-import { Mat2d } from "../support/matrix.js";
+import * as xMath from "../common/math.js";
+import { Color } from "../common/color.js";
+import { Mat2d } from "../common/matrix.js";
 import { Sprite } from "../gfx/gfx.js";
 import { Node } from "./node.js";
 import { LayerType, LayerNode } from "./layer.js";

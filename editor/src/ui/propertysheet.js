@@ -1,6 +1,6 @@
-import { EventEmitter } from "../support/event.js";
-import { iter } from "../support/iter.js";
-import { Color } from "../support/color.js";
+import { EventEmitter } from "../common/event.js";
+import { iter } from "../common/iter.js";
+import { Color } from "../common/color.js";
 import { elem, registerStyles } from "./common.js";
 import { Panel } from "./panel.js";
 import { Select } from "./select.js";

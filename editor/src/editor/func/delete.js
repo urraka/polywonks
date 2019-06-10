@@ -1,5 +1,5 @@
 import * as ui from "../../ui/ui.js";
-import { iter } from "../../support/iter.js";
+import { iter } from "../../common/iter.js";
 import { ResourceNode } from "../../map/map.js";
 import { EditorCommand } from "../command.js";
 import { EditorFunction } from "./base.js";

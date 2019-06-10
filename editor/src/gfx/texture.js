@@ -1,4 +1,4 @@
-import { Color } from "../support/color.js";
+import { Color } from "../common/color.js";
 
 export class Texture {
     constructor(context, ...args) {

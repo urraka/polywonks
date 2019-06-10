@@ -1,6 +1,6 @@
 import * as ui from "./ui/ui.js";
-import { iter } from "./support/iter.js";
-import { Path } from "./support/path.js";
+import { iter } from "./common/iter.js";
+import { Path } from "./common/path.js";
 import { Editor } from "./editor/editor.js";
 import { Renderer } from "./render.js";
 import { Sidebar } from "./sidebar.js";

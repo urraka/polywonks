@@ -1,4 +1,4 @@
-import { EventEmitter } from "../../support/event.js";
+import { EventEmitter } from "../../common/event.js";
 import { Node } from "../../map/map.js";
 
 export class Tool extends EventEmitter {

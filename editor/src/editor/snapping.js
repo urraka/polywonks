@@ -1,4 +1,4 @@
-import * as xMath from "../support/math.js";
+import * as xMath from "../common/math.js";
 import { SceneryNode } from "../map/map.js";
 import { cfg } from "../settings.js";
 

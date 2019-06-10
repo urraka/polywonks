@@ -1,4 +1,4 @@
-import { EventEmitter } from "./support/event.js";
+import { EventEmitter } from "./common/event.js";
 import { ClonedNodesCollection } from "./map/map.js";
 
 export class Clipboard {

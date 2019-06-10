@@ -1,4 +1,4 @@
-import "../support/buffer.transfer.js";
+import "../common/buffer.transfer.js";
 
 export class VertexBuffer {
     constructor(context) {

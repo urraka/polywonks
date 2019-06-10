@@ -1,8 +1,8 @@
 import * as Gfx from "./gfx/gfx.js";
-import { Color } from "./support/color.js";
-import { processImage, gradientCircle, rectangle } from "./support/image.js";
-import { dashToCamel } from "./support/format.js";
-import { Rect } from "./support/rect.js";
+import { Color } from "./common/color.js";
+import { processImage, gradientCircle, rectangle } from "./common/image.js";
+import { dashToCamel } from "./common/format.js";
+import { Rect } from "./common/rect.js";
 import { SpawnTeam } from "./pms/pms.js";
 import { CreateTool } from "./editor/tools/create.js";
 import { File } from "./file.js";

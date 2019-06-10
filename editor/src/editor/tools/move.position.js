@@ -1,4 +1,4 @@
-import { Mat2d } from "../../support/matrix.js";
+import { Mat2d } from "../../common/matrix.js";
 import { TriangleNode, ConnectionNode, PivotNode } from "../../map/map.js";
 import { SnapSource } from "../snapping.js";
 import { MoveTool } from "./move.js";

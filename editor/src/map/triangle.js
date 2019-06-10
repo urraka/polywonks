@@ -1,6 +1,6 @@
 import * as PMS from "../pms/pms.js";
-import * as xMath from "../support/math.js";
-import { iter } from "../support/iter.js";
+import * as xMath from "../common/math.js";
+import { iter } from "../common/iter.js";
 import { Node } from "./node.js";
 import { VertexNode } from "./vertex.js";
 import { Attribute } from "./attribute.js";

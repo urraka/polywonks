@@ -1,4 +1,4 @@
-import { ValueType } from "../support/type.js";
+import { ValueType } from "../common/type.js";
 
 export class Attribute {
     constructor(dataType, value) {

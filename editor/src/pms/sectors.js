@@ -1,4 +1,4 @@
-import * as xMath from "../support/math.js";
+import * as xMath from "../common/math.js";
 import { PolyType } from "./pms.js";
 
 export function sectorsDivision(bounds) {

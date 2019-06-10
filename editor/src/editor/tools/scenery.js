@@ -1,5 +1,5 @@
-import { Color } from "../../support/color.js";
-import { iter } from "../../support/iter.js";
+import { Color } from "../../common/color.js";
+import { iter } from "../../common/iter.js";
 import { SceneryNode, Attribute, PivotNode, ImageNode } from "../../map/map.js";
 import { CreateTool } from "./create.js";
 

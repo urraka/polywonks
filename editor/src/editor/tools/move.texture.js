@@ -1,5 +1,5 @@
-import { iter } from "../../support/iter.js";
-import { Mat3x3 } from "../../support/matrix.js";
+import { iter } from "../../common/iter.js";
+import { Mat3x3 } from "../../common/matrix.js";
 import { VertexNode, TriangleNode } from "../../map/map.js";
 import { MoveTool } from "./move.js";
 

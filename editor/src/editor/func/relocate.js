@@ -1,4 +1,4 @@
-import { Path } from "../../support/path.js";
+import { Path } from "../../common/path.js";
 import { EditorCommand } from "../command.js";
 import { EditorFunction } from "./base.js";
 

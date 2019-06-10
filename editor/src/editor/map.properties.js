@@ -1,7 +1,7 @@
 import * as PMS from "../pms/pms.js";
 import * as ui from "../ui/ui.js";
-import { iter } from "../support/iter.js";
-import { EventEmitter } from "../support/event.js";
+import { iter } from "../common/iter.js";
+import { EventEmitter } from "../common/event.js";
 import { EditorCommand } from "./command.js";
 import { LayerNode } from "../map/map.js";
 import { Property } from "../property.js";

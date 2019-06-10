@@ -1,4 +1,4 @@
-import { iter } from "../../support/iter.js";
+import { iter } from "../../common/iter.js";
 import { ConnectionNode, WaypointNode } from "../../map/map.js";
 import { SnapSource } from "../snapping.js";
 import { CreateTool } from "./create.js";

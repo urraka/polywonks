@@ -1,6 +1,6 @@
-import * as xMath from "../../support/math.js";
-import { Rect } from "../../support/rect.js";
-import { Pointer, MovementThreshold } from "../../support/pointer.js";
+import * as xMath from "../../common/math.js";
+import { Rect } from "../../common/rect.js";
+import { Pointer, MovementThreshold } from "../../common/pointer.js";
 import { cfg } from "../../settings.js";
 import { Tool } from "./tool.js";
 

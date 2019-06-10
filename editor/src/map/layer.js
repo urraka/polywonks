@@ -1,5 +1,5 @@
 import * as PMS from "../pms/pms.js";
-import { Enum } from "../support/enum.js";
+import { Enum } from "../common/enum.js";
 import { Attribute } from "./attribute.js";
 import { Node } from "./node.js";
 import { TriangleNode } from "./triangle.js";

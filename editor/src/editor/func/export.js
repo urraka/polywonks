@@ -1,5 +1,5 @@
 import * as ui from "../../ui/ui.js";
-import { Path } from "../../support/path.js";
+import { Path } from "../../common/path.js";
 import { SaveDialog } from "../../dialog.save.js";
 import { cfg } from "../../settings.js";
 import { File } from "../../file.js";

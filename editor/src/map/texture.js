@@ -1,6 +1,6 @@
-import * as xMath from "../support/math.js";
-import { Color } from "../support/color.js";
-import { Path } from "../support/path.js";
+import * as xMath from "../common/math.js";
+import { Color } from "../common/color.js";
+import { Path } from "../common/path.js";
 import { File } from "../file.js";
 import { ResourceNode } from "./resource.js";
 import { Attribute } from "./attribute.js";

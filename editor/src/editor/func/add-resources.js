@@ -1,4 +1,4 @@
-import { Path } from "../../support/path.js";
+import { Path } from "../../common/path.js";
 import { ImageNode, TextureNode } from "../../map/map.js";
 import { File } from "../../file.js";
 import { EditorCommand } from "../command.js";

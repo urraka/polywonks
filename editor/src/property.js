@@ -1,6 +1,6 @@
 import * as ui from "./ui/ui.js";
 import * as PMS from "./pms/pms.js";
-import { ValueType } from "./support/type.js";
+import { ValueType } from "./common/type.js";
 import { Node } from "./map/map.js";
 
 export class Property {

@@ -1,6 +1,6 @@
 import * as PMS from "../pms/pms.js";
-import * as xMath from "../support/math.js";
-import { Rect } from "../support/rect.js";
+import * as xMath from "../common/math.js";
+import { Rect } from "../common/rect.js";
 import { Renderer } from "../render.js";
 import { Node } from "./node.js";
 import { Attribute } from "./attribute.js";

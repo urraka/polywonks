@@ -1,4 +1,4 @@
-import { ValueType } from "../support/type.js";
+import { ValueType } from "../common/type.js";
 
 class AttrCommand {
     constructor(ownerCommand, node, key, value) {

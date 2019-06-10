@@ -1,5 +1,5 @@
-import { iter } from "../../support/iter.js";
-import { Color } from "../../support/color.js";
+import { iter } from "../../common/iter.js";
+import { Color } from "../../common/color.js";
 import { VertexNode, TriangleNode, Attribute } from "../../map/map.js";
 import { SnapSource } from "../snapping.js";
 import { CreateTool } from "./create.js";

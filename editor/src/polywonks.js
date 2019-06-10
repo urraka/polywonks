@@ -2,24 +2,24 @@
 
 import * as PMS from "./pms/pms.js";
 import * as Gfx from "./gfx/gfx.js";
-import * as fmt from "./support/format.js";
-import * as img from "./support/image.js";
-import * as xMath from "./support/math.js";
+import * as fmt from "./common/format.js";
+import * as img from "./common/image.js";
+import * as xMath from "./common/math.js";
 import * as ui from "./ui/ui.js";
 
 // everything else
 
-import * as buffer_reader from "./support/buffer.reader.js";
-import * as buffer_writer from "./support/buffer.writer.js";
-import * as color from "./support/color.js";
-import * as enm from "./support/enum.js";
-import * as event from "./support/event.js";
-import * as matrix from "./support/matrix.js";
-import * as path from "./support/path.js";
-import * as pointer from "./support/pointer.js";
-import * as rect from "./support/rect.js";
-import * as type from "./support/type.js";
-import * as iter from "./support/iter.js";
+import * as buffer_reader from "./common/buffer.reader.js";
+import * as buffer_writer from "./common/buffer.writer.js";
+import * as color from "./common/color.js";
+import * as enm from "./common/enum.js";
+import * as event from "./common/event.js";
+import * as matrix from "./common/matrix.js";
+import * as path from "./common/path.js";
+import * as pointer from "./common/pointer.js";
+import * as rect from "./common/rect.js";
+import * as type from "./common/type.js";
+import * as iter from "./common/iter.js";
 
 import * as map from "./map/map.js";
 
@@ -69,7 +69,7 @@ export const Polywonks = (() => {
     };
 
     const modules = [
-        // support
+        // common
         buffer_reader,
         buffer_writer,
         color,

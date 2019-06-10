@@ -1,11 +1,11 @@
 import * as PMS from "../pms/pms.js";
-import * as fmt from "../support/format.js";
+import * as fmt from "../common/format.js";
 import { cfg, ExportMode } from "../settings.js";
-import { Rect } from "../support/rect.js";
-import { Color } from "../support/color.js";
-import { ValueType } from "../support/type.js";
-import { Path } from "../support/path.js";
-import { iter } from "../support/iter.js";
+import { Rect } from "../common/rect.js";
+import { Color } from "../common/color.js";
+import { ValueType } from "../common/type.js";
+import { Path } from "../common/path.js";
+import { iter } from "../common/iter.js";
 import { Attribute } from "./attribute.js";
 import { Node } from "./node.js";
 import { ResourcesNode } from "./resources.js";

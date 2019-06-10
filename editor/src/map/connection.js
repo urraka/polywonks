@@ -1,4 +1,4 @@
-import * as xMath from "../support/math.js";
+import * as xMath from "../common/math.js";
 import { cfg } from "../settings.js";
 import { Node } from "./node.js";
 import { Attribute } from "./attribute.js";

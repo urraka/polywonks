@@ -1,4 +1,4 @@
-import { EventEmitter } from "./support/event.js";
+import { EventEmitter } from "./common/event.js";
 
 const Modifiers = ["Meta", "Ctrl", "Alt", "Shift"];
 

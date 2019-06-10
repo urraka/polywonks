@@ -1,4 +1,4 @@
-import { Path } from "../../support/path.js";
+import { Path } from "../../common/path.js";
 import { ResourceNode, TriangleNode } from "../../map/map.js";
 import { Clipboard } from "../../clipboard.js";
 import { EditorCommand } from "../command.js";

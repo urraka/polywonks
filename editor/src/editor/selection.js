@@ -1,4 +1,4 @@
-import { EventEmitter } from "../support/event.js";
+import { EventEmitter } from "../common/event.js";
 
 export class Selection extends EventEmitter {
     constructor(editor) {

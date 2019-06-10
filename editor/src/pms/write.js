@@ -1,4 +1,4 @@
-import { BufferWriter } from "../support/buffer.writer.js";
+import { BufferWriter } from "../common/buffer.writer.js";
 
 export function pms_write(map) {
     const w = new BufferWriter();

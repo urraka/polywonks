@@ -1,4 +1,4 @@
-import { Path } from "../support/path.js";
+import { Path } from "../common/path.js";
 import { Node } from "./node.js";
 
 export class ResourceNode extends Node {
