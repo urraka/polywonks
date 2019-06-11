@@ -13,9 +13,12 @@ export class MapProperties extends EventEmitter {
         this.element = this.sheet.element;
         this.element.classList.add("map-properties");
         this.editor = editor;
+        this.onAttributeChange = this.onAttributeChange.bind(this);
+        this.sheet.on("propertyinput", e => this.onPropertyInput(e));
         this.sheet.on("propertychange", e => this.onPropertyChange(e));
         this.editor.on("selectionchange", () => this.onSelectionChange());
-        this.editor.map.on("attributechange", e => this.onAttributeChange(e));
+        this.editor.map.on("attributechange", this.onAttributeChange);
+        this.command = null;
         this.node = this.editor.map;
     }
 
@@ -51,31 +54,39 @@ export class MapProperties extends EventEmitter {
         }
     }
 
-    onPropertyChange(event) {
-        const key = event.property.key;
-        const value = event.property.value;
+    onPropertyChange({ property }) {
+        this.changeValue(property.key, property.value);
+        this.command = null;
+    }
+
+    onPropertyInput({ property }) {
+        this.changeValue(property.key, property.currentValue);
+    }
+
+    onSelectionChange() {
+        this.command = null;
+        this.node = iter(this.editor.selection.nodes).first() || this.editor.map;
+    }
+
+    changeValue(key, value) {
+        this.editor.map.off("attributechange", this.onAttributeChange);
+        if (this.command) this.editor.undo(this.command);
+        this.command = new EditorCommand(this.editor);
         const type = this.node.attributes.get(key).dataType;
         const layer = this.node.closest("layer");
-        const command = new EditorCommand(this.editor);
         const selection = this.editor.selection;
-
         const sameLayerType = (node) => {
             const nodeLayer = node.closest("layer");
             return nodeLayer && nodeLayer.attr("type") === layer.attr("type");
         };
-
         for (const node of (selection.nodes.size > 0 ? selection.nodes : [this.node])) {
             if (node.attributes.has(key) && node.attributes.get(key).dataType === type &&
                 (type !== PMS.PolyType || sameLayerType(node))
             ) {
-                command.attr(node, key, value);
+                this.command.attr(node, key, value);
             }
         }
-
-        this.editor.do(command);
-    }
-
-    onSelectionChange() {
-        this.node = iter(this.editor.selection.nodes).first() || this.editor.map;
+        this.command = this.editor.do(this.command);
+        this.editor.map.on("attributechange", this.onAttributeChange);
     }
 }
