@@ -38,7 +38,7 @@ class TransformFunction extends EditorFunction {
         const command = new EditorCommand(this.editor);
         command.on("willchange", this.onCommandWillChange);
         const transform = this.computeTransform(this.origin());
-        for (const node of this.nodes()) {
+        for (const node of new Set(this.nodes())) {
             this.applyTransform(command, node, transform);
         }
         this.editor.do(command);
