@@ -13,8 +13,7 @@ class TransformFunction extends EditorFunction {
     }
 
     get enabled() {
-        const sel = this.editor.selection.nodes;
-        return sel.size > 0 && iter(sel).some(node => node.containsTransformable());
+        return !!iter(this.nodes()).first();
     }
 
     *nodes() {

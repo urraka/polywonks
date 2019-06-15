@@ -250,13 +250,6 @@ export class Node extends EventEmitter {
         }
     }
 
-    containsTransformable() {
-        for (const _ of this.nodesTransformable()) {
-            return true;
-        }
-        return false;
-    }
-
     get isTransformable() {
         return false;
     }
