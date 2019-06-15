@@ -63,33 +63,21 @@ class TransformFunction extends EditorFunction {
     }
 }
 
-class FlipHorizontalFunction extends TransformFunction {
+class FlipFunction extends TransformFunction {
+    get scaleX() { return 1; }
+    get scaleY() { return 1; }
+    get sizeAttributeName() { return ""; }
+
     computeTransform({ x, y }) {
         return Mat2d.translate(x, y)
-            .multiply(Mat2d.scale(-1, 1))
+            .multiply(Mat2d.scale(this.scaleX, this.scaleY))
             .multiply(Mat2d.translate(-x, -y));
     }
 
     applyTransform(command, node, transform) {
         super.applyTransform(command, node, transform);
         if (node instanceof SceneryNode) {
-            command.attr(node, "width", -node.attr("width"));
-            command.attr(node, "rotation", normalizeAngle(-node.attr("rotation")));
-        }
-    }
-}
-
-class FlipVerticalFunction extends TransformFunction {
-    computeTransform({ x, y }) {
-        return Mat2d.translate(x, y)
-            .multiply(Mat2d.scale(1, -1))
-            .multiply(Mat2d.translate(-x, -y));
-    }
-
-    applyTransform(command, node, transform) {
-        super.applyTransform(command, node, transform);
-        if (node instanceof SceneryNode) {
-            command.attr(node, "height", -node.attr("height"));
+            command.attr(node, this.sizeAttributeName, -node.attr(this.sizeAttributeName));
             command.attr(node, "rotation", normalizeAngle(-node.attr("rotation")));
         }
     }
@@ -110,6 +98,18 @@ class RotateFunction extends TransformFunction {
             command.attr(node, "rotation", normalizeAngle(node.attr("rotation") + this.rotationAngle));
         }
     }
+}
+
+class FlipHorizontalFunction extends FlipFunction {
+    get scaleX() { return -1; }
+    get scaleY() { return 1; }
+    get sizeAttributeName() { return "width"; }
+}
+
+class FlipVerticalFunction extends FlipFunction {
+    get scaleX() { return 1; }
+    get scaleY() { return -1; }
+    get sizeAttributeName() { return "height"; }
 }
 
 class Rotate90CwFunction extends RotateFunction {
