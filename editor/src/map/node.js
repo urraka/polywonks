@@ -241,6 +241,26 @@ export class Node extends EventEmitter {
         }
     }
 
+    *nodesTransformable() {
+        if (this.isTransformable) {
+            yield this;
+        }
+        for (const childNode of this.children()) {
+            yield* childNode.nodesTransformable();
+        }
+    }
+
+    containsTransformable() {
+        for (const _ of this.nodesTransformable()) {
+            return true;
+        }
+        return false;
+    }
+
+    get isTransformable() {
+        return false;
+    }
+
     get rootNode() {
         let node = this;
         while (node.parentNode) {

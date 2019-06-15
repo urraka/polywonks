@@ -33,6 +33,13 @@ class Iter {
         return result;
     }
 
+    some(fn) {
+        for (const item of this.iterable) {
+            if (fn(item)) return true;
+        }
+        return false;
+    }
+
     find(fn) {
         for (const item of this.iterable) {
             if (fn(item)) return item;

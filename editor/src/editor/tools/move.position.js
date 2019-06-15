@@ -1,7 +1,8 @@
 import { Mat2d } from "../../common/matrix.js";
-import { TriangleNode, ConnectionNode, PivotNode } from "../../map/map.js";
+import { PivotNode, LayerNode } from "../../map/map.js";
 import { SnapSource } from "../snapping.js";
 import { MoveTool } from "./move.js";
+import { iter } from "../../common/iter.js";
 
 export class MovePositionTool extends MoveTool {
     constructor() {
@@ -24,22 +25,20 @@ export class MovePositionTool extends MoveTool {
     }
 
     filterSelection() {
-        const nodes = new Set();
-        for (const node of this.editor.selection.nodes) {
-            if (node.hasPosition && !(node instanceof PivotNode)) {
-                nodes.add(node);
-            } else if (node instanceof TriangleNode) {
-                for (const vertex of node.children("vertex")) {
-                    nodes.add(vertex);
+        const sel = this.editor.selection.nodes;
+        if (sel.size === 1 && (iter(sel).first() instanceof PivotNode)) {
+            return new Set(sel);
+        } else {
+            const nodes = new Set();
+            for (const selNode of sel) {
+                if (selNode !== this.editor.map && !(selNode instanceof LayerNode)) {
+                    for (const node of selNode.nodesTransformable()) {
+                        nodes.add(node);
+                    }
                 }
-            } else if (node instanceof ConnectionNode) {
-                nodes.add(node.parentNode);
-                nodes.add(node.attr("waypoint"));
-            } else if ((node instanceof PivotNode) && this.editor.selection.nodes.size === 1) {
-                nodes.add(node);
             }
+            return nodes;
         }
-        return nodes;
     }
 
     moveNodes() {

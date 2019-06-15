@@ -1,4 +1,5 @@
 import { ValueType } from "../common/type.js";
+import { EventEmitter } from "../common/event.js";
 
 class AttrCommand {
     constructor(ownerCommand, node, key, value) {
@@ -90,8 +91,9 @@ class RelocateCommand {
     undo() { this.map.path = this.revertPath; }
 }
 
-export class EditorCommand {
+export class EditorCommand extends EventEmitter {
     constructor(editor) {
+        super();
         this.editor = editor;
         this.selection = new Set(editor.selection.nodes);
         this.commands = [];
@@ -102,19 +104,23 @@ export class EditorCommand {
     }
 
     do() {
+        this.emit("willchange", { action: "do" });
         const sel = new Set(this.selection);
         for (const cmd of this.commands) {
             cmd.do(sel);
         }
         this.editor.selection.replace(sel);
+        this.emit("change", { action: "do" });
     }
 
     undo() {
+        this.emit("willchange", { action: "undo" });
         const sel = new Set(this.selection);
         for (let i = this.commands.length - 1; i >= 0; i--) {
             this.commands[i].undo(sel);
         }
         this.editor.selection.replace(sel);
+        this.emit("change", { action: "undo" });
     }
 
     push(cmdType, ...args) {

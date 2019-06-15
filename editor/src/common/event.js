@@ -23,7 +23,7 @@ export class EventEmitter {
 
     once(type, listener) {
         const wrapper = (...args) => {
-            this.remove(type, wrapper);
+            this.off(type, wrapper);
             listener.call(this, ...args);
         };
         this.on(type, wrapper);

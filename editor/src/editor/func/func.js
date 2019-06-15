@@ -1,4 +1,6 @@
 import "./arrange.js";
+import "./transform.js";
+import "./texture.js";
 import "./relocate.js";
 import "./save.js";
 import "./export.js";

@@ -14,6 +14,7 @@ export class ColliderNode extends Node {
     }
 
     get nodeName() { return "collider"; }
+    get isTransformable() { return true; }
     get hasPosition() { return true; }
     get x() { return this.attr("x"); }
     get y() { return this.attr("y"); }

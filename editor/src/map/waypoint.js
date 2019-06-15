@@ -22,8 +22,13 @@ export class WaypointNode extends Node {
 
     get nodeName() { return "waypoint"; }
     get hasPosition() { return true; }
+    get isTransformable() { return true; }
     get x() { return this.attr("x"); }
     get y() { return this.attr("y"); }
+
+    *nodesTransformable() {
+        yield this;
+    }
 
     fromPMS(waypoint, waypointNodes) {
         this.attr("x", waypoint.x);

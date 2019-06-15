@@ -1,3 +1,8 @@
+export function normalizeAngle(x) {
+    x = (x + Math.PI) % (2 * Math.PI);
+    return x < 0 ? x + Math.PI : x - Math.PI;
+}
+
 export function mod(a, b) {
     return ((a % b) + b) % b;
 }

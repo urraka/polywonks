@@ -15,6 +15,7 @@ export class SpawnNode extends Node {
 
     get nodeName() { return "spawn"; }
     get hasPosition() { return true; }
+    get isTransformable() { return true; }
     get x() { return this.attr("x"); }
     get y() { return this.attr("y"); }
 

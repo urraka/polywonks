@@ -23,6 +23,7 @@ export class SceneryNode extends Node {
 
     get nodeName() { return "scenery"; }
     get hasPosition() { return true; }
+    get isTransformable() { return true; }
     get x() { return this.attr("x"); }
     get y() { return this.attr("y"); }
 
@@ -42,17 +43,20 @@ export class SceneryNode extends Node {
         return 0;
     }
 
-    static fromPMS(prop, imageNodes, version) {
-        let offset = { x: 0, y: 0 };
-
+    static correctionOffset(version, rotation) {
         if (version === ExportMode.Soldat171) {
-            offset = Mat2d.translate(0, 1)
-                .multiply(Mat2d.rotate(prop.rotation))
+            return Mat2d.translate(0, 1)
+                .multiply(Mat2d.rotate(rotation))
                 .multiply(Mat2d.translate(0, -1))
                 .multiply({ x: 0, y: 0 });
+        } else {
+            return { x: 0, y: 0 };
         }
+    }
 
+    static fromPMS(prop, imageNodes, version) {
         const node = new SceneryNode();
+        const offset = SceneryNode.correctionOffset(version, prop.rotation);
         node.append(new PivotNode());
         node.attr("image", imageNodes[prop.style - 1]);
         node.attr("x", prop.x + offset.x);
@@ -65,24 +69,6 @@ export class SceneryNode extends Node {
     }
 
     toPMS(imageNodes, version) {
-        const topleft = Mat2d.transform(
-            this.attr("x"),
-            this.attr("y"),
-            this.pivotX,
-            this.pivotY,
-            1, 1,
-            this.attr("rotation")
-        ).multiply({ x: 0, y: 0 });
-
-        let offset = { x: 0, y: 0 };
-
-        if (version === ExportMode.Soldat171) {
-            offset = Mat2d.translate(0, 1)
-                .multiply(Mat2d.rotate(this.attr("rotation")))
-                .multiply(Mat2d.translate(0, -1))
-                .multiply({ x: 0, y: 0 });
-        }
-
         const layerTypes = [
             LayerType.SceneryBack,
             LayerType.SceneryMiddle,
@@ -93,6 +79,8 @@ export class SceneryNode extends Node {
         const layerType = layer ? LayerType.value(layer.attr("type")) : -1;
         const image = this.attr("image");
         const imageIndex = imageNodes.indexOf(image);
+        const topleft = this.computeTransform().multiply({ x: 0, y: 0 });
+        const offset = SceneryNode.correctionOffset(version, this.attr("rotation"));
 
         const prop = new PMS.Prop();
         prop.active = true;
@@ -110,6 +98,17 @@ export class SceneryNode extends Node {
         return prop;
     }
 
+    computeTransform() {
+        return Mat2d.transform(
+            this.attr("x"),
+            this.attr("y"),
+            this.pivotX,
+            this.pivotY,
+            1, 1,
+            this.attr("rotation")
+        );
+    }
+
     computeVertices(texture = null) {
         let dx = 0, dy = 0;
 
@@ -125,16 +124,7 @@ export class SceneryNode extends Node {
             dx, 1 - dx, dy, 1 - dy
         );
 
-        const transform = Mat2d.transform(
-            this.attr("x"),
-            this.attr("y"),
-            this.pivotX,
-            this.pivotY,
-            1, 1,
-            this.attr("rotation")
-        );
-
-        return sprite.computeVertices(this.attr("color"), transform);
+        return sprite.computeVertices(this.attr("color"), this.computeTransform());
     }
 
     intersectsPoint(x, y) {

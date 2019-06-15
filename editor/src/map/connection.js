@@ -13,6 +13,11 @@ export class ConnectionNode extends Node {
         return "connection";
     }
 
+    *nodesTransformable() {
+        if (this.parentNode) yield this.parentNode;
+        if (this.attr("waypoint")) yield this.attr("waypoint");
+    }
+
     intersectsPoint(x, y, scale) {
         const d = 0.5 * cfg("editor.vertex-size") / scale;
         const a = this.parentNode;

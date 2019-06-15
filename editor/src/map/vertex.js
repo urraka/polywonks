@@ -17,6 +17,7 @@ export class VertexNode extends Node {
 
     get nodeName() { return "vertex"; }
     get hasPosition() { return true; }
+    get isTransformable() { return true; }
     get x() { return this.attr("x"); }
     get y() { return this.attr("y"); }
     get u() { return this.attr("u"); }
