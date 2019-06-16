@@ -54,6 +54,10 @@ export class MoveTool extends Tool {
         this.editor.selection.on("change", this.onSelectionChange);
         this.editor.on("change", this.onEditorChange);
         this.emit("statuschange");
+
+        if (this.editor.cursor.active) {
+            this.onPointerMove();
+        }
     }
 
     onDeactivate() {

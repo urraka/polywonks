@@ -40,6 +40,7 @@ export class SelectTool extends Tool {
         this.editor.element.addEventListener("mouseleave", this.onMouseLeave);
         this.selection.on("change", this.onSelectionChange);
         this.emit("statuschange");
+        this.updatePreviewNodes();
     }
 
     onDeactivate() {
@@ -73,7 +74,11 @@ export class SelectTool extends Tool {
     }
 
     get rootNode() {
-        return this.editor.activeLayer || this.editor.map;
+        if (this.mode === "subtract") {
+            return this.editor.map;
+        } else {
+            return this.editor.activeLayer || this.editor.map;
+        }
     }
 
     onCommand(command) {
@@ -95,6 +100,11 @@ export class SelectTool extends Tool {
     updatePreviewNodes() {
         this.editor.previewNodes.clear();
         this.editor.reactiveNode = null;
+        this.editor.redraw();
+
+        if (!this.editor.cursor.active) {
+            return;
+        }
 
         if (this.rect) {
             const nodes = this.rect.width > 0 && this.rect.height > 0 ?
@@ -145,8 +155,6 @@ export class SelectTool extends Tool {
                 }
             }
         }
-
-        this.editor.redraw();
     }
 
     onSelectionChange() {

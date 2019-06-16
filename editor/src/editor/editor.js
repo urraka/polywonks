@@ -362,15 +362,11 @@ export class Editor extends ui.Panel {
 
     onSelectionChange() {
         const node = iter(this.selection.nodes).first();
-
         if (node === this.map) {
             this.activeLayer = null;
         } else if (node instanceof LayerNode) {
             this.activeLayer = node;
-        } else if (node && this.activeLayer) {
-            this.activeLayer = node.closest("layer") || this.activeLayer;
         }
-
         this.emit("selectionchange");
         this.redraw();
     }
