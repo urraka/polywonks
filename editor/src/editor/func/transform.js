@@ -5,7 +5,7 @@ import { SceneryNode, LayerNode } from "../../map/map.js";
 import { EditorCommand } from "../command.js";
 import { EditorFunction } from "./base.js";
 
-class TransformFunction extends EditorFunction {
+export class TransformFunction extends EditorFunction {
     constructor(editor) {
         super(editor);
         this.onCommandWillChange = this.onCommandWillChange.bind(this);
@@ -63,7 +63,7 @@ class TransformFunction extends EditorFunction {
     }
 }
 
-class FlipFunction extends TransformFunction {
+export class FlipFunction extends TransformFunction {
     get scaleX() { return 1; }
     get scaleY() { return 1; }
     get sizeAttributeName() { return ""; }
@@ -83,7 +83,7 @@ class FlipFunction extends TransformFunction {
     }
 }
 
-class RotateFunction extends TransformFunction {
+export class RotateFunction extends TransformFunction {
     get rotationAngle() { return 0; }
 
     computeTransform({ x, y }) {
@@ -102,12 +102,10 @@ class RotateFunction extends TransformFunction {
 
 class FlipHorizontalFunction extends FlipFunction {
     get scaleX() { return -1; }
-    get scaleY() { return 1; }
     get sizeAttributeName() { return "width"; }
 }
 
 class FlipVerticalFunction extends FlipFunction {
-    get scaleX() { return 1; }
     get scaleY() { return -1; }
     get sizeAttributeName() { return "height"; }
 }

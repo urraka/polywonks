@@ -75,17 +75,9 @@ export class MoveTextureTool extends MoveTool {
             } : vertex
         ));
 
-        const m = new Mat3x3();
-        m[0] = a.x; m[3] = b.x; m[6] = c.x;
-        m[1] = a.y; m[4] = b.y; m[7] = c.y;
-        m[2] = 1;   m[5] = 1;   m[8] = 1;
-
-        const n = new Mat3x3();
-        n[0] = a.u; n[3] = b.u; n[6] = c.u;
-        n[1] = a.v; n[4] = b.v; n[7] = c.v;
-        n[2] = 1;   n[5] = 1;   n[8] = 1;
-
-        const mInv = m.inverse();
-        return mInv ? n.multiply(mInv) : null;
+        return Mat3x3.triangleToTriangleTransform(
+            a.x, a.y, b.x, b.y, c.x, c.y,
+            a.u, a.v, b.u, b.v, c.u, c.v,
+        );
     }
 }

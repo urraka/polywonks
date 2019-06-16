@@ -159,4 +159,22 @@ export class Mat3x3 extends Float32Array {
             return r;
         }
     }
+
+    static triangleToTriangleTransform(
+        ax, ay, bx, by, cx, cy,
+        px, py, qx, qy, rx, ry,
+    ) {
+        const m = new Mat3x3();
+        m[0] = ax; m[3] = bx; m[6] = cx;
+        m[1] = ay; m[4] = by; m[7] = cy;
+        m[2] = 1;   m[5] = 1;   m[8] = 1;
+
+        const n = new Mat3x3();
+        n[0] = px; n[3] = qx; n[6] = rx;
+        n[1] = py; n[4] = qy; n[7] = ry;
+        n[2] = 1;   n[5] = 1;   n[8] = 1;
+
+        const mInv = m.inverse();
+        return mInv ? n.multiply(mInv) : null;
+    }
 }
