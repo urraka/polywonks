@@ -27,6 +27,7 @@ const DefaultBindings = {
     "Alt+Ctrl": "select.cycle",
     "Shift": "+select.add",
     "Alt": "+select.subtract",
+    "V": "selection-vert-switch",
     "E": ["set-tool", { tool: "pan" }],
     "Q": ["set-tool", { tool: "select" }],
     "M": ["set-tool", { tool: "move" }],

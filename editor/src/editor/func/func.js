@@ -1,3 +1,4 @@
+import "./selection.js";
 import "./arrange.js";
 import "./transform.js";
 import "./texture.js";

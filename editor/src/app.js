@@ -99,6 +99,9 @@ export class App extends ui.Panel {
                 ["Copy", "copy"],
                 ["Paste", "paste"],
             ]],
+            ["Selection", [
+                ["Switch Vertices/Polygons", "selection-vert-switch"],
+            ]],
             ["Object", [
                 ["Texture", [
                     ["Reset", "texture-reset"],
