@@ -1,10 +1,11 @@
 import { EventEmitter } from "./event.js";
 
 export class Pointer extends EventEmitter {
-    constructor() {
+    constructor(element = null, button = 0) {
         super();
-        this.element = null;
-        this.button = 0;
+        this.activated = false;
+        this.element = element;
+        this.button = button;
         this.dragging = false;
         this.pointerId = null;
         this.onMouseDown = this.onMouseDown.bind(this);
@@ -14,9 +15,10 @@ export class Pointer extends EventEmitter {
         this.onPointerCancel = this.onPointerCancel.bind(this);
     }
 
-    activate(element, button) {
-        if (element !== this.element || button !== this.button) {
+    activate(element = this.element, button = this.button) {
+        if (!this.activated || element !== this.element || button !== this.button) {
             this.deactivate();
+            this.activated = true;
             this.element = element;
             this.button = button;
             this.element.addEventListener("pointerdown", this.onPointerDown);
@@ -33,7 +35,7 @@ export class Pointer extends EventEmitter {
             this.element.removeEventListener("mousedown", this.onMouseDown);
             this.element.removeEventListener("mouseup", this.onMouseUp);
             this.element.removeEventListener("mousemove", this.onMouseMove);
-            this.element = null;
+            this.activated = false;
         }
     }
 

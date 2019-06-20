@@ -18,13 +18,18 @@ export class MoveTool extends Tool {
         this.handle = null;
         this.selectTool = null;
         this.movement = new MovementThreshold();
-        this.pointer = new Pointer();
-        this.pointer.on("begin", e => this.onPointerBegin(e.mouseEvent));
-        this.pointer.on("move", e => this.onPointerMove(e.mouseEvent));
-        this.pointer.on("end", e => this.onPointerEnd(e.mouseEvent));
+        this.pointers = [new Pointer(null, 0), new Pointer(null, 2)];
+        this.onPointerBegin = this.onPointerBegin.bind(this);
+        this.onPointerMove = this.onPointerMove.bind(this);
+        this.onPointerEnd = this.onPointerEnd.bind(this);
         this.onSelectStatusChange = this.onSelectStatusChange.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.onEditorChange = this.onEditorChange.bind(this);
+        for (const pointer of this.pointers) {
+            pointer.on("begin", this.onPointerBegin);
+            pointer.on("move", this.onPointerMove);
+            pointer.on("end", this.onPointerEnd);
+        }
     }
 
     get status() {
@@ -48,7 +53,8 @@ export class MoveTool extends Tool {
         this.handle = this.createHandle();
         this.selectTool = this.editor.tools.select;
         this.movement.reset(cfg("editor.drag-threshold"));
-        this.pointer.activate(this.editor.element, 0);
+        this.pointers[0].activate(this.editor.element);
+        this.pointers[1].activate(this.editor.element);
         this.selectTool.activate(this.editor);
         this.selectTool.on("statuschange", this.onSelectStatusChange);
         this.editor.selection.on("change", this.onSelectionChange);
@@ -65,7 +71,8 @@ export class MoveTool extends Tool {
         this.editor.selection.off("change", this.onSelectionChange);
         this.editor.off("change", this.onEditorChange);
         this.selectTool.deactivate();
-        this.pointer.deactivate();
+        this.pointers[0].deactivate();
+        this.pointers[1].deactivate();
         this.emit("statuschange");
     }
 
@@ -118,7 +125,13 @@ export class MoveTool extends Tool {
     }
 
     onPointerBegin(event) {
-        this.movement.click(event);
+        this.movement.click(event.mouseEvent);
+        if (event.target === this.pointers[1]) {
+            this.selectTool.deactivate();
+            this.pointers[0].deactivate();
+        } else {
+            this.pointers[1].deactivate();
+        }
         if (!this.selectTool.activated) {
             this.handleStart = {
                 x: this.handle.x,
@@ -132,18 +145,22 @@ export class MoveTool extends Tool {
     }
 
     onPointerEnd(event) {
-        this.movement.click(event);
+        this.movement.click(event.mouseEvent);
         this.handleStart = null;
         this.handleOffset = null;
         this.dragging = false;
         this.command = null;
         this.handle.snapResult = null;
+        this.pointers[0].activate();
+        this.pointers[1].activate();
         setTimeout(() => this.onPointerMove(event));
     }
 
     onPointerMove(event) {
-        if (this.pointer.dragging && !this.selectTool.activated) {
-            this.dragging = this.dragging || this.movement.moved(event);
+        const pointer = event ? event.target : null;
+
+        if (pointer && pointer.dragging && !this.selectTool.activated) {
+            this.dragging = this.dragging || this.movement.moved(event.mouseEvent);
             if (this.dragging) {
                 if (this.handle.active) {
                     this.moveHandle();
@@ -190,7 +207,8 @@ export class MoveTool extends Tool {
         this.editor.off("change", this.onEditorChange);
 
         if (this.command && !this.editor.undo(this.command)) {
-            this.pointer.cancel();
+            this.pointers[0].cancel();
+            this.pointers[1].cancel();
         } else {
             this.command = new EditorCommand(this.editor);
 
