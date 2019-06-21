@@ -123,7 +123,7 @@ export class App extends ui.Panel {
                 ["Bring to Front", "bring-to-front"],
             ]],
             ["View", [
-                ["Reset Viewport", "reset-viewport"],
+                ["Reset Viewport YO", "reset-viewport"],
                 ["Zoom In", "zoom-in"],
                 ["Zoom Out", "zoom-out"],
                 [],
