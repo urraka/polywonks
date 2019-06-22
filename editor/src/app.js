@@ -70,6 +70,7 @@ export class App extends ui.Panel {
         this.statusbar = this.append(new ui.Statusbar());
         this.statusbar.addItem("tool", "left", 200);
         this.statusbar.addItem("layer", "left", 200, "left");
+        this.statusbar.addItem("wireframeToggle", "right", 20, "right");
         this.statusbar.addItem("zoom", "right", 100, "right");
         this.statusbar.addItem("cursor", "right", 100, "right");
     }

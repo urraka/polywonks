@@ -262,6 +262,7 @@ export class Editor extends ui.Panel {
             tool: () => this.tools.current.status,
             layer: () => "Layer: " + (this.activeLayer || "None").toString(),
             cursor: () => this.cursor.status,
+            wireframeToggle: () => this.createWireframeToggle(),
             zoom: () => Math.round(100 * this.view.scale) + "%",
         });
 
@@ -272,6 +273,14 @@ export class Editor extends ui.Panel {
 
     get width() { return this._width || 0; }
     get height() { return this._height || 0; }
+
+    createWireframeToggle() {
+        const button = ui.elem("button",);
+        button.textContent = cfg("view.wireframe") ? "W" : "w";
+        button.setAttribute("title", "Wireframe");
+        button.addEventListener("click", () => this.onCommand(toggle-wireframe));
+        return button;
+    }
 
     onResize() {
         this._width = this.element.clientWidth;
@@ -381,6 +390,9 @@ export class Editor extends ui.Panel {
             zoom.activate(this);
             zoom.zoom(1, this.width / 2, this.height / 2);
             zoom.deactivate();
+        }
+        if (setting === "view.wireframe") {
+            this.statusChange("wireframeToggle");
         }
     }
 
