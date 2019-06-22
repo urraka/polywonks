@@ -6,6 +6,7 @@ import { Renderer } from "./render.js";
 import { Sidebar } from "./sidebar.js";
 import { Settings, cfg } from "./settings.js";
 import { KeyBindings } from "./keybindings.js";
+import { AppMenu } from "./menu.js";
 import { styles } from "./app.styles.js";
 
 ui.registerStyles(styles);
@@ -14,8 +15,7 @@ export class App extends ui.Panel {
     constructor() {
         super("app");
 
-        this.titlebar = null;
-        this.menuItems = null;
+        this.menu = null;
         this.commands = null;
         this.tabs = null;
         this.sidebar = null;
@@ -26,16 +26,14 @@ export class App extends ui.Panel {
         this.createUserInterface();
         this.setupEvents();
         this.openDefault();
-        this.updateMenuItems();
     }
 
     setupEvents() {
-        this.onEditorFunctionChange = this.onEditorFunctionChange.bind(this);
         this.onEditorStatusChange = this.onEditorStatusChange.bind(this);
         this.onKeyBindingsCommand = e => this.onCommand(e.command, e.params);
 
         this.keybindings.on("command", this.onKeyBindingsCommand);
-        this.titlebar.menu.on("itemclick", e => this.onCommand(e.item.key));
+        this.menu.on("command", e => this.onCommand(e.command));
         this.tabs.on("change", e => this.onTabChange(e));
         this.tabs.on("willchange", e => this.onTabWillChange(e));
         this.tabs.on("close", e => this.onTabClose(e));
@@ -60,9 +58,7 @@ export class App extends ui.Panel {
     }
 
     createUserInterface() {
-        this.titlebar = this.append(new ui.TitleBar());
-        this.menuItems = this.createMenus(this.titlebar.menu);
-
+        this.menu = this.append(new AppMenu(this));
         const clientArea = this.append(new ui.Panel("client-area"));
         this.sidebar = clientArea.append(new Sidebar(this));
         this.tabs = clientArea.append(new ui.TabView());
@@ -72,96 +68,6 @@ export class App extends ui.Panel {
         this.statusbar.addItem("layer", "left", 200, "left");
         this.statusbar.addItem("zoom", "right", 100, "right");
         this.statusbar.addItem("cursor", "right", 100, "right");
-    }
-
-    createMenus(menubar) {
-        const menus = [
-            ["File", [
-                ["New", "new-map"],
-                [],
-                ["Open...", "show-explorer"],
-                [],
-                ["Save", "save"],
-                ["Save As...", "save-as"],
-                ["Download...", "save-download"],
-                [],
-                ["Export", "export"],
-                ["Export As...", "export-as"],
-                ["Export Download...", "export-download"],
-            ]],
-            ["Edit", [
-                ["Undo", "undo"],
-                ["Redo", "redo"],
-                [],
-                ["Delete", "delete"],
-                [],
-                ["Cut", "cut"],
-                ["Copy", "copy"],
-                ["Paste", "paste"],
-            ]],
-            ["Selection", [
-                ["Switch Vertices/Polygons", "selection-vert-switch"],
-            ]],
-            ["Object", [
-                ["Texture", [
-                    ["Reset", "texture-reset"],
-                    [],
-                    ["Rotate 90° CW", "texture-rotate-90-cw"],
-                    ["Rotate 90° CCW", "texture-rotate-90-ccw"],
-                    ["Flip Horizontal", "texture-flip-horizontal"],
-                    ["Flip Vertical", "texture-flip-vertical"],
-                ]],
-                [],
-                ["Rotate 90° CW", "rotate-90-cw"],
-                ["Rotate 90° CCW", "rotate-90-ccw"],
-                ["Flip Horizontal", "flip-horizontal"],
-                ["Flip Vertical", "flip-vertical"],
-                [],
-                ["Send to Back", "send-to-back"],
-                ["Send Backward", "send-backward"],
-                ["Bring Forward", "bring-forward"],
-                ["Bring to Front", "bring-to-front"],
-            ]],
-            ["View", [
-                ["Reset Viewport", "reset-viewport"],
-                ["Zoom In", "zoom-in"],
-                ["Zoom Out", "zoom-out"],
-                [],
-                ["Snap to Grid", "toggle-snap-to-grid"],
-                ["Snap to Objects", "toggle-snap-to-objects"],
-                [],
-                ["Show Grid", "toggle-grid"],
-                ["Show Background", "toggle-background"],
-                ["Show Vertices", "toggle-vertices"],
-                ["Show Wireframe", "toggle-wireframe"],
-                ["Polygons", [
-                    ["Texture", "show-polygon-texture"],
-                    ["Plain Color", "show-polygon-plain"],
-                    ["Hide", "show-polygon-none"],
-                ]],
-            ]],
-            ["Help", [
-                ["Github", "browse-to-github"],
-            ]],
-        ];
-
-        const menuItems = {};
-
-        const create = (menu, submenu) => {
-            for (const item of submenu) {
-                if (item.length === 0) {
-                    menu.addItem(new ui.MenuSeparator());
-                } else if (item.length === 1 || typeof item[1] === "string") {
-                    const menuItem = menu.addItem(new ui.MenuItem(item[0], item[1]));
-                    if (item[1]) menuItems[item[1]] = menuItem;
-                } else {
-                    create(menu.addItem(new ui.MenuItem(item[0])), item[1]);
-                }
-            }
-        };
-
-        create(menubar, menus);
-        return menuItems;
     }
 
     get editor() {
@@ -231,8 +137,6 @@ export class App extends ui.Panel {
                 }
             }
         }
-
-        this.updateMenuItems();
         this.renderer.redraw();
     }
 
@@ -244,21 +148,18 @@ export class App extends ui.Panel {
 
     onTabWillChange() {
         const editor = this.editor;
-
         if (editor) {
             editor.deactivate();
-            editor.off("functionchange", this.onEditorFunctionChange);
             editor.off("statuschange", this.onEditorStatusChange);
         }
     }
 
     onTabChange() {
         const editor = this.editor;
-        editor.on("functionchange", this.onEditorFunctionChange);
         editor.on("statuschange", this.onEditorStatusChange);
         this.renderer.editor = editor;
         this.sidebar.editor = editor;
-        this.updateMenuItems();
+        this.menu.editor = editor;
         if (App.hasFocus) {
             editor.activate();
         }
@@ -267,7 +168,6 @@ export class App extends ui.Panel {
     onTabClose(event) {
         const editor = event.panel.content;
         editor.onClose(event);
-
         if (!event.defaultPrevented) {
             this.sidebar.onEditorClose(editor);
             if (this.tabs.count === 1) {
@@ -279,7 +179,6 @@ export class App extends ui.Panel {
     onEditorChange(event) {
         event.panel.title = Path.filename(event.editor.saveName);
         event.panel.modified = event.editor.modified;
-        this.updateMenuItems();
     }
 
     static get hasFocus() {
@@ -359,48 +258,6 @@ export class App extends ui.Panel {
 
     onKeyUp(event) {
         this.keybindings.onKeyUp(event);
-    }
-
-    onEditorFunctionChange(event) {
-        if (event.name in this.menuItems) {
-            const item = this.menuItems[event.name];
-            item.enabled = this.isMenuItemEnabled(item);
-        }
-    }
-
-    isMenuItemEnabled(item) {
-        if (Editor.isEditorFunction(item.key)) {
-            const editor = this.editor;
-            return !!(editor && editor.functions[item.key].enabled);
-        }
-        return true;
-    }
-
-    isMenuItemChecked(item) {
-        switch (item.key) {
-            case "toggle-snap-to-grid": return cfg("editor.snap-to-grid");
-            case "toggle-snap-to-objects": return cfg("editor.snap-to-objects");
-            case "toggle-grid": return cfg("view.grid");
-            case "toggle-background": return cfg("view.background");
-            case "toggle-vertices": return cfg("view.vertices");
-            case "toggle-wireframe": return cfg("view.wireframe");
-            case "show-polygon-texture": return cfg("view.polygons") === "texture";
-            case "show-polygon-plain": return cfg("view.polygons") === "plain";
-            case "show-polygon-none": return cfg("view.polygons") === "none";
-            default: return false;
-        }
-    }
-
-    updateMenuItem(item) {
-        item.enabled = this.isMenuItemEnabled(item);
-        item.checked = this.isMenuItemChecked(item);
-        item.keyBinding = this.keybindings.find(item.key);
-    }
-
-    updateMenuItems() {
-        for (const item of Object.values(this.menuItems)) {
-            this.updateMenuItem(item);
-        }
     }
 
     onCommand(command, params = null) {

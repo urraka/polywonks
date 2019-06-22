@@ -60,6 +60,10 @@ export class ContextMenu extends EventEmitter {
     onItemClick(item) {
         this.emit("itemclick", { item });
     }
+
+    onMenuShow(menu) {
+        this.emit("menushow", { menu });
+    }
 }
 
 export class MenuBar extends Panel {
@@ -148,6 +152,10 @@ export class MenuBar extends Panel {
     onItemClick(item) {
         this.emit("itemclick", { item });
     }
+
+    onMenuShow(menu) {
+        this.emit("menushow", { menu });
+    }
 }
 
 export class Menu {
@@ -158,6 +166,18 @@ export class Menu {
         this.onMouseOut = this.onMouseOut.bind(this);
         this.onMouseDown = this.onMouseDown.bind(this);
         this.onMouseUp = this.onMouseUp.bind(this);
+    }
+
+    get visible() {
+        return !!this.element.parentElement;
+    }
+
+    get rootMenu() {
+        let root = this;
+        while (root instanceof Menu) {
+            root = root.ownerItem.ownerMenu;
+        }
+        return root;
     }
 
     get items() {
@@ -179,6 +199,7 @@ export class Menu {
         this.element.addEventListener("mouseout", this.onMouseOut);
         this.element.addEventListener("mousedown", this.onMouseDown);
         this.element.addEventListener("mouseup", this.onMouseUp);
+        this.rootMenu.onMenuShow(this);
     }
 
     onClose() {
@@ -240,10 +261,7 @@ export class Menu {
                 Menu.timeout(null);
                 this.onShowSubmenu(menuItem);
             } else if (event.button === 0 && menuItem.enabled) {
-                let root = this;
-                while (root instanceof Menu) {
-                    root = root.ownerItem.ownerMenu;
-                }
+                const root = this.rootMenu;
                 root.close();
                 root.onItemClick(menuItem);
             }
