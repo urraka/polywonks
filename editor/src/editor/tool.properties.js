@@ -12,6 +12,7 @@ export class ToolPropertiesItem extends ui.ListViewItem {
         this.editor.map.on("insert", e => this.onNodeInsertOrRemove(e));
         this.editor.map.on("remove", e => this.onNodeInsertOrRemove(e));
         this.tool.on("attributechange", e => this.onToolAttrChange(e));
+        this.sheet.on("propertyinput", e => this.onPropertyChange(e));
         this.sheet.on("propertychange", e => this.onPropertyChange(e));
         this.reset();
     }
@@ -27,8 +28,8 @@ export class ToolPropertiesItem extends ui.ListViewItem {
     }
 
     onPropertyChange(event) {
-        const { key, value } = event.property;
-        this.tool.attr(key, value);
+        const { key, value, currentValue = value } = event.property;
+        this.tool.attr(key, currentValue);
     }
 
     reset() {
