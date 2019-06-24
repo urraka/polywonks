@@ -6,7 +6,6 @@ class CopyFunction extends EditorFunction {
     constructor(editor) {
         super(editor);
         this.editor.selection.on("change", () => this.emit("change"));
-        Clipboard.on("change", () => this.emit("change"));
     }
 
     get enabled() {
