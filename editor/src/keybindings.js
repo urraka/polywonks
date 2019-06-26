@@ -32,6 +32,7 @@ const DefaultBindings = {
     "Q": ["set-tool", { tool: "select" }],
     "M": ["set-tool", { tool: "move" }],
     "T": ["set-tool", { tool: "texture" }],
+    "F": ["set-tool", { tool: "paint" }],
     "P": ["set-tool", { tool: "polygon" }],
     "S": ["set-tool", { tool: "scenery" }],
     "A": ["set-tool", { tool: "spawn" }],

@@ -27,6 +27,10 @@ export function distance2(ax, ay, bx, by) {
     return sqr(ax - bx) + sqr(ay - by);
 }
 
+export function distance(ax, ay, bx, by) {
+    return Math.sqrt(distance2(ax, ay, bx, by));
+}
+
 export function pointToSegmentDistance2(x, y, ax, ay, bx, by) {
     const length2 = distance2(ax, ay, bx, by);
     if (length2 === 0) return distance2(x, y, ax, ay);
@@ -126,4 +130,44 @@ export function rectIntersectsSegment(x, y, w, h, ax, ay, bx, by) {
         segmentsIntersect(x + w, y + 0, x + w, y + h, ax, ay, bx, by) ||
         segmentsIntersect(x + w, y + h, x + 0, y + h, ax, ay, bx, by) ||
         segmentsIntersect(x + 0, y + h, x + 0, y + 0, ax, ay, bx, by);
+}
+
+export function triangleIntersectsSegment(ax, ay, bx, by, cx, cy, px, py, qx, qy) {
+    const A = signedTriangleArea(ax, ay, bx, by, cx, cy);
+    return triangleContainsPoint(ax, ay, bx, by, cx, cy, px, py, A) ||
+        triangleContainsPoint(ax, ay, bx, by, cx, cy, qx, qy, A) ||
+        segmentsIntersect(px, py, qx, qy, ax, ay, bx, by) ||
+        segmentsIntersect(px, py, qx, qy, bx, by, cx, cy) ||
+        segmentsIntersect(px, py, qx, qy, cx, cy, ax, ay);
+}
+
+export function triangleIncenter(ax, ay, bx, by, cx, cy) {
+    const a = distance(bx, by, cx, cy);
+    const b = distance(ax, ay, cx, cy);
+    const c = distance(ax, ay, bx, by);
+    const p = a + b + c;
+    if (p !== 0) {
+        return {
+            x: (a * ax + b * bx + c * cx) / p,
+            y: (a * ay + b * by + c * cy) / p,
+        };
+    }
+}
+
+export function linesIntersection(p0x, p0y, p1x, p1y, q0x, q0y, q1x, q1y) {
+    const rx = p1x - p0x, ry = p1y - p0y;
+    const sx = q1x - q0x, sy = q1y - q0y;
+    const unum = cross(q0x - p0x, q0y - p0y, rx, ry);
+    const uden = cross(rx, ry, sx, sy);
+    if (uden !== 0) {
+        const u = unum / uden;
+        return {
+            x: q0x + u * sx,
+            y: q0y + u * sy,
+        };
+    }
+}
+
+export function cross(ax, ay, bx, by) {
+    return ax * by - ay * bx;
 }

@@ -20,6 +20,7 @@ import { SpawnTool } from "./tools/spawn.js";
 import { ColliderTool } from "./tools/collider.js";
 import { WaypointTool } from "./tools/waypoint.js";
 import { ConnectionTool } from "./tools/connection.js";
+import { PaintTool } from "./tools/paint.js";
 import { MapExplorer } from "./map.explorer.js";
 import { MapProperties } from "./map.properties.js";
 import { Selection } from "./selection.js";
@@ -76,6 +77,7 @@ export class Editor extends ui.Panel {
             select: new SelectTool(),
             move: new MovePositionTool(),
             texture: new MoveTextureTool(),
+            paint: new PaintTool(),
             polygon: new PolygonTool(),
             scenery: new SceneryTool(),
             spawn: new SpawnTool(),
@@ -100,6 +102,7 @@ export class Editor extends ui.Panel {
             ["select", "Select"],
             ["move", "Move"],
             ["texture", "Texture"],
+            ["paint", "Paint"],
             ["polygon", "Polygons"],
             ["scenery", "Scenery"],
             ["spawn", "Spawns"],

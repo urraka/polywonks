@@ -57,37 +57,36 @@ export class TriangleNode extends Node {
     }
 
     intersectsPoint(x, y, scale) {
-        const tri = [];
-        for (const childNode of this.children()) {
-            tri.push(childNode.attr("x"), childNode.attr("y"));
-        }
-        if (tri.length === 6) {
+        const coords = this.coords();
+        if (coords.length === 6) {
             let d = cfg("editor.vertex-size") / scale;
-            const A = xMath.signedTriangleArea(...tri);
+            const A = xMath.signedTriangleArea(...coords);
             if (Math.abs(A * (scale * scale)) < (d * d)) {
                 d = 0.25 * d * d;
-                return xMath.pointToSegmentDistance2(x, y, tri[0], tri[1], tri[2], tri[3]) <= d ||
-                    xMath.pointToSegmentDistance2(x, y, tri[0], tri[1], tri[4], tri[5]) <= d ||
-                    xMath.pointToSegmentDistance2(x, y, tri[2], tri[3], tri[4], tri[5]) <= d;
+                return xMath.pointToSegmentDistance2(x, y, coords[0], coords[1], coords[2], coords[3]) <= d ||
+                    xMath.pointToSegmentDistance2(x, y, coords[0], coords[1], coords[4], coords[5]) <= d ||
+                    xMath.pointToSegmentDistance2(x, y, coords[2], coords[3], coords[4], coords[5]) <= d;
             } else {
-                return xMath.triangleContainsPoint(...tri, x, y, A);
+                return xMath.triangleContainsPoint(...coords, x, y, A);
             }
         }
     }
 
     intersectsRect(x, y, w, h) {
-        const triangle = [];
-        for (const childNode of this.children()) {
-            triangle.push(childNode.attr("x"), childNode.attr("y"));
-        }
-        return triangle.length === 6 && xMath.rectIntersectsTriangle(x, y, w, h, ...triangle);
+        const coords = this.coords();
+        return coords.length === 6 && xMath.rectIntersectsTriangle(x, y, w, h, ...coords);
     }
 
     containedByRect(x, y, w, h) {
-        const triangle = [];
-        for (const childNode of this.children()) {
-            triangle.push(childNode.attr("x"), childNode.attr("y"));
+        const coords = this.coords();
+        return coords.length === 6 && xMath.rectContainsTriangle(x, y, w, h, ...coords);
+    }
+
+    coords() {
+        const coords = [];
+        for (const vertex of this.children("vertex")) {
+            coords.push(vertex.x, vertex.y);
         }
-        return triangle.length === 6 && xMath.rectContainsTriangle(x, y, w, h, ...triangle);
+        return coords;
     }
 }
