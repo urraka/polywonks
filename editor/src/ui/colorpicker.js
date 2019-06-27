@@ -32,11 +32,14 @@ class Draggable extends EventEmitter {
     onKeyDown(event) {
         const mul = event.shiftKey ? 5 : 1;
         switch (event.key) {
+            case "Shift": break;
             case "ArrowLeft": this.move(-1 * mul, 0); break;
             case "ArrowRight": this.move(1 * mul, 0); break;
             case "ArrowUp": this.move(0, -1 * mul); break;
             case "ArrowDown": this.move(0, 1 * mul); break;
+            default: return;
         }
+        event.stopPropagation();
     }
 
     move(dx, dy) {

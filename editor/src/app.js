@@ -279,6 +279,8 @@ export class App extends ui.Panel {
             "browse-to-github": () => window.open(cfg("app.github")),
         });
 
+        document.activeElement.blur();
+
         if (commands[command]) {
             commands[command](params);
         } else if (this.editor) {
