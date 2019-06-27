@@ -4,7 +4,7 @@ import { Path } from "../common/path.js";
 import { iter } from "../common/iter.js";
 import { MapDocument, LayerNode } from "../map/map.js";
 import { File } from "../file.js";
-import { RenderView } from "../render.view.js";
+import { View } from "./view.js";
 import { cfg, Settings } from "../settings.js";
 import { EditorFunction } from "./func/func.js";
 import { SelectTool } from "./tools/select.js";
@@ -36,7 +36,7 @@ export class Editor extends ui.Panel {
         this.activated = false;
         this.openedAsDefault = false;
         this.map = map;
-        this.view = new RenderView(this);
+        this.view = new View(this);
         this.grid = new Grid(this.view);
         this.selection = new Selection(this);
         this.activeLayer = null;

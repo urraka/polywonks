@@ -1,8 +1,8 @@
-import { Mat2d } from "./common/matrix.js";
-import { EventEmitter } from "./common/event.js";
+import { Mat2d } from "../common/matrix.js";
+import { EventEmitter } from "../common/event.js";
 
 // {x, y} is in map coordinates and always maps to the center of the canvas
-export class RenderView extends EventEmitter {
+export class View extends EventEmitter {
     constructor(editor) {
         super();
         this.editor = editor;

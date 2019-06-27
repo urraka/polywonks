@@ -31,6 +31,7 @@ import * as editor_command from "./editor/command.js";
 import * as selection from "./editor/selection.js";
 import * as grid from "./editor/grid.js";
 import * as snapping from "./editor/snapping.js";
+import * as view from "./editor/view.js";
 
 import * as tool_collider from "./editor/tools/collider.js";
 import * as tool_connection from "./editor/tools/connection.js";
@@ -51,7 +52,6 @@ import * as tool_zoom from "./editor/tools/zoom.js";
 import * as app from "./app.js";
 import * as file from "./file.js";
 import * as render from "./render.js";
-import * as render_view from "./render.view.js";
 import * as settings from "./settings.js";
 import * as sidebar from "./sidebar.js";
 import * as file_explorer from "./file.explorer.js";
@@ -94,6 +94,7 @@ export const Polywonks = (() => {
         selection,
         grid,
         snapping,
+        view,
         tool_collider,
         tool_connection,
         tool_create,
@@ -114,7 +115,6 @@ export const Polywonks = (() => {
         app,
         file,
         render,
-        render_view,
         settings,
         sidebar,
         file_explorer,
