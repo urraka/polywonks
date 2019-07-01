@@ -1,6 +1,6 @@
 import { Path } from "../../common/path.js";
 import { ImageNode, TextureNode } from "../../map/map.js";
-import { File } from "../../file.js";
+import { File } from "../../app/file.js";
 import { EditorCommand } from "../command.js";
 import { EditorFunction } from "./base.js";
 

@@ -1,5 +1,5 @@
+import { cfg } from "../../app/settings.js";
 import { ColliderNode, Attribute } from "../../map/map.js";
-import { cfg } from "../../settings.js";
 import { CreateTool } from "./create.js";
 
 export class ColliderTool extends CreateTool {

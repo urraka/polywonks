@@ -1,5 +1,5 @@
-import { EventEmitter } from "./common/event.js";
-import { ClonedNodesCollection } from "./map/map.js";
+import { EventEmitter } from "../common/event.js";
+import { ClonedNodesCollection } from "../map/map.js";
 
 export class Clipboard {
     static save(data) {

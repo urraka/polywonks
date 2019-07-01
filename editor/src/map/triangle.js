@@ -1,10 +1,10 @@
 import * as PMS from "../pms/pms.js";
 import * as xMath from "../common/math.js";
 import { iter } from "../common/iter.js";
+import { cfg } from "../app/settings.js";
 import { Node } from "./node.js";
 import { VertexNode } from "./vertex.js";
 import { Attribute } from "./attribute.js";
-import { cfg } from "../settings.js";
 
 export class TriangleNode extends Node {
     constructor() {

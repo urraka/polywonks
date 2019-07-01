@@ -1,7 +1,7 @@
 import { EventEmitter, Event } from "../common/event.js";
 import { ValueType } from "../common/type.js";
-import { Attribute } from "./attribute.js";
 import { capitalize } from "../common/format.js";
+import { Attribute } from "./attribute.js";
 
 export class Node extends EventEmitter {
     constructor() {

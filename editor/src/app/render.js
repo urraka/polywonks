@@ -1,10 +1,10 @@
-import * as Gfx from "./gfx/gfx.js";
-import { Color } from "./common/color.js";
-import { processImage, gradientCircle, rectangle } from "./common/image.js";
-import { dashToCamel } from "./common/format.js";
-import { Rect } from "./common/rect.js";
-import { SpawnTeam } from "./pms/pms.js";
-import { CreateTool } from "./editor/tools/create.js";
+import * as Gfx from "../gfx/gfx.js";
+import { Color } from "../common/color.js";
+import { processImage, gradientCircle, rectangle } from "../common/image.js";
+import { dashToCamel } from "../common/format.js";
+import { Rect } from "../common/rect.js";
+import { SpawnTeam } from "../pms/pms.js";
+import { CreateTool } from "../editor/tools/create.js";
 import { File } from "./file.js";
 import { cfg, Settings } from "./settings.js";
 
@@ -19,7 +19,7 @@ import {
     ColliderNode,
     WaypointNode,
     ConnectionNode,
-} from "./map/map.js";
+} from "../map/map.js";
 
 export class Renderer {
     constructor() {

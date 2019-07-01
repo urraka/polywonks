@@ -1,4 +1,4 @@
-import * as ui from "./ui/ui.js";
+import * as ui from "../ui/ui.js";
 import { FileExplorer } from "./file.explorer.js";
 import { Settings } from "./settings.js";
 import { styles } from "./sidebar.styles.js";

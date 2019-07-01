@@ -1,6 +1,6 @@
-import { Path } from "./common/path.js";
+import { Path } from "../common/path.js";
+import { EventEmitter } from "../common/event.js";
 import { cfg } from "./settings.js";
-import { EventEmitter } from "./common/event.js";
 
 export class File {
     static read(type, path, callback) {

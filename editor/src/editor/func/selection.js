@@ -1,6 +1,6 @@
-import { EditorFunction } from "./base.js";
-import { VertexNode, TriangleNode } from "../../map/map.js";
 import { iter } from "../../common/iter.js";
+import { VertexNode, TriangleNode } from "../../map/map.js";
+import { EditorFunction } from "./base.js";
 
 class SelectionVertSwitchFunction extends EditorFunction {
     constructor(editor) {

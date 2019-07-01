@@ -1,7 +1,7 @@
-import * as ui from "./ui/ui.js";
-import { iter } from "./common/iter.js";
-import { EventEmitter } from "./common/event.js";
-import { Editor } from "./editor/editor.js";
+import * as ui from "../ui/ui.js";
+import { iter } from "../common/iter.js";
+import { EventEmitter } from "../common/event.js";
+import { Editor } from "../editor/editor.js";
 import { Settings, cfg } from "./settings.js";
 
 const MENU = [

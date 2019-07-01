@@ -1,5 +1,5 @@
-import * as ui from "./ui/ui.js";
-import { Path } from "./common/path.js";
+import * as ui from "../ui/ui.js";
+import { Path } from "../common/path.js";
 import { File } from "./file.js";
 import { Property } from "./property.js";
 

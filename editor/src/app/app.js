@@ -1,11 +1,11 @@
-import * as ui from "./ui/ui.js";
-import { iter } from "./common/iter.js";
-import { Path } from "./common/path.js";
-import { Editor } from "./editor/editor.js";
-import { Renderer } from "./render.js";
-import { Sidebar } from "./sidebar.js";
+import * as ui from "../ui/ui.js";
+import { iter } from "../common/iter.js";
+import { Path } from "../common/path.js";
+import { Editor } from "../editor/editor.js";
 import { Settings, cfg } from "./settings.js";
 import { KeyBindings } from "./keybindings.js";
+import { Renderer } from "./render.js";
+import { Sidebar } from "./sidebar.js";
 import { AppMenu } from "./menu.js";
 import { styles } from "./app.styles.js";
 

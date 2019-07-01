@@ -1,8 +1,8 @@
 import * as ui from "../../ui/ui.js";
 import { Path } from "../../common/path.js";
-import { SaveDialog } from "../../dialog.save.js";
-import { cfg } from "../../settings.js";
-import { File } from "../../file.js";
+import { cfg } from "../../app/settings.js";
+import { File } from "../../app/file.js";
+import { SaveDialog } from "../../app/dialog.save.js";
 import { EditorFunction } from "./base.js";
 
 class ExportFunction extends EditorFunction {

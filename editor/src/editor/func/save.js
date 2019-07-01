@@ -1,7 +1,7 @@
 import * as ui from "../../ui/ui.js";
 import { Path } from "../../common/path.js";
-import { SaveDialog } from "../../dialog.save.js";
-import { File } from "../../file.js";
+import { File } from "../../app/file.js";
+import { SaveDialog } from "../../app/dialog.save.js";
 import { Editor } from "../editor.js";
 import { EditorFunction } from "./base.js";
 

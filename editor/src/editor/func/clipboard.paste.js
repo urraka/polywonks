@@ -1,6 +1,6 @@
 import { Path } from "../../common/path.js";
+import { Clipboard } from "../../app/clipboard.js";
 import { ResourceNode, TriangleNode } from "../../map/map.js";
-import { Clipboard } from "../../clipboard.js";
 import { EditorCommand } from "../command.js";
 import { EditorFunction } from "./base.js";
 

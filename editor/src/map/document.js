@@ -1,6 +1,5 @@
 import * as PMS from "../pms/pms.js";
-import * as fmt from "../common/format.js";
-import { cfg, ExportMode } from "../settings.js";
+import { cfg, ExportMode } from "../app/settings.js";
 import { Rect } from "../common/rect.js";
 import { Color } from "../common/color.js";
 import { ValueType } from "../common/type.js";

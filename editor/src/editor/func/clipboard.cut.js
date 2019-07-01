@@ -1,4 +1,4 @@
-import { Clipboard } from "../../clipboard.js";
+import { Clipboard } from "../../app/clipboard.js";
 import { EditorFunction } from "./base.js";
 
 class CutFunction extends EditorFunction {

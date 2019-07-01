@@ -1,8 +1,8 @@
-import * as ui from "./ui/ui.js";
-import * as PMS from "./pms/pms.js";
-import { EventEmitter } from "./common/event.js";
-import { Enum } from "./common/enum.js";
-import { Color } from "./common/color.js";
+import * as ui from "../ui/ui.js";
+import * as PMS from "../pms/pms.js";
+import { EventEmitter } from "../common/event.js";
+import { Enum } from "../common/enum.js";
+import { Color } from "../common/color.js";
 import { Property } from "./property.js";
 import { File } from "./file.js";
 

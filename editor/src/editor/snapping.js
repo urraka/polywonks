@@ -1,6 +1,6 @@
 import * as xMath from "../common/math.js";
 import { SceneryNode } from "../map/map.js";
-import { cfg } from "../settings.js";
+import { cfg } from "../app/settings.js";
 
 export class SnapSource {
     constructor(node, filter = null) {

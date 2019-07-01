@@ -1,5 +1,5 @@
+import { Clipboard } from "../../app/clipboard.js";
 import { ClonedNodesCollection, LayerNode, ConnectionNode } from "../../map/map.js";
-import { Clipboard } from "../../clipboard.js";
 import { EditorFunction } from "./base.js";
 
 class CopyFunction extends EditorFunction {

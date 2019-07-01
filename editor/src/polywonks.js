@@ -49,14 +49,14 @@ import * as tool from "./editor/tools/tool.js";
 import * as tool_waypoint from "./editor/tools/waypoint.js";
 import * as tool_zoom from "./editor/tools/zoom.js";
 
-import * as app from "./app.js";
-import * as file from "./file.js";
-import * as render from "./render.js";
-import * as settings from "./settings.js";
-import * as sidebar from "./sidebar.js";
-import * as file_explorer from "./file.explorer.js";
-import * as clipboard from "./clipboard.js";
-import * as dialog_save from "./dialog.save.js";
+import * as app from "./app/app.js";
+import * as file from "./app/file.js";
+import * as render from "./app/render.js";
+import * as settings from "./app/settings.js";
+import * as sidebar from "./app/sidebar.js";
+import * as file_explorer from "./app/file.explorer.js";
+import * as clipboard from "./app/clipboard.js";
+import * as dialog_save from "./app/dialog.save.js";
 
 export const Polywonks = (() => {
     const namespace = {

@@ -1,6 +1,6 @@
-import { cfg } from "../../settings.js";
 import { iter } from "../../common/iter.js";
 import { Pointer, MovementThreshold } from "../../common/pointer.js";
+import { cfg } from "../../app/settings.js";
 import { PivotNode, VertexNode, WaypointNode, SpawnNode, ColliderNode } from "../../map/map.js";
 import { EditorCommand } from "../command.js";
 import { Tool } from "./tool.js";

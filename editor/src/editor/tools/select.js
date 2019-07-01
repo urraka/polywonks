@@ -1,7 +1,7 @@
 import * as xMath from "../../common/math.js";
 import { Rect } from "../../common/rect.js";
 import { Pointer, MovementThreshold } from "../../common/pointer.js";
-import { cfg } from "../../settings.js";
+import { cfg } from "../../app/settings.js";
 import { Tool } from "./tool.js";
 
 export class SelectTool extends Tool {

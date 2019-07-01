@@ -1,5 +1,5 @@
+import { Settings, cfg } from "../../app/settings.js";
 import { EditorFunction } from "./base.js";
-import { Settings, cfg } from "../../settings.js";
 
 class ZoomOutFunction extends EditorFunction {
     constructor(editor) {

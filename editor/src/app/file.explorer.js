@@ -1,7 +1,7 @@
-import * as ui from "./ui/ui.js";
+import * as ui from "../ui/ui.js";
+import { Path } from "../common/path.js";
+import { EventEmitter } from "../common/event.js";
 import { File } from "./file.js";
-import { Path } from "./common/path.js";
-import { EventEmitter } from "./common/event.js";
 
 export class FileExplorer extends EventEmitter {
     constructor(mount) {

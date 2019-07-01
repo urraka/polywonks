@@ -1,5 +1,5 @@
 import * as ui from "../ui/ui.js";
-import { Property } from "../property.js";
+import { Property } from "../app/property.js";
 
 export class ToolPropertiesItem extends ui.ListViewItem {
     constructor(editor, tool) {

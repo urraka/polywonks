@@ -3,10 +3,10 @@ import * as xMath from "../common/math.js";
 import { Color } from "../common/color.js";
 import { Mat2d } from "../common/matrix.js";
 import { Sprite } from "../gfx/gfx.js";
+import { ExportMode } from "../app/settings.js";
 import { Node } from "./node.js";
-import { LayerType, LayerNode } from "./layer.js";
+import { LayerType } from "./layer.js";
 import { Attribute } from "./attribute.js";
-import { ExportMode } from "../settings.js";
 import { PivotNode } from "./pivot.js";
 
 export class SceneryNode extends Node {

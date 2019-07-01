@@ -1,7 +1,7 @@
 import * as PMS from "../pms/pms.js";
 import { Color } from "../common/color.js";
 import { Path } from "../common/path.js";
-import { File } from "../file.js";
+import { File } from "../app/file.js";
 import { ResourceNode } from "./resource.js";
 import { Attribute } from "./attribute.js";
 

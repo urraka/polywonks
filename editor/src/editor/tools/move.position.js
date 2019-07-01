@@ -1,8 +1,8 @@
+import { iter } from "../../common/iter.js";
 import { Mat2d } from "../../common/matrix.js";
 import { PivotNode, LayerNode } from "../../map/map.js";
 import { SnapSource } from "../snapping.js";
 import { MoveTool } from "./move.js";
-import { iter } from "../../common/iter.js";
 
 export class MovePositionTool extends MoveTool {
     constructor() {
