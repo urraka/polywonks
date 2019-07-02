@@ -11,12 +11,11 @@
     <div class="startup-loading"><div></div></div>
     <script type="module">
         import { Polywonks as pwk } from "./src/polywonks.js";
+        const app = new pwk.App();
+        document.querySelector(".startup-loading").remove();
+        app.attach(document.body);
         window.pwk = pwk;
-        window.app = new pwk.App();
-        pwk.ui.initializeStyles();
-        document.body.querySelector(".startup-loading").remove();
-        document.body.append(window.app.element);
-        window.app.onResize();
+        window.app = app;
     </script>
 </body>
 </html>

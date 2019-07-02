@@ -28,6 +28,12 @@ export class App extends ui.Panel {
         this.openDefault();
     }
 
+    attach(element) {
+        ui.initializeStyles();
+        element.append(this.element);
+        this.onResize();
+    }
+
     setupEvents() {
         this.onEditorStatusChange = this.onEditorStatusChange.bind(this);
         this.onKeyBindingsCommand = e => this.onCommand(e.command, e.params);
