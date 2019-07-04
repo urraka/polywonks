@@ -6,7 +6,8 @@ import { Settings, cfg } from "./settings.js";
 import { KeyBindings } from "./keybindings.js";
 import { Renderer } from "./render.js";
 import { Sidebar } from "./sidebar.js";
-import { AppMenu } from "./menu.js";
+import { Menu } from "./menu.js";
+import { Statusbar } from "./statusbar.js";
 import { styles } from "./app.styles.js";
 
 ui.registerStyles(styles);
@@ -15,13 +16,12 @@ export class App extends ui.Panel {
     constructor() {
         super("app");
 
-        this.menu = null;
-        this.commands = null;
-        this.tabs = null;
-        this.sidebar = null;
-        this.statusbar = null;
-        this.renderer = new Renderer();
         this.keybindings = new KeyBindings();
+        this.renderer = new Renderer();
+        this.menu = new Menu(this);
+        this.tabs = new ui.TabView();
+        this.sidebar = new Sidebar(this);
+        this.statusbar = new Statusbar(this);
 
         this.createUserInterface();
         this.setupEvents();
@@ -35,7 +35,6 @@ export class App extends ui.Panel {
     }
 
     setupEvents() {
-        this.onEditorStatusChange = this.onEditorStatusChange.bind(this);
         this.onKeyBindingsCommand = e => this.onCommand(e.command, e.params);
 
         this.keybindings.on("command", this.onKeyBindingsCommand);
@@ -64,16 +63,15 @@ export class App extends ui.Panel {
     }
 
     createUserInterface() {
-        this.menu = this.append(new AppMenu(this));
-        const clientArea = this.append(new ui.Panel("client-area"));
-        this.sidebar = clientArea.append(new Sidebar(this));
-        this.tabs = clientArea.append(new ui.TabView());
+        const clientArea = new ui.Panel("client-area");
+        clientArea.append(this.sidebar);
+        clientArea.append(this.tabs);
+
+        this.append(this.menu);
+        this.append(clientArea);
+        this.append(this.statusbar);
+
         this.tabs.content.element.prepend(this.renderer.context.canvas);
-        this.statusbar = this.append(new ui.Statusbar());
-        this.statusbar.addItem("tool", "left", 200);
-        this.statusbar.addItem("layer", "left", 200, "left");
-        this.statusbar.addItem("zoom", "right", 100, "right");
-        this.statusbar.addItem("cursor", "right", 100, "right");
     }
 
     get editor() {
@@ -146,26 +144,17 @@ export class App extends ui.Panel {
         this.renderer.redraw();
     }
 
-    onEditorStatusChange(event) {
-        for (const [name, value] of Object.entries(event.status)) {
-            this.statusbar.set(name, value);
-        }
-    }
-
     onTabWillChange() {
         const editor = this.editor;
-        if (editor) {
-            editor.deactivate();
-            editor.off("statuschange", this.onEditorStatusChange);
-        }
+        if (editor) editor.deactivate();
     }
 
     onTabChange() {
         const editor = this.editor;
-        editor.on("statuschange", this.onEditorStatusChange);
         this.renderer.editor = editor;
         this.sidebar.editor = editor;
         this.menu.editor = editor;
+        this.statusbar.editor = editor;
         if (App.hasFocus) {
             editor.activate();
         }
@@ -267,7 +256,7 @@ export class App extends ui.Panel {
     }
 
     onCommand(command, params = null) {
-        const commands = this.commands || (this.commands = {
+        const commands = this._commands || (this._commands = {
             "new-map": () => {
                 this.open();
                 this.sidebar.activeTab = "sidebar-tools";

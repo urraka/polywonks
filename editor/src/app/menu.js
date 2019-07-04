@@ -74,7 +74,7 @@ const MENU = [
     ]],
 ];
 
-export class AppMenu extends EventEmitter {
+export class Menu extends EventEmitter {
     constructor(app) {
         super();
         this.items = {};
