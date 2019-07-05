@@ -20,7 +20,7 @@ export class TabView extends Panel {
     }
 
     closePanel(panel) {
-        if (this.emit("close", { panel })) {
+        if (this.emit("willclose", { panel })) {
             const activePanel = this.activePanel;
             if (panel === activePanel) {
                 const nextPanel = TabPanel.from(panel.tab.previousSibling || panel.tab.nextSibling);
@@ -30,6 +30,7 @@ export class TabView extends Panel {
             }
             panel.tab.remove();
             panel.element.remove();
+            this.emit("close", { panel });
         }
     }
 

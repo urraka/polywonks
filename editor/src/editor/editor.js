@@ -202,7 +202,7 @@ export class Editor extends ui.Panel {
         return this.saveIndex !== this.undone;
     }
 
-    onSave(saveIndex, saveName) {
+    onSave(saveIndex = this.undone, saveName = this.saveName) {
         if (saveName !== this.saveName) {
             const changed = (saveIndex !== this.undone);
             this.exec("relocate", { path: saveName });
@@ -302,7 +302,7 @@ export class Editor extends ui.Panel {
     }
 
     exec(command, params) {
-        this.functions[command].exec(params);
+        return this.functions[command].exec(params);
     }
 
     onCommand(command, params) {
@@ -313,16 +313,9 @@ export class Editor extends ui.Panel {
         }
     }
 
-    onClose(event) {
-        if (this.modified) {
-            event.preventDefault();
-            ui.confirm("Closing", `Save changes to ${Path.filename(this.saveName)}?`, "yes", result => {
-                if (result === "no") {
-                    this.saveIndex = this.undone;
-                    event.panel.close();
-                }
-            });
-        } else if (this.renderer) {
+    // TODO: move to renderer (on editor close)
+    dispose() {
+        if (this.renderer) {
             this.renderer.disposeNodeResources(this.map);
         }
     }
@@ -331,6 +324,7 @@ export class Editor extends ui.Panel {
         this.sidebar().properties.header.title = this.sidebar().properties.content.node.nodeName + " properties";
     }
 
+    // TODO: move to renderer
     onMapAttrChange(event) {
         if (this.renderer && (event.attribute === "src" || event.attribute === "color-key")) {
             this.renderer.disposeNodeResources(event.target);
@@ -338,6 +332,7 @@ export class Editor extends ui.Panel {
         this.redraw();
     }
 
+    // TODO: move to renderer
     onMapVisibilityChange() {
         this.redraw();
     }

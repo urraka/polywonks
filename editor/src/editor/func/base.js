@@ -14,11 +14,11 @@ export class EditorFunction extends EventEmitter {
 
     exec(params) {
         if (this.enabled) {
-            this.onExec(params);
+            return this.onExec(params);
         }
     }
 
-    onExec(params) {
+    onExec(_params) {
         throw new Error("Must implement");
     }
 

@@ -35,6 +35,7 @@ export class Renderer {
         this.loadIcons();
 
         Settings.on("change", e => this.onSettingChange(e.setting));
+        window.addEventListener("resize", () => this.redraw());
     }
 
     static get iconsInfo() {

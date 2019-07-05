@@ -1,5 +1,4 @@
 import * as ui from "../ui/ui.js";
-import { iter } from "../common/iter.js";
 import { Path } from "../common/path.js";
 import { Editor } from "../editor/editor.js";
 import { Settings, cfg } from "./settings.js";
@@ -7,6 +6,7 @@ import { KeyBindings } from "./keybindings.js";
 import { Renderer } from "./render.js";
 import { Sidebar } from "./sidebar.js";
 import { Menu } from "./menu.js";
+import { EditorTabs } from "./tabs.js";
 import { Statusbar } from "./statusbar.js";
 import { styles } from "./app.styles.js";
 
@@ -19,7 +19,7 @@ export class App extends ui.Panel {
         this.keybindings = new KeyBindings();
         this.renderer = new Renderer();
         this.menu = new Menu(this);
-        this.tabs = new ui.TabView();
+        this.tabs = new EditorTabs(this);
         this.sidebar = new Sidebar(this);
         this.statusbar = new Statusbar(this);
 
@@ -31,7 +31,7 @@ export class App extends ui.Panel {
     attach(element) {
         ui.initializeStyles();
         element.append(this.element);
-        this.onResize();
+        window.dispatchEvent(new Event('resize'));
     }
 
     setupEvents() {
@@ -39,17 +39,14 @@ export class App extends ui.Panel {
 
         this.keybindings.on("command", this.onKeyBindingsCommand);
         this.menu.on("command", e => this.onCommand(e.command));
-        this.tabs.on("change", e => this.onTabChange(e));
-        this.tabs.on("willchange", e => this.onTabWillChange(e));
         this.tabs.on("close", e => this.onTabClose(e));
+        this.tabs.on("change", () => this.onTabChange());
         this.sidebar.explorers.forEach(explorer => explorer.on("open", e => this.onExplorerOpen(e.path)));
         this.sidebar.explorers.forEach(explorer => explorer.on("command", e => this.onCommand(e.command, e.params)));
 
         ui.Dialog.on("modalstart", () => this.onModalStart());
         ui.Dialog.on("modalend", () => this.onModalEnd());
 
-        window.addEventListener("beforeunload", e => this.onBeforeUnload(e));
-        window.addEventListener("resize", e => this.onResize(e));
         window.addEventListener("blur", () => this.keybindings.onFocusLost());
 
         document.addEventListener("drop", e => this.onDrop(e));
@@ -70,17 +67,14 @@ export class App extends ui.Panel {
         this.append(this.menu);
         this.append(clientArea);
         this.append(this.statusbar);
-
-        this.tabs.content.element.prepend(this.renderer.context.canvas);
     }
 
     get editor() {
-        const activePanel = this.tabs.activePanel;
-        return activePanel ? activePanel.content : null;
+        return this.tabs.activeEditor;
     }
 
     get editors() {
-        return iter(this.tabs.panels()).map(panel => panel.content);
+        return this.tabs.editors;
     }
 
     openDefault() {
@@ -90,21 +84,11 @@ export class App extends ui.Panel {
 
     openFile(path, fn) {
         const ext = Path.ext(path).toLowerCase();
-
         if (ext === ".pms" || ext === ".polywonks") {
-            const activePanel = this.tabs.activePanel;
-            const activeEditor = this.editor;
-
             Editor.loadFile(path, editor => {
                 if (editor) {
-                    const panel = this.tabs.addPanel(new ui.TabPanel(Path.filename(editor.saveName), editor));
-                    editor.on("change", () => this.onEditorChange({ editor, panel }));
+                    this.tabs.addEditor(editor);
                     this.sidebar.activeTab = "sidebar-tools";
-
-                    if (activePanel && activeEditor.openedAsDefault && !activeEditor.modified) {
-                        activePanel.close();
-                    }
-
                     if (fn) fn(editor);
                 } else {
                     ui.msgbox("Polywonks", "Invalid map format.");
@@ -114,8 +98,7 @@ export class App extends ui.Panel {
     }
 
     openEditor(editor = new Editor()) {
-        const panel = this.tabs.addPanel(new ui.TabPanel(Path.filename(editor.saveName), editor));
-        editor.on("change", () => this.onEditorChange({ editor, panel }));
+        this.tabs.addEditor(editor);
         return editor;
     }
 
@@ -132,8 +115,9 @@ export class App extends ui.Panel {
     }
 
     onSettingChange(setting) {
+        // TODO: move this to renderer and iterate through loaded resources instead of tabs
         if (setting === "app.library-url" || setting === "app.library-index") {
-            for (const panel of this.tabs.panels()) {
+            for (const panel of this.tabs.tabView.panels()) {
                 for (const node of panel.content.map.resources.descendants()) {
                     if (node.attributes.has("src") && Path.mount(node.path) === "library") {
                         this.renderer.disposeNodeResources(node);
@@ -144,40 +128,19 @@ export class App extends ui.Panel {
         this.renderer.redraw();
     }
 
-    onTabWillChange() {
-        const editor = this.editor;
-        if (editor) editor.deactivate();
-    }
-
     onTabChange() {
+        // TODO: each component should listen to tab change event instead
         const editor = this.editor;
         this.renderer.editor = editor;
         this.sidebar.editor = editor;
         this.menu.editor = editor;
         this.statusbar.editor = editor;
-        if (App.hasFocus) {
-            editor.activate();
-        }
     }
 
     onTabClose(event) {
-        const editor = event.panel.content;
-        editor.onClose(event);
-        if (!event.defaultPrevented) {
-            this.sidebar.onEditorClose(editor);
-            if (this.tabs.count === 1) {
-                this.openDefault();
-            }
-        }
-    }
-
-    onEditorChange(event) {
-        event.panel.title = Path.filename(event.editor.saveName);
-        event.panel.modified = event.editor.modified;
-    }
-
-    static get hasFocus() {
-        return !ui.Dialog.activeDialog;
+        // TODO: sidebar should listen to tab close event instead
+        this.sidebar.onEditorClose(event.editor);
+        if (this.tabs.editorCount === 0) this.openDefault();
     }
 
     onModalStart() {
@@ -189,21 +152,6 @@ export class App extends ui.Panel {
     onModalEnd() {
         this.editor.activate();
         this.keybindings.on("command", this.onKeyBindingsCommand);
-    }
-
-    onBeforeUnload(event) {
-        for (const editor of this.editors) {
-            if (editor.modified) {
-                event.preventDefault();
-                event.returnValue = "";
-                break;
-            }
-        }
-    }
-
-    onResize() {
-        iter(this.editors).each(editor => editor.onResize());
-        this.renderer.redraw();
     }
 
     onDrop(event) {
