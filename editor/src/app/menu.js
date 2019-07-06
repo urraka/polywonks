@@ -3,76 +3,7 @@ import { iter } from "../common/iter.js";
 import { EventEmitter } from "../common/event.js";
 import { Editor } from "../editor/editor.js";
 import { Settings, cfg } from "./settings.js";
-
-const MENU = [
-    ["File", [
-        ["New", "new-map"],
-        [],
-        ["Open...", "show-explorer"],
-        [],
-        ["Save", "save"],
-        ["Save As...", "save-as"],
-        ["Download...", "save-download"],
-        [],
-        ["Export", "export"],
-        ["Export As...", "export-as"],
-        ["Export Download...", "export-download"],
-    ]],
-    ["Edit", [
-        ["Undo", "undo"],
-        ["Redo", "redo"],
-        [],
-        ["Delete", "delete"],
-        [],
-        ["Cut", "cut"],
-        ["Copy", "copy"],
-        ["Paste", "paste"],
-    ]],
-    ["Selection", [
-        ["Switch Vertices/Polygons", "selection-vert-switch"],
-    ]],
-    ["Object", [
-        ["Texture", [
-            ["Reset", "texture-reset"],
-            [],
-            ["Rotate 90° CW", "texture-rotate-90-cw"],
-            ["Rotate 90° CCW", "texture-rotate-90-ccw"],
-            ["Flip Horizontal", "texture-flip-horizontal"],
-            ["Flip Vertical", "texture-flip-vertical"],
-        ]],
-        [],
-        ["Rotate 90° CW", "rotate-90-cw"],
-        ["Rotate 90° CCW", "rotate-90-ccw"],
-        ["Flip Horizontal", "flip-horizontal"],
-        ["Flip Vertical", "flip-vertical"],
-        [],
-        ["Send to Back", "send-to-back"],
-        ["Send Backward", "send-backward"],
-        ["Bring Forward", "bring-forward"],
-        ["Bring to Front", "bring-to-front"],
-    ]],
-    ["View", [
-        ["Reset Viewport", "reset-viewport"],
-        ["Zoom In", "zoom-in"],
-        ["Zoom Out", "zoom-out"],
-        [],
-        ["Snap to Grid", "toggle-snap-to-grid"],
-        ["Snap to Objects", "toggle-snap-to-objects"],
-        [],
-        ["Show Grid", "toggle-grid"],
-        ["Show Background", "toggle-background"],
-        ["Show Vertices", "toggle-vertices"],
-        ["Show Wireframe", "toggle-wireframe"],
-        ["Polygons", [
-            ["Texture", "show-polygon-texture"],
-            ["Plain Color", "show-polygon-plain"],
-            ["Hide", "show-polygon-none"],
-        ]],
-    ]],
-    ["Help", [
-        ["Github", "browse-to-github"],
-    ]],
-];
+import { MenuItems } from "./menu.config.js";
 
 export class Menu extends EventEmitter {
     constructor(app) {
@@ -88,7 +19,7 @@ export class Menu extends EventEmitter {
         Settings.on("change", e => this.onSettingChange(e.setting));
         app.on("activeeditorchange", e => this.onEditorChange(e.editor));
 
-        this.addMenuItems(this.titlebar.menu, MENU);
+        this.addMenuItems(this.titlebar.menu, MenuItems);
         this.updateItems();
     }
 
