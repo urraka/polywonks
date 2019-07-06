@@ -2,7 +2,7 @@ import * as ui from "../ui/ui.js";
 import { EventEmitter } from "../common/event.js";
 
 export class Statusbar extends EventEmitter {
-    constructor(_app) {
+    constructor(app) {
         super();
         this.onEditorStatusChange = this.onEditorStatusChange.bind(this);
         this.statusbar = new ui.Statusbar();
@@ -10,6 +10,7 @@ export class Statusbar extends EventEmitter {
         this.statusbar.addItem("layer", "left", 200, "left");
         this.statusbar.addItem("zoom", "right", 100, "right");
         this.statusbar.addItem("cursor", "right", 100, "right");
+        app.on("activeeditorchange", e => this.onEditorChange(e.editor));
     }
 
     get element() {
@@ -20,7 +21,7 @@ export class Statusbar extends EventEmitter {
         return this._editor;
     }
 
-    set editor(editor) {
+    onEditorChange(editor) {
         if (this.editor) this.editor.off("statuschange", this.onEditorStatusChange);
         this._editor = editor;
         if (this.editor) this.editor.on("statuschange", this.onEditorStatusChange);

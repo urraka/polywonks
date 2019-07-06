@@ -1,7 +1,7 @@
 import * as ui from "../ui/ui.js";
 import { Path } from "../common/path.js";
 import { Editor } from "../editor/editor.js";
-import { Settings, cfg } from "./settings.js";
+import { cfg } from "./settings.js";
 import { KeyBindings } from "./keybindings.js";
 import { Renderer } from "./render.js";
 import { Sidebar } from "./sidebar.js";
@@ -15,51 +15,28 @@ ui.registerStyles(styles);
 export class App extends ui.Panel {
     constructor() {
         super("app");
+        this.renderer = new Renderer(this);
 
         this.keybindings = new KeyBindings();
-        this.renderer = new Renderer();
-        this.menu = new Menu(this);
-        this.tabs = new EditorTabs(this);
-        this.sidebar = new Sidebar(this);
-        this.statusbar = new Statusbar(this);
-
-        this.createUserInterface();
-        this.setupEvents();
-        this.openDefault();
-    }
-
-    attach(element) {
-        ui.initializeStyles();
-        element.append(this.element);
-        window.dispatchEvent(new Event('resize'));
-    }
-
-    setupEvents() {
         this.onKeyBindingsCommand = e => this.onCommand(e.command, e.params);
-
         this.keybindings.on("command", this.onKeyBindingsCommand);
-        this.menu.on("command", e => this.onCommand(e.command));
+        document.addEventListener("keydown", e => this.onKeyDown(e));
+        document.addEventListener("keyup", e => this.onKeyUp(e));
+        window.addEventListener("blur", () => this.keybindings.onFocusLost());
+
+        this.tabs = new EditorTabs(this);
         this.tabs.on("close", e => this.onTabClose(e));
         this.tabs.on("change", () => this.onTabChange());
+
+        this.menu = new Menu(this);
+        this.menu.on("command", e => this.onCommand(e.command));
+
+        this.sidebar = new Sidebar(this);
         this.sidebar.explorers.forEach(explorer => explorer.on("open", e => this.onExplorerOpen(e.path)));
         this.sidebar.explorers.forEach(explorer => explorer.on("command", e => this.onCommand(e.command, e.params)));
 
-        ui.Dialog.on("modalstart", () => this.onModalStart());
-        ui.Dialog.on("modalend", () => this.onModalEnd());
+        this.statusbar = new Statusbar(this);
 
-        window.addEventListener("blur", () => this.keybindings.onFocusLost());
-
-        document.addEventListener("drop", e => this.onDrop(e));
-        document.addEventListener("dragover", e => this.onDragOver(e));
-        document.addEventListener("dragenter", e => this.onDragEnter(e));
-        document.addEventListener("keydown", e => this.onKeyDown(e));
-        document.addEventListener("keyup", e => this.onKeyUp(e));
-        document.addEventListener("contextmenu", e => e.preventDefault());
-
-        Settings.on("change", e => this.onSettingChange(e.setting));
-    }
-
-    createUserInterface() {
         const clientArea = new ui.Panel("client-area");
         clientArea.append(this.sidebar);
         clientArea.append(this.tabs);
@@ -67,6 +44,22 @@ export class App extends ui.Panel {
         this.append(this.menu);
         this.append(clientArea);
         this.append(this.statusbar);
+
+        document.addEventListener("drop", e => this.onDrop(e));
+        document.addEventListener("dragover", e => this.onDragOver(e));
+        document.addEventListener("dragenter", e => this.onDragEnter(e));
+
+        ui.Dialog.on("modalstart", () => this.onModalStart());
+        ui.Dialog.on("modalend", () => this.onModalEnd());
+        document.addEventListener("contextmenu", e => e.preventDefault());
+
+        this.openDefault();
+    }
+
+    attach(element) {
+        ui.initializeStyles();
+        element.append(this.element);
+        window.dispatchEvent(new Event('resize'));
     }
 
     get editor() {
@@ -114,43 +107,21 @@ export class App extends ui.Panel {
         this.openFile(path);
     }
 
-    onSettingChange(setting) {
-        // TODO: move this to renderer and iterate through loaded resources instead of tabs
-        if (setting === "app.library-url" || setting === "app.library-index") {
-            for (const panel of this.tabs.tabView.panels()) {
-                for (const node of panel.content.map.resources.descendants()) {
-                    if (node.attributes.has("src") && Path.mount(node.path) === "library") {
-                        this.renderer.disposeNodeResources(node);
-                    }
-                }
-            }
-        }
-        this.renderer.redraw();
-    }
-
     onTabChange() {
-        // TODO: each component should listen to tab change event instead
-        const editor = this.editor;
-        this.renderer.editor = editor;
-        this.sidebar.editor = editor;
-        this.menu.editor = editor;
-        this.statusbar.editor = editor;
+        this.emit("activeeditorchange", { editor: this.editor });
     }
 
     onTabClose(event) {
-        // TODO: sidebar should listen to tab close event instead
-        this.sidebar.onEditorClose(event.editor);
+        this.emit("editorclose", { editor: event.editor });
         if (this.tabs.editorCount === 0) this.openDefault();
     }
 
     onModalStart() {
         this.keybindings.onFocusLost();
         this.keybindings.off("command", this.onKeyBindingsCommand);
-        this.editor.deactivate();
     }
 
     onModalEnd() {
-        this.editor.activate();
         this.keybindings.on("command", this.onKeyBindingsCommand);
     }
 

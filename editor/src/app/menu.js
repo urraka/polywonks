@@ -86,6 +86,7 @@ export class Menu extends EventEmitter {
         this.titlebar.menu.on("itemclick", e => this.onMenuItemClick(e.item));
         this.titlebar.menu.on("menushow", e => this.onMenuShow(e.menu));
         Settings.on("change", e => this.onSettingChange(e.setting));
+        app.on("activeeditorchange", e => this.onEditorChange(e.editor));
 
         this.addMenuItems(this.titlebar.menu, MENU);
         this.updateItems();
@@ -99,17 +100,15 @@ export class Menu extends EventEmitter {
         return this._editor;
     }
 
-    set editor(editor) {
-        if (editor !== this.editor) {
-            if (this.editor) {
-                this.editor.off("functionchange", this.onEditorFunctionChange);
-            }
-            if (editor) {
-                editor.on("functionchange", this.onEditorFunctionChange);
-            }
-            this._editor = editor;
-            this.updateEditorItems();
+    onEditorChange(editor) {
+        if (this.editor) {
+            this.editor.off("functionchange", this.onEditorFunctionChange);
         }
+        this._editor = editor;
+        if (this.editor) {
+            this.editor.on("functionchange", this.onEditorFunctionChange);
+        }
+        this.updateEditorItems();
     }
 
     get editorItems() {

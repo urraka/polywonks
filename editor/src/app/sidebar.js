@@ -16,6 +16,8 @@ export class Sidebar extends ui.Panel {
         this.append(this.createFileExplorers());
         this.append(this.createSettings());
         this.activeTab = "sidebar-tools";
+        app.on("editorclose", e => this.onEditorClose(e.editor));
+        app.on("activeeditorchange", e => this.onEditorChange(e.editor));
     }
 
     onEditorClose(editor) {
@@ -24,7 +26,7 @@ export class Sidebar extends ui.Panel {
         }
     }
 
-    set editor(editor) {
+    onEditorChange(editor) {
         const panels = this.tools.element.querySelector(".editor-sidebar-panels.active");
         if (panels) panels.classList.remove("active");
 

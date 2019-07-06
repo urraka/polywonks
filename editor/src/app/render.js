@@ -2,6 +2,7 @@ import * as Gfx from "../gfx/gfx.js";
 import { Color } from "../common/color.js";
 import { processImage, gradientCircle, rectangle } from "../common/image.js";
 import { dashToCamel } from "../common/format.js";
+import { Path } from "../common/path.js";
 import { Rect } from "../common/rect.js";
 import { SpawnTeam } from "../pms/pms.js";
 import { CreateTool } from "../editor/tools/create.js";
@@ -22,18 +23,21 @@ import {
 } from "../map/map.js";
 
 export class Renderer {
-    constructor() {
+    constructor(app) {
         this.context = new Gfx.Context();
         this.batch = this.context.createBatch();
-        this.textures = new WeakMap();
-        this.texturesInfo = new WeakMap();
+        this.textures = new Map();
+        this.texturesInfo = new Map();
         this.icons = {};
         this.animFrameId = null;
         this.theme = null;
-        this._editor = null;
-        this.onEditorRedraw = () => this.redraw();
         this.loadIcons();
 
+        this.onResourceNodeAttrChange = this.onResourceNodeAttrChange.bind(this);
+        this.onEditorRedraw = () => this.redraw();
+
+        app.on("editorclose", e => this.onEditorClose(e.editor));
+        app.on("activeeditorchange", e => this.onEditorChange(e.editor));
         Settings.on("change", e => this.onSettingChange(e.setting));
         window.addEventListener("resize", () => this.redraw());
     }
@@ -50,12 +54,22 @@ export class Renderer {
         return this._editor;
     }
 
-    set editor(value) {
-        if (this._editor) this._editor.off("redraw", this.onEditorRedraw);
-        this._editor = value;
-        this._editor.renderer = this;
-        this._editor.on("redraw", this.onEditorRedraw);
+    onEditorChange(editor) {
+        if (this.editor) {
+            this.editor.off("redraw", this.onEditorRedraw);
+            this.editor.map.off("attributechange", this.onEditorRedraw);
+            this.editor.map.off("visibilitychange", this.onEditorRedraw);
+        }
+        this._editor = editor;
+        this.editor.renderer = this;
+        this.editor.on("redraw", this.onEditorRedraw);
+        this.editor.map.on("attributechange", this.onEditorRedraw);
+        this.editor.map.on("visibilitychange", this.onEditorRedraw);
         this.redraw();
+    }
+
+    onEditorClose(editor) {
+        this.disposeNodeResources(editor.map);
     }
 
     loadThemeColors() {
@@ -142,12 +156,29 @@ export class Renderer {
         switch (setting) {
             case "editor.vertex-size": this.loadVertexIcon(); break;
             case "editor.waypoint-size": this.loadWaypointsIcon(); break;
+            case "app.library-url":
+            case "app.library-index": {
+                for (const node of [...this.textures.keys()]) {
+                    if (Path.mount(node.path) === "library") {
+                        this.disposeNodeResources(node);
+                    }
+                }
+                break;
+            }
+        }
+        this.redraw();
+    }
+
+    onResourceNodeAttrChange(event) {
+        if (event.attribute === "src" || event.attribute === "color-key") {
+            this.disposeNodeResources(event.target);
         }
     }
 
     disposeNodeResources(node) {
         const texture = this.textures.get(node);
         if (texture) {
+            node.off("attributechange", this.onResourceNodeAttrChange);
             this.textures.delete(node);
             this.texturesInfo.delete(node);
             if (texture !== this.context.defaultTexture) {
@@ -167,6 +198,7 @@ export class Renderer {
         let texture = this.textures.get(node);
 
         if (!texture) {
+            node.on("attributechange", this.onResourceNodeAttrChange);
             this.textures.set(node, texture = this.context.defaultTexture);
             this.texturesInfo.set(node, { width: 0, height: 0 });
 
@@ -174,7 +206,7 @@ export class Renderer {
 
             if (path) {
                 File.readImage(path, image => {
-                    if (image) {
+                    if (image && path === node.path) {
                         const imageData = processImage(image, {
                             premultiply: true,
                             padding: node instanceof ImageNode,

@@ -79,9 +79,15 @@ export class EditorTabs extends EventEmitter {
     }
 
     onTabClose(event) {
-        const editor = event.panel.content;
-        editor.dispose();
-        this.emit("close", { editor });
+        this.emit("close", { editor: event.panel.content });
+    }
+
+    onModalStart() {
+        this.activeEditor.deactivate();
+    }
+
+    onModalEnd() {
+        this.activeEditor.activate();
     }
 
     onResize() {

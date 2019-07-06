@@ -135,8 +135,6 @@ export class Editor extends ui.Panel {
 
     setupEvents() {
         this.onToolStatusChange = this.onToolStatusChange.bind(this);
-        this.map.on("attributechange", e => this.onMapAttrChange(e));
-        this.map.on("visibilitychange", e => this.onMapVisibilityChange(e));
         this.view.on("change", () => this.onViewChange());
         this.cursor.on("change", () => this.onCursorChange());
         this.selection.on("change", () => this.onSelectionChange());
@@ -313,28 +311,8 @@ export class Editor extends ui.Panel {
         }
     }
 
-    // TODO: move to renderer (on editor close)
-    dispose() {
-        if (this.renderer) {
-            this.renderer.disposeNodeResources(this.map);
-        }
-    }
-
     onPropertiesNodeChange() {
         this.sidebar().properties.header.title = this.sidebar().properties.content.node.nodeName + " properties";
-    }
-
-    // TODO: move to renderer
-    onMapAttrChange(event) {
-        if (this.renderer && (event.attribute === "src" || event.attribute === "color-key")) {
-            this.renderer.disposeNodeResources(event.target);
-        }
-        this.redraw();
-    }
-
-    // TODO: move to renderer
-    onMapVisibilityChange() {
-        this.redraw();
     }
 
     onViewChange() {
