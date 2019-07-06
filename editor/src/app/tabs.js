@@ -14,6 +14,8 @@ export class EditorTabs extends EventEmitter {
         this.tabView.on("close", e => this.onTabClose(e));
         window.addEventListener("resize", () => this.onResize());
         window.addEventListener("beforeunload", e => this.onBeforeUnload(e));
+        ui.Dialog.on("modalstart", () => this.onModalStart());
+        ui.Dialog.on("modalend", () => this.onModalEnd());
     }
 
     get element() {
