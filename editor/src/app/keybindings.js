@@ -1,48 +1,10 @@
 import * as ui from "../ui/ui.js";
 import { EventEmitter } from "../common/event.js";
+import { keybindings as DefaultBindings } from "../config.js";
 
 const Modifiers = ["Meta", "Ctrl", "Alt", "Shift"];
 
-const DefaultBindings = {
-    "Ctrl+Z": "undo",
-    "Ctrl+Shift+Z": "redo",
-    "Ctrl+X": "cut",
-    "Ctrl+C": "copy",
-    "Ctrl+V": "paste",
-    "Ctrl+M": "new-map",
-    "Ctrl+O": "show-explorer",
-    "Ctrl+S": "save",
-    "F9": "export",
-    "Ctrl+F9": "export-as",
-    "Ctrl+Shift+S": "save-as",
-    "Delete": "delete",
-    "Shift+PageUp": "send-to-back",
-    "PageUp": "send-backward",
-    "PageDown": "bring-forward",
-    "Shift+PageDown": "bring-to-front",
-    "Ctrl+0": "reset-viewport",
-    "Ctrl++": "zoom-in",
-    "Ctrl+-": "zoom-out",
-    "Ctrl": "select.cycle",
-    "Shift+Ctrl": "select.cycle",
-    "Alt+Ctrl": "select.cycle",
-    "Shift": "+select.add",
-    "Alt": "+select.subtract",
-    "V": "selection-vert-switch",
-    "E": ["set-tool", { tool: "pan" }],
-    "Q": ["set-tool", { tool: "select" }],
-    "M": ["set-tool", { tool: "move-objects" }],
-    "T": ["set-tool", { tool: "move-texture" }],
-    "F": ["set-tool", { tool: "paint" }],
-    "P": ["set-tool", { tool: "polygon" }],
-    "S": ["set-tool", { tool: "scenery" }],
-    "A": ["set-tool", { tool: "spawn" }],
-    "C": ["set-tool", { tool: "collider" }],
-    "W": ["set-tool", { tool: "waypoint" }],
-    "N": ["set-tool", { tool: "connection" }],
-};
-
-export class KeyBindings extends EventEmitter {
+export class Keybindings extends EventEmitter {
     constructor() {
         super();
         this.bindings = {};
@@ -62,23 +24,23 @@ export class KeyBindings extends EventEmitter {
     }
 
     static get instance() {
-        return KeyBindings._instance || (KeyBindings._instance = new KeyBindings());
+        return Keybindings._instance || (Keybindings._instance = new Keybindings());
     }
 
     static on(...args) {
-        return KeyBindings.instance.on(...args);
+        return Keybindings.instance.on(...args);
     }
 
     static off(...args) {
-        return KeyBindings.instance.off(...args);
+        return Keybindings.instance.off(...args);
     }
 
     static find(command) {
-        return KeyBindings.instance.find(command);
+        return Keybindings.instance.find(command);
     }
 
     static findAll(command) {
-        return KeyBindings.instance.findAll(command);
+        return Keybindings.instance.findAll(command);
     }
 
     add(key, command, params) {

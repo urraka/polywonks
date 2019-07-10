@@ -3,8 +3,11 @@ import * as PMS from "../pms/pms.js";
 import { EventEmitter } from "../common/event.js";
 import { Enum } from "../common/enum.js";
 import { Color } from "../common/color.js";
+import { settings as DefaultSettings } from "../config.js";
 import { Property } from "./property.js";
 import { File } from "./file.js";
+
+const settings = Object.assign({}, DefaultSettings);
 
 export const PolygonMode = new Enum({
     None: 0,
@@ -16,58 +19,6 @@ export const ExportMode = new Enum({
     Polyworks: 11,
     Soldat171: 12,
 });
-
-const DefaultSettings = {
-    "theme.background": new Color("#1e1e1e"),
-    "theme.selection-fill": new Color("rgba(200, 200, 0, 0.5)"),
-    "theme.selection-border": new Color("#ff0"),
-    "theme.selection-rect-fill": new Color("rgba(200, 200, 0, 0.5)"),
-    "theme.selection-rect-border": new Color("#ff0"),
-    "theme.selection-preview-border": new Color("rgba(255, 255, 255, 0.3)"),
-    "theme.selection-reactive-border": new Color("rgba(255, 255, 0, 0.5)"),
-    "theme.selection-subtract-border": new Color("rgb(255, 0, 0)"),
-    "theme.grid-color": new Color("#404040"),
-    "theme.grid-color-division": new Color("rgba(64, 64, 64, 0.5)"),
-    "theme.waypoint-color": new Color("#999"),
-    "theme.vertex-fill": new Color("#fff"),
-    "theme.vertex-border": new Color("#000"),
-    "theme.guides": new Color("#8080ff"),
-    "theme.guides-active": new Color("#99f"),
-    "theme.guides-snap": new Color("#ffd700"),
-    "editor.grid-size": 100,
-    "editor.grid-divisions": 5,
-    "editor.grid-limit": 10,
-    "editor.zoom-factor": 1.25,
-    "editor.zoom-max": 16,
-    "editor.zoom-min": 1 / 16,
-    "editor.undo-limit": 100,
-    "editor.drag-threshold": 5,
-    "editor.vertex-size": 7,
-    "editor.waypoint-size": 11,
-    "editor.snap-radius": 5,
-    "editor.snap-to-grid": true,
-    "editor.snap-to-objects": true,
-    "view.grid": true,
-    "view.background": true,
-    "view.polygons": "texture",
-    "view.wireframe": false,
-    "view.vertices": false,
-    "map.color-top": new Color("#1e1e1e"),
-    "map.color-bottom": new Color("#1e1e1e"),
-    "map.jet": 0,
-    "map.grenades": 0,
-    "map.medikits": 0,
-    "map.weather": "none",
-    "map.steps": "hard-ground",
-    "map.collider-radius": 8,
-    "app.library-url": "//urraka.github.io/soldat-map/data/",
-    "app.library-index": "filelist",
-    "app.github": "https://github.com/urraka/polywonks",
-    "app.export-location": "/soldat/maps/",
-    "app.export-mode": "soldat-171",
-};
-
-const settings = Object.assign({}, DefaultSettings);
 
 export function cfg(name, value) {
     if (value !== undefined) {

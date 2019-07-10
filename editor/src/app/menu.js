@@ -2,9 +2,9 @@ import * as ui from "../ui/ui.js";
 import { iter } from "../common/iter.js";
 import { EventEmitter } from "../common/event.js";
 import { Editor } from "../editor/editor.js";
+import { menu as MenuItems } from "../config.js";
 import { Settings, cfg } from "./settings.js";
-import { KeyBindings } from "./keybindings.js";
-import { MenuItems } from "./menu.config.js";
+import { Keybindings } from "./keybindings.js";
 
 export class Menu extends EventEmitter {
     constructor(app) {
@@ -105,7 +105,7 @@ export class Menu extends EventEmitter {
         if (item.ownerMenu.visible) {
             item.enabled = this.isMenuItemEnabled(item);
             item.checked = this.isMenuItemChecked(item);
-            item.keyBinding = KeyBindings.find(item.key);
+            item.keyBinding = Keybindings.find(item.key);
             this.invalidatedItems.delete(item);
         } else {
             this.invalidatedItems.add(item);

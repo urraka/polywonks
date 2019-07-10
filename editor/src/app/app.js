@@ -2,7 +2,7 @@ import * as ui from "../ui/ui.js";
 import { Path } from "../common/path.js";
 import { Editor } from "../editor/editor.js";
 import { cfg } from "./settings.js";
-import { KeyBindings } from "./keybindings.js";
+import { Keybindings } from "./keybindings.js";
 import { Renderer } from "./render.js";
 import { Sidebar } from "./sidebar.js";
 import { Menu } from "./menu.js";
@@ -42,7 +42,7 @@ export class App extends ui.Panel {
         document.addEventListener("dragover", e => this.onDragOver(e));
         document.addEventListener("dragenter", e => this.onDragEnter(e));
         document.addEventListener("contextmenu", e => e.preventDefault());
-        KeyBindings.on("command", e => this.onCommand(e.command, e.params));
+        Keybindings.on("command", e => this.onCommand(e.command, e.params));
 
         this.openDefault();
     }
