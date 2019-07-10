@@ -17,13 +17,6 @@ export class App extends ui.Panel {
         super("app");
         this.renderer = new Renderer(this);
 
-        this.keybindings = new KeyBindings();
-        this.onKeyBindingsCommand = e => this.onCommand(e.command, e.params);
-        this.keybindings.on("command", this.onKeyBindingsCommand);
-        document.addEventListener("keydown", e => this.onKeyDown(e));
-        document.addEventListener("keyup", e => this.onKeyUp(e));
-        window.addEventListener("blur", () => this.keybindings.onFocusLost());
-
         this.tabs = new EditorTabs(this);
         this.tabs.on("close", e => this.onTabClose(e));
         this.tabs.on("change", () => this.onTabChange());
@@ -48,10 +41,8 @@ export class App extends ui.Panel {
         document.addEventListener("drop", e => this.onDrop(e));
         document.addEventListener("dragover", e => this.onDragOver(e));
         document.addEventListener("dragenter", e => this.onDragEnter(e));
-
-        ui.Dialog.on("modalstart", () => this.onModalStart());
-        ui.Dialog.on("modalend", () => this.onModalEnd());
         document.addEventListener("contextmenu", e => e.preventDefault());
+        KeyBindings.on("command", e => this.onCommand(e.command, e.params));
 
         this.openDefault();
     }
@@ -116,15 +107,6 @@ export class App extends ui.Panel {
         if (this.tabs.editorCount === 0) this.openDefault();
     }
 
-    onModalStart() {
-        this.keybindings.onFocusLost();
-        this.keybindings.off("command", this.onKeyBindingsCommand);
-    }
-
-    onModalEnd() {
-        this.keybindings.on("command", this.onKeyBindingsCommand);
-    }
-
     onDrop(event) {
         event.preventDefault();
 
@@ -162,16 +144,6 @@ export class App extends ui.Panel {
 
     onDragEnter(event) {
         event.preventDefault();
-    }
-
-    onKeyDown(event) {
-        if (!(event.target instanceof HTMLInputElement)) {
-            this.keybindings.onKeyDown(event);
-        }
-    }
-
-    onKeyUp(event) {
-        this.keybindings.onKeyUp(event);
     }
 
     onCommand(command, params = null) {

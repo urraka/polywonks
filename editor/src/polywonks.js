@@ -40,6 +40,7 @@ import * as app from "./app/app.js";
 import * as file from "./app/file.js";
 import * as render from "./app/render.js";
 import * as settings from "./app/settings.js";
+import * as keybindings from "./app/keybindings.js";
 import * as sidebar from "./app/sidebar.js";
 import * as file_explorer from "./app/file.explorer.js";
 import * as clipboard from "./app/clipboard.js";
@@ -91,6 +92,7 @@ export const Polywonks = (() => {
         file,
         render,
         settings,
+        keybindings,
         sidebar,
         file_explorer,
         clipboard,

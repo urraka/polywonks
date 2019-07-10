@@ -1,3 +1,4 @@
+import * as ui from "../ui/ui.js";
 import { EventEmitter } from "../common/event.js";
 
 const Modifiers = ["Meta", "Ctrl", "Alt", "Shift"];
@@ -53,6 +54,31 @@ export class KeyBindings extends EventEmitter {
                 this.add(key, command[0], command[1]);
             }
         }
+
+        document.addEventListener("keydown", e => this.onKeyDown(e));
+        document.addEventListener("keyup", e => this.onKeyUp(e));
+        window.addEventListener("blur", () => this.onFocusLost());
+        ui.Dialog.on("modalstart", () => this.onFocusLost());
+    }
+
+    static get instance() {
+        return KeyBindings._instance || (KeyBindings._instance = new KeyBindings());
+    }
+
+    static on(...args) {
+        return KeyBindings.instance.on(...args);
+    }
+
+    static off(...args) {
+        return KeyBindings.instance.off(...args);
+    }
+
+    static find(command) {
+        return KeyBindings.instance.find(command);
+    }
+
+    static findAll(command) {
+        return KeyBindings.instance.findAll(command);
     }
 
     add(key, command, params) {
@@ -102,48 +128,52 @@ export class KeyBindings extends EventEmitter {
     }
 
     onKeyDown(event) {
-        const modifiers = [
-            +event.metaKey,
-            +event.ctrlKey,
-            +event.altKey,
-            +event.shiftKey,
-        ].join("");
+        if (!ui.Dialog.activeDialog && !(event.target instanceof HTMLInputElement)) {
+            const modifiers = [
+                +event.metaKey,
+                +event.ctrlKey,
+                +event.altKey,
+                +event.shiftKey,
+            ].join("");
 
-        const key = [
-            modifiers + "_" + event.code.toUpperCase(),
-            modifiers + "_" + event.key.toUpperCase(),
-        ];
+            const key = [
+                modifiers + "_" + event.code.toUpperCase(),
+                modifiers + "_" + event.key.toUpperCase(),
+            ];
 
-        const binding = this.bindings[key[0]] || this.bindings[key[1]];
+            const binding = this.bindings[key[0]] || this.bindings[key[1]];
 
-        if (binding) {
-            event.preventDefault();
-            if (binding.command.startsWith("+")) this.pushed.add(binding.command);
-            this.emit("command", { command: binding.command, params: binding.params });
+            if (binding) {
+                event.preventDefault();
+                if (binding.command.startsWith("+")) this.pushed.add(binding.command);
+                this.emit("command", { command: binding.command, params: binding.params });
+            }
         }
     }
 
     onKeyUp(event) {
-        const modifiers = [
-            +event.metaKey,
-            +event.ctrlKey,
-            +event.altKey,
-            +event.shiftKey,
-        ];
+        if (!ui.Dialog.activeDialog) {
+            const modifiers = [
+                +event.metaKey,
+                +event.ctrlKey,
+                +event.altKey,
+                +event.shiftKey,
+            ];
 
-        const eventKeyName = [
-            event.code.toUpperCase(),
-            event.key.toUpperCase(),
-        ];
+            const eventKeyName = [
+                event.code.toUpperCase(),
+                event.key.toUpperCase(),
+            ];
 
-        for (const [k, binding] of Object.entries(this.bindings)) {
-            if (this.pushed.has(binding.command)) {
-                const keyName = k.slice(5);
-                if (eventKeyName[0] === keyName || eventKeyName[1] === keyName ||
-                    modifiers.some((m, i) => +k.charAt(i) - m === 1)
-                ) {
-                    this.pushed.delete(binding.command);
-                    this.emit("command", { command: "-" + binding.command.slice(1) });
+            for (const [k, binding] of Object.entries(this.bindings)) {
+                if (this.pushed.has(binding.command)) {
+                    const keyName = k.slice(5);
+                    if (eventKeyName[0] === keyName || eventKeyName[1] === keyName ||
+                        modifiers.some((m, i) => +k.charAt(i) - m === 1)
+                    ) {
+                        this.pushed.delete(binding.command);
+                        this.emit("command", { command: "-" + binding.command.slice(1) });
+                    }
                 }
             }
         }

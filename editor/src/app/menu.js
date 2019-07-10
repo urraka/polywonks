@@ -3,6 +3,7 @@ import { iter } from "../common/iter.js";
 import { EventEmitter } from "../common/event.js";
 import { Editor } from "../editor/editor.js";
 import { Settings, cfg } from "./settings.js";
+import { KeyBindings } from "./keybindings.js";
 import { MenuItems } from "./menu.config.js";
 
 export class Menu extends EventEmitter {
@@ -11,7 +12,6 @@ export class Menu extends EventEmitter {
         this.items = {};
         this.invalidatedItems = new Set();
         this.titlebar = new ui.TitleBar();
-        this.keybindings = app.keybindings;
 
         this.onEditorFunctionChange = this.onEditorFunctionChange.bind(this);
         this.titlebar.menu.on("itemclick", e => this.onMenuItemClick(e.item));
@@ -105,7 +105,7 @@ export class Menu extends EventEmitter {
         if (item.ownerMenu.visible) {
             item.enabled = this.isMenuItemEnabled(item);
             item.checked = this.isMenuItemChecked(item);
-            item.keyBinding = this.keybindings.find(item.key);
+            item.keyBinding = KeyBindings.find(item.key);
             this.invalidatedItems.delete(item);
         } else {
             this.invalidatedItems.add(item);

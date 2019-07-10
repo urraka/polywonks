@@ -34,6 +34,7 @@ export class Editor extends ui.Panel {
         this.commandHistory = [];
         this.functions = EditorFunction.instantiate(this);
         this.toolset = new Toolset(this);
+        this.sidebar = new EditorSidebar(this);
         this.setupEvents();
     }
 
@@ -53,13 +54,6 @@ export class Editor extends ui.Panel {
         for (const [name, func] of Object.entries(this.functions)) {
             func.on("change", () => this.emit("functionchange", { name }));
         }
-    }
-
-    sidebar(keybindings) {
-        if (!this._sidebar && keybindings) {
-            this._sidebar = new EditorSidebar(this, keybindings);
-        }
-        return this._sidebar;
     }
 
     textureInfo(node) {

@@ -1,11 +1,12 @@
 import * as ui from "../ui/ui.js";
 import { iter } from "../common/iter.js";
+import { KeyBindings } from "../app/keybindings.js";
 import { MapExplorer } from "./map.explorer.js";
 import { MapProperties } from "./map.properties.js";
 import { ToolPropertiesItem } from "./tool.properties.js";
 
 export class EditorSidebar {
-    constructor(editor, keybindings) {
+    constructor(editor) {
         this.editor = editor;
         this.panels = new ui.MultiPanelView();
         this.panels.element.classList.add("editor-sidebar-panels");
@@ -13,7 +14,7 @@ export class EditorSidebar {
         this.explorer = this.panels.addPanel("Map", new MapExplorer(editor));
         this.properties = this.panels.addPanel("Map Properties", new MapProperties(editor));
 
-        const bindings = keybindings.findAll("set-tool");
+        const bindings = KeyBindings.findAll("set-tool");
         for (const [key, tool] of editor.toolset.tools) {
             const item = new ui.ListViewItem(tool.text, tool);
             const binding = bindings.find(b => b.params.tool === key);

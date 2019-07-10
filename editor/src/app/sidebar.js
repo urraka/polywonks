@@ -8,7 +8,6 @@ ui.registerStyles(styles);
 export class Sidebar extends ui.Panel {
     constructor(app) {
         super("sidebar");
-        this.keybindings = app.keybindings;
         this.panels = new Map();
         this.explorers = [];
         this.append(this.createTabs());
@@ -21,18 +20,14 @@ export class Sidebar extends ui.Panel {
     }
 
     onEditorClose(editor) {
-        if (editor.sidebar()) {
-            editor.sidebar().element.remove();
-        }
+        editor.sidebar.element.remove();
     }
 
     onEditorChange(editor) {
         const panels = this.tools.element.querySelector(".editor-sidebar-panels.active");
         if (panels) panels.classList.remove("active");
-
-        const editorSidebar = editor.sidebar(this.keybindings);
-        if (!editorSidebar.element.parentElement) this.tools.append(editorSidebar);
-        editorSidebar.element.classList.add("active");
+        if (!editor.sidebar.element.parentElement) this.tools.append(editor.sidebar);
+        editor.sidebar.element.classList.add("active");
     }
 
     get activeTab() {
