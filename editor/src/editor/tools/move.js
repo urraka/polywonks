@@ -202,7 +202,7 @@ export class MoveTool extends Tool {
     moveNodes() {
         this.editor.map.off("change", this.onMapChange);
 
-        if (this.command && !this.editor.undo(this.command)) {
+        if (this.command && !this.editor.history.undo(this.command)) {
             this.pointers[0].cancel();
             this.pointers[1].cancel();
         } else {
@@ -228,7 +228,7 @@ export class MoveTool extends Tool {
                 }
             }
 
-            this.command = this.editor.do(this.command);
+            this.command = this.editor.history.do(this.command);
         }
 
         this.editor.map.on("change", this.onMapChange);

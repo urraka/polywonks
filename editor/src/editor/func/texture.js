@@ -24,7 +24,7 @@ class TextureTransformFunction extends TransformFunction {
             const uvTransform = this.uvTransform(uvTransformsCache, vertex.parentNode, transform);
             this.applyTransform(command, vertex, uvTransform);
         }
-        this.editor.do(command);
+        this.editor.history.do(command);
     }
 
     uvTransform(uvTransformsCache, triangle, transform) {
@@ -71,7 +71,7 @@ class TextureResetFunction extends TextureTransformFunction {
                 command.attr(vertex, "v", 0);
             }
         }
-        this.editor.do(command);
+        this.editor.history.do(command);
     }
 }
 

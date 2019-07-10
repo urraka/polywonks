@@ -69,7 +69,7 @@ class PasteFunction extends EditorFunction {
             command.insert(this.editor.activeLayer, null, nodeEntry);
         });
 
-        this.editor.do(command);
+        this.editor.history.do(command);
     }
 }
 

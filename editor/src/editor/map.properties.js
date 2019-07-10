@@ -70,7 +70,7 @@ export class MapProperties extends EventEmitter {
 
     changeValue(key, value) {
         this.editor.map.off("attributechange", this.onAttributeChange);
-        if (this.command) this.editor.undo(this.command);
+        if (this.command) this.editor.history.undo(this.command);
         this.command = new EditorCommand(this.editor);
         const type = this.node.attributes.get(key).dataType;
         const layer = this.node.closest("layer");
@@ -86,7 +86,7 @@ export class MapProperties extends EventEmitter {
                 this.command.attr(node, key, value);
             }
         }
-        this.command = this.editor.do(this.command);
+        this.command = this.editor.history.do(this.command);
         this.editor.map.on("attributechange", this.onAttributeChange);
     }
 }

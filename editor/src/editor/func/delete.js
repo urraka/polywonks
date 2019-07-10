@@ -45,7 +45,7 @@ class DeleteFunction extends EditorFunction {
                 command.attr(node, "texture", null);
             }
         }
-        this.editor.do(command);
+        this.editor.history.do(command);
     }
 
     onExec() {

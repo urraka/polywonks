@@ -35,6 +35,7 @@ import * as view from "./editor/view.js";
 import * as tool from "./editor/tools/tool.js";
 import * as toolset from "./editor/toolset.js";
 import * as editor_sidebar from "./editor/sidebar.js";
+import * as history from "./editor/history.js";
 
 import * as app from "./app/app.js";
 import * as file from "./app/file.js";
@@ -86,6 +87,7 @@ export const Polywonks = (() => {
         tool,
         toolset,
         editor_sidebar,
+        history,
 
         // app
         app,

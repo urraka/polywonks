@@ -7,7 +7,7 @@ import { EditorFunction } from "./base.js";
 
 class ExportFunction extends EditorFunction {
     onExec() {
-        const filename = Path.replaceExtension(Path.filename(this.editor.saveName), ".pms");
+        const filename = Path.replaceExtension(Path.filename(this.editor.history.saveName), ".pms");
         const path = Path.resolve(cfg("app.export-location"), filename);
         File.refresh(Path.mount(path), () => {
             if (File.exists(path)) {
@@ -25,7 +25,7 @@ class ExportFunction extends EditorFunction {
 
 class ExportAsFunction extends EditorFunction {
     onExec() {
-        const filename = Path.replaceExtension(Path.filename(this.editor.saveName), ".pms");
+        const filename = Path.replaceExtension(Path.filename(this.editor.history.saveName), ".pms");
         const path = Path.resolve(cfg("app.export-location"), filename);
         const dialog = new SaveDialog("Export as...", Path.filename(path), Path.dir(path));
         dialog.on("save", event => {
@@ -41,7 +41,7 @@ class ExportAsFunction extends EditorFunction {
 
 class ExportDownloadFunction extends EditorFunction {
     onExec() {
-        const filename = Path.replaceExtension(Path.filename(this.editor.saveName), ".pms");
+        const filename = Path.replaceExtension(Path.filename(this.editor.history.saveName), ".pms");
         const data = this.editor.map.toPMS().toArrayBuffer();
         ui.download(filename, new Blob([data], {type: "octet/stream"}));
     }

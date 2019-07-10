@@ -41,7 +41,7 @@ export class TransformFunction extends EditorFunction {
         for (const node of new Set(this.nodes())) {
             this.applyTransform(command, node, transform);
         }
-        this.editor.do(command);
+        this.editor.history.do(command);
     }
 
     onCommandWillChange(event) {

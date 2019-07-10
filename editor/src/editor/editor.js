@@ -4,13 +4,14 @@ import { Path } from "../common/path.js";
 import { iter } from "../common/iter.js";
 import { MapDocument, LayerNode } from "../map/map.js";
 import { File } from "../app/file.js";
-import { cfg, Settings } from "../app/settings.js";
+import { Settings } from "../app/settings.js";
 import { View } from "./view.js";
 import { EditorFunction } from "./func/func.js";
 import { ZoomTool } from "./tools/zoom.js";
 import { Selection } from "./selection.js";
 import { Grid } from "./grid.js";
 import { Toolset } from "./toolset.js";
+import { EditorHistory } from "./history.js";
 import { EditorSidebar } from "./sidebar.js";
 import { styles } from "./editor.styles.js";
 
@@ -25,30 +26,14 @@ export class Editor extends ui.Panel {
         this.view = new View(this);
         this.grid = new Grid(this.view);
         this.selection = new Selection(this);
+        this.history = new EditorHistory(this);
         this.activeLayer = null;
         this.previewNodes = new Set();
         this.reactiveNode = null;
-        this.saveName = this.initialSaveName(map.path);
-        this.saveIndex = 0;
-        this.undone = 0;
-        this.commandHistory = [];
         this.functions = EditorFunction.instantiate(this);
         this.toolset = new Toolset(this);
         this.sidebar = new EditorSidebar(this);
-        this.setupEvents();
-    }
 
-    initialSaveName(path) {
-        if (path === "") {
-            return "Untitled.polywonks";
-        } else if (path.startsWith("/library/") || Path.ext(path).toLowerCase() === ".pms") {
-            return Path.replaceExtension(Path.filename(path), ".polywonks");
-        } else {
-            return path;
-        }
-    }
-
-    setupEvents() {
         this.selection.on("change", () => this.onSelectionChange());
         Settings.on("change", e => this.onSettingChange(e.setting));
         for (const [name, func] of Object.entries(this.functions)) {
@@ -74,59 +59,6 @@ export class Editor extends ui.Panel {
 
     get cursor() {
         return this._cursor || (this._cursor = this.toolset.passiveTools.get("cursor"));
-    }
-
-    get modified() {
-        return this.saveIndex !== this.undone;
-    }
-
-    onSave(saveIndex = this.undone, saveName = this.saveName) {
-        if (saveName !== this.saveName) {
-            const changed = (saveIndex !== this.undone);
-            this.exec("relocate", { path: saveName });
-            this.saveName = saveName;
-            saveIndex = changed ? saveIndex : this.undone;
-        }
-        this.saveIndex = saveIndex;
-        this.emit("historychange");
-    }
-
-    do(command) {
-        if (!command.hasChanges) {
-            return;
-        }
-
-        if (this.saveIndex >= 0) {
-            this.saveIndex = this.saveIndex - this.undone + 1;
-        }
-
-        this.commandHistory.splice(0, this.undone, command);
-        this.undone = 0;
-
-        const limit = cfg("editor.undo-limit");
-        if (limit > 0 && this.commandHistory.length > limit) {
-            this.commandHistory = this.commandHistory.slice(0, limit);
-        }
-
-        command.do();
-        this.emit("historychange");
-        return command;
-    }
-
-    redo() {
-        if (this.undone > 0) {
-            this.commandHistory[--this.undone].do();
-            this.emit("historychange");
-        }
-    }
-
-    undo(command) {
-        if (this.commandHistory.length > this.undone && (!command || command === this.commandHistory[this.undone])) {
-            this.commandHistory[this.undone++].undo();
-            this.emit("historychange");
-            return true;
-        }
-        return false;
     }
 
     get width() {

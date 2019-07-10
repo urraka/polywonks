@@ -118,7 +118,7 @@ export class PaintTool extends Tool {
 
     paintNodes(nodes) {
         if (this.hoveredNodes.length > 0) {
-            if (this.command && !this.editor.undo(this.command)) {
+            if (this.command && !this.editor.history.undo(this.command)) {
                 this.endPaint();
             }
             this.command = new EditorCommand(this.editor);
@@ -126,7 +126,7 @@ export class PaintTool extends Tool {
             for (const node of this.commandNodes) {
                 this.command.attr(node, "color", this.attr("color"));
             }
-            this.editor.do(this.command);
+            this.editor.history.do(this.command);
         }
     }
 

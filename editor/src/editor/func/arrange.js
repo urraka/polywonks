@@ -77,7 +77,7 @@ class BringToFrontFunction extends ArrangeFunction {
                 nodes.forEach(node => command.insert(layer, last, node));
             }
         }
-        this.editor.do(command);
+        this.editor.history.do(command);
     }
 }
 
@@ -104,7 +104,7 @@ class BringForwardFunction extends ArrangeFunction {
                 nodes.forEach(node => command.insert(layer, next(next(node)), node));
             }
         }
-        this.editor.do(command);
+        this.editor.history.do(command);
     }
 }
 
@@ -131,7 +131,7 @@ class SendBackwardFunction extends ArrangeFunction {
                 nodes.forEach(node => command.insert(layer, prev(node), node));
             }
         }
-        this.editor.do(command);
+        this.editor.history.do(command);
     }
 }
 
@@ -149,7 +149,7 @@ class SendToBackFunction extends ArrangeFunction {
                 nodes.forEach(node => command.insert(layer, first, node));
             }
         }
-        this.editor.do(command);
+        this.editor.history.do(command);
     }
 }
 

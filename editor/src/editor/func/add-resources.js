@@ -22,7 +22,7 @@ class AddResourcesFunction extends EditorFunction {
             node.attr("height", res.image.height);
             command.insert(this.editor.map.resources, null, node);
         }
-        this.editor.do(command);
+        this.editor.history.do(command);
     }
 
     onExec({ type, paths }) {

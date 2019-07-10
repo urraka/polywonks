@@ -150,7 +150,7 @@ export class CreateTool extends Tool {
         this.editor.selection.clear();
         const command = new EditorCommand(this.editor);
         this.insertNode(command);
-        this.editor.do(command);
+        this.editor.history.do(command);
         this.updateTargetLayer();
         this.node = this.createNode();
         this.updateNode();

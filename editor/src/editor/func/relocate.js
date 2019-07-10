@@ -27,7 +27,7 @@ class RelocateFunction extends EditorFunction {
             }
         }
 
-        this.editor.do(command);
+        this.editor.history.do(command);
     }
 }
 

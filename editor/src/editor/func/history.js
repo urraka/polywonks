@@ -3,27 +3,27 @@ import { EditorFunction } from "./base.js";
 class HistoryFunction extends EditorFunction {
     constructor(editor) {
         super(editor);
-        this.editor.on("historychange", () => this.emit("change"));
+        this.editor.history.on("change", () => this.emit("change"));
     }
 }
 
 class UndoFunction extends HistoryFunction {
     get enabled() {
-        return this.editor.commandHistory.length > this.editor.undone;
+        return this.editor.history.canUndo;
     }
 
     onExec() {
-        this.editor.undo();
+        this.editor.history.undo();
     }
 }
 
 class RedoFunction extends HistoryFunction {
     get enabled() {
-        return this.editor.undone > 0;
+        return this.editor.history.canRedo;
     }
 
     onExec() {
-        this.editor.redo();
+        this.editor.history.redo();
     }
 }
 

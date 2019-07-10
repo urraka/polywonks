@@ -38,16 +38,16 @@ export class EditorTabs extends EventEmitter {
     addEditor(editor) {
         const prevPanel = this.tabView.activePanel;
         const prevEditor = this.activeEditor;
-        const panel = this.tabView.addPanel(new ui.TabPanel(Path.filename(editor.saveName), editor));
-        editor.on("historychange", this.onEditorHistoryChange.bind(this, editor, panel));
-        if (prevPanel && prevEditor.openedAsDefault && !prevEditor.modified) {
+        const panel = this.tabView.addPanel(new ui.TabPanel(Path.filename(editor.history.saveName), editor));
+        editor.history.on("change", this.onEditorHistoryChange.bind(this, editor, panel));
+        if (prevPanel && prevEditor.openedAsDefault && !prevEditor.history.modified) {
             prevPanel.close();
         }
     }
 
     onEditorHistoryChange(editor, panel) {
-        panel.title = Path.filename(editor.saveName);
-        panel.modified = editor.modified;
+        panel.title = Path.filename(editor.history.saveName);
+        panel.modified = editor.history.modified;
     }
 
     onTabWillChange() {
@@ -64,15 +64,15 @@ export class EditorTabs extends EventEmitter {
 
     onTabWillClose(event) {
         const editor = event.panel.content;
-        if (editor.modified) {
+        if (editor.history.modified) {
             event.preventDefault();
-            ui.confirm("Closing", `Save changes to ${Path.filename(editor.saveName)}?`, "yes", result => {
+            ui.confirm("Closing", `Save changes to ${Path.filename(editor.history.saveName)}?`, "yes", result => {
                 switch (result) {
                     case "yes":
                         editor.exec("save").then(() => event.panel.close());
                         break;
                     case "no":
-                        editor.onSave();
+                        editor.history.modified = false;
                         event.panel.close();
                         break;
                 }
@@ -98,7 +98,7 @@ export class EditorTabs extends EventEmitter {
 
     onBeforeUnload(event) {
         for (const editor of this.editors) {
-            if (editor.modified) {
+            if (editor.history.modified) {
                 event.preventDefault();
                 event.returnValue = "";
                 break;
