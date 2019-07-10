@@ -25,7 +25,7 @@ export class TransformFunction extends EditorFunction {
     }
 
     handle() {
-        const handle = this.editor.currentTool.handle;
+        const handle = this.editor.toolset.currentTool.handle;
         return handle && handle.visible ? handle : null;
     }
 

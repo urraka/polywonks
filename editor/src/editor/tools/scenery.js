@@ -2,6 +2,7 @@ import { Color } from "../../common/color.js";
 import { iter } from "../../common/iter.js";
 import { SceneryNode, Attribute, PivotNode, ImageNode } from "../../map/map.js";
 import { CreateTool } from "./create.js";
+import { Tool } from "./tool.js";
 
 export class SceneryTool extends CreateTool {
     constructor() {
@@ -11,7 +12,13 @@ export class SceneryTool extends CreateTool {
         this.onNodeInsert = this.onNodeInsert.bind(this);
     }
 
-    get statusText() { return "Create scenery"; }
+    get text() {
+        return "Scenery";
+    }
+
+    get statusText() {
+        return "Create scenery";
+    }
 
     onActivate() {
         super.onActivate();
@@ -58,3 +65,5 @@ export class SceneryTool extends CreateTool {
         return layers.find(layer => layer.attr("type") === "scenery-middle") || super.chooseDefaultLayer();
     }
 }
+
+Tool.register(SceneryTool);

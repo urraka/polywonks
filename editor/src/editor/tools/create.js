@@ -17,16 +17,20 @@ export class CreateTool extends Tool {
         this.onAttrChange = this.onAttrChange.bind(this);
         this.onMouseDown = this.onMouseDown.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
-        this.onEditorStatusChange = this.onEditorStatusChange.bind(this);
         this.onNodeRemove = this.onNodeRemove.bind(this);
+        this.onActiveLayerChange = this.onActiveLayerChange.bind(this);
+        this.onCursorChange = this.onCursorChange.bind(this);
     }
 
     get status() {
-        if (!this.targetLayer) {
-            return "Select a layer";
-        } else {
-            return this.statusText;
+        if (this.activated) {
+            if (!this.targetLayer) {
+                return "Select a layer";
+            } else {
+                return this.statusText;
+            }
         }
+        return "";
     }
 
     updateNode() { throw new Error("Must implement"); }
@@ -55,31 +59,31 @@ export class CreateTool extends Tool {
 
         this.pointer.activate(this.editor.element, 0);
         this.on("attributechange", this.onAttrChange);
-        this.editor.on("statuschange", this.onEditorStatusChange);
+        this.editor.on("activelayerchange", this.onActiveLayerChange);
+        this.editor.cursor.on("change", this.onCursorChange);
         this.editor.map.on("remove", this.onNodeRemove);
         this.editor.element.addEventListener("mousedown", this.onMouseDown);
         document.addEventListener("keydown", this.onKeyDown);
-        this.emit("statuschange");
     }
 
     onDeactivate() {
         this.pointer.deactivate();
         this.off("attributechange", this.onAttrChange);
-        this.editor.off("statuschange", this.onEditorStatusChange);
+        this.editor.off("activelayerchange", this.onActiveLayerChange);
+        this.editor.cursor.off("change", this.onCursorChange);
         this.editor.map.off("remove", this.onNodeRemove);
         this.editor.element.removeEventListener("mousedown", this.onMouseDown);
         document.removeEventListener("keydown", this.onKeyDown);
     }
 
-    onEditorStatusChange(event) {
-        if (!this.editing && ("layer" in event.status)) {
+    onActiveLayerChange() {
+        if (!this.editing) {
             this.updateTargetLayer();
         }
+    }
 
-        if ("cursor" in event.status) {
-            this.updateHandle();
-            this.editor.redraw();
-        }
+    onCursorChange() {
+        this.updateHandle();
     }
 
     onNodeRemove(event) {
@@ -95,7 +99,6 @@ export class CreateTool extends Tool {
     onAttrChange() {
         this.updateNode();
         this.updateHandle();
-        this.editor.redraw();
     }
 
     onPointerBegin() {
@@ -108,12 +111,12 @@ export class CreateTool extends Tool {
     onPointerMove() {
         this.handle.moveTo(this.editor.cursor.x, this.editor.cursor.y);
         this.updateNode();
-        this.editor.redraw();
+        this.emit("change");
     }
 
     onMouseDown(event) {
         if (event.button === 2) {
-            this.editor.currentTool = this.editor.tools.select;
+            this.editor.toolset.currentTool = this.editor.toolset.select;
         }
     }
 
@@ -158,8 +161,11 @@ export class CreateTool extends Tool {
     }
 
     updateHandle() {
+        const visible = this.handle.visible;
         this.handle.visible = this.editor.cursor.active && !!this.targetLayer;
-        this.editor.redraw();
+        if (this.handle.visible !== visible) {
+            this.emit("change");
+        }
     }
 
     updateTargetLayer() {

@@ -3,12 +3,17 @@ import { Mat2d } from "../../common/matrix.js";
 import { PivotNode, LayerNode } from "../../map/map.js";
 import { SnapSource } from "../snapping.js";
 import { MoveTool } from "./move.js";
+import { Tool } from "./tool.js";
 
-export class MovePositionTool extends MoveTool {
+export class MoveObjectsTool extends MoveTool {
     constructor() {
         super();
         this.moveSnapSources = null;
         this.snapFilter = this.snapFilter.bind(this);
+    }
+
+    get text() {
+        return "Move";
     }
 
     get statusText() {
@@ -65,3 +70,5 @@ export class MovePositionTool extends MoveTool {
         }
     }
 }
+
+Tool.register(MoveObjectsTool);

@@ -1,6 +1,7 @@
 import * as PMS from "../../pms/pms.js";
 import { SpawnNode, Attribute } from "../../map/map.js";
 import { CreateTool } from "./create.js";
+import { Tool } from "./tool.js";
 
 export class SpawnTool extends CreateTool {
     constructor() {
@@ -8,7 +9,13 @@ export class SpawnTool extends CreateTool {
         this.attributes.set("type", new Attribute(PMS.SpawnTeam, PMS.SpawnTeam.General));
     }
 
-    get statusText() { return "Create spawns"; }
+    get text() {
+        return "Spawns";
+    }
+
+    get statusText() {
+        return "Create spawns";
+    }
 
     createNode() {
         return new SpawnNode();
@@ -20,3 +27,5 @@ export class SpawnTool extends CreateTool {
         this.node.attr("type", this.attr("type"));
     }
 }
+
+Tool.register(SpawnTool);

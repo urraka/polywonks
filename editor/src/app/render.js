@@ -33,13 +33,13 @@ export class Renderer {
         this.theme = null;
         this.loadIcons();
 
+        this.redraw = this.redraw.bind(this);
         this.onResourceNodeAttrChange = this.onResourceNodeAttrChange.bind(this);
-        this.onEditorRedraw = () => this.redraw();
 
         app.on("editorclose", e => this.onEditorClose(e.editor));
         app.on("activeeditorchange", e => this.onEditorChange(e.editor));
         Settings.on("change", e => this.onSettingChange(e.setting));
-        window.addEventListener("resize", () => this.redraw());
+        window.addEventListener("resize", this.redraw);
     }
 
     static get iconsInfo() {
@@ -56,15 +56,19 @@ export class Renderer {
 
     onEditorChange(editor) {
         if (this.editor) {
-            this.editor.off("redraw", this.onEditorRedraw);
-            this.editor.map.off("attributechange", this.onEditorRedraw);
-            this.editor.map.off("visibilitychange", this.onEditorRedraw);
+            this.editor.view.off("change", this.redraw);
+            this.editor.selection.off("change", this.redraw);
+            this.editor.toolset.off("toolstatechange", this.redraw);
+            this.editor.map.off("visibilitychange", this.redraw);
+            this.editor.map.off("change", this.redraw);
         }
         this._editor = editor;
         this.editor.renderer = this;
-        this.editor.on("redraw", this.onEditorRedraw);
-        this.editor.map.on("attributechange", this.onEditorRedraw);
-        this.editor.map.on("visibilitychange", this.onEditorRedraw);
+        this.editor.view.on("change", this.redraw);
+        this.editor.selection.on("change", this.redraw);
+        this.editor.toolset.on("toolstatechange", this.redraw);
+        this.editor.map.on("visibilitychange", this.redraw);
+        this.editor.map.on("change", this.redraw);
         this.redraw();
     }
 
@@ -586,7 +590,7 @@ export class Renderer {
     }
 
     subtractingEnabled() {
-        const sel = this.editor.tools.select;
+        const sel = this.editor.toolset.select;
         return sel.activated && sel.mode === "subtract";
     }
 
@@ -611,7 +615,7 @@ export class Renderer {
     }
 
     drawSelectionRect() {
-        const sel = this.editor.tools.select;
+        const sel = this.editor.toolset.select;
         if (sel.activated && sel.rect) {
             const p1 = this.editor.view.mapToPixelGrid(sel.rect.x0, sel.rect.y0);
             const p2 = this.editor.view.mapToPixelGrid(sel.rect.x1, sel.rect.y1);
@@ -643,7 +647,7 @@ export class Renderer {
     }
 
     drawTools() {
-        const tool = this.editor.tools.current;
+        const tool = this.editor.toolset.currentTool;
         if (tool.activated && (tool instanceof CreateTool) && tool.handle.visible) {
             this.drawNode(tool.node);
             this.drawNodeWireframe(tool.node);
@@ -652,7 +656,7 @@ export class Renderer {
 
     drawGuides() {
         const view = this.editor.view;
-        const tool = this.editor.tools.current;
+        const tool = this.editor.toolset.currentTool;
 
         if (tool.activated && tool.handle && tool.handle.visible) {
             const color = tool.handle.snapResult ? this.theme.guidesSnap :

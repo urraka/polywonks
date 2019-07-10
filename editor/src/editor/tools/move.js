@@ -3,8 +3,8 @@ import { Pointer, MovementThreshold } from "../../common/pointer.js";
 import { cfg } from "../../app/settings.js";
 import { PivotNode, VertexNode, WaypointNode, SpawnNode, ColliderNode } from "../../map/map.js";
 import { EditorCommand } from "../command.js";
-import { Tool } from "./tool.js";
 import { SnapHandle, SnapSource } from "../snapping.js";
+import { Tool } from "./tool.js";
 
 export class MoveTool extends Tool {
     constructor() {
@@ -16,7 +16,6 @@ export class MoveTool extends Tool {
         this.dragging = false;
         this.snapSources = null;
         this.handle = null;
-        this.selectTool = null;
         this.movement = new MovementThreshold();
         this.pointers = [new Pointer(null, 0), new Pointer(null, 2)];
         this.onPointerBegin = this.onPointerBegin.bind(this);
@@ -24,7 +23,7 @@ export class MoveTool extends Tool {
         this.onPointerEnd = this.onPointerEnd.bind(this);
         this.onSelectStatusChange = this.onSelectStatusChange.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
-        this.onEditorChange = this.onEditorChange.bind(this);
+        this.onMapChange = this.onMapChange.bind(this);
         for (const pointer of this.pointers) {
             pointer.on("begin", this.onPointerBegin);
             pointer.on("move", this.onPointerMove);
@@ -34,13 +33,13 @@ export class MoveTool extends Tool {
 
     get status() {
         if (this.activated) {
-            if (this.selectTool.activated) {
-                return this.selectTool.status;
-            } else {
-                return this.statusText;
-            }
+            return this.selectTool.status || this.statusText;
         }
         return "";
+    }
+
+    get selectTool() {
+        return this.editor.toolset.select;
     }
 
     onActivate() {
@@ -51,15 +50,13 @@ export class MoveTool extends Tool {
         this.dragging = false;
         this.snapSources = [new SnapSource(this.editor.map)];
         this.handle = this.createHandle();
-        this.selectTool = this.editor.tools.select;
         this.movement.reset(cfg("editor.drag-threshold"));
         this.pointers[0].activate(this.editor.element);
         this.pointers[1].activate(this.editor.element);
         this.selectTool.activate(this.editor);
         this.selectTool.on("statuschange", this.onSelectStatusChange);
         this.editor.selection.on("change", this.onSelectionChange);
-        this.editor.on("change", this.onEditorChange);
-        this.emit("statuschange");
+        this.editor.map.on("change", this.onMapChange);
 
         if (this.editor.cursor.active) {
             this.onPointerMove();
@@ -69,11 +66,10 @@ export class MoveTool extends Tool {
     onDeactivate() {
         this.selectTool.off("statuschange", this.onSelectStatusChange);
         this.editor.selection.off("change", this.onSelectionChange);
-        this.editor.off("change", this.onEditorChange);
+        this.editor.map.off("change", this.onMapChange);
         this.selectTool.deactivate();
         this.pointers[0].deactivate();
         this.pointers[1].deactivate();
-        this.emit("statuschange");
     }
 
     onCommand(command) {
@@ -100,7 +96,7 @@ export class MoveTool extends Tool {
         setTimeout(() => this.onPointerMove());
     }
 
-    onEditorChange() {
+    onMapChange() {
         setTimeout(() => this.onPointerMove());
     }
 
@@ -194,7 +190,7 @@ export class MoveTool extends Tool {
             }
         }
 
-        this.editor.redraw();
+        this.emit("change");
     }
 
     moveHandle() {
@@ -204,7 +200,7 @@ export class MoveTool extends Tool {
     }
 
     moveNodes() {
-        this.editor.off("change", this.onEditorChange);
+        this.editor.map.off("change", this.onMapChange);
 
         if (this.command && !this.editor.undo(this.command)) {
             this.pointers[0].cancel();
@@ -235,10 +231,10 @@ export class MoveTool extends Tool {
             this.command = this.editor.do(this.command);
         }
 
-        this.editor.on("change", this.onEditorChange);
+        this.editor.map.on("change", this.onMapChange);
     }
 
-    moveNode(node, offset) {
+    moveNode(_node, _offset) {
         throw new Error("Must implement");
     }
 

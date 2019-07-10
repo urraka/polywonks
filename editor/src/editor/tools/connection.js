@@ -2,6 +2,7 @@ import { iter } from "../../common/iter.js";
 import { ConnectionNode, WaypointNode } from "../../map/map.js";
 import { SnapSource } from "../snapping.js";
 import { CreateTool } from "./create.js";
+import { Tool } from "./tool.js";
 
 export class ConnectionTool extends CreateTool {
     constructor() {
@@ -11,7 +12,13 @@ export class ConnectionTool extends CreateTool {
         this.snapFilter = this.snapFilter.bind(this);
     }
 
-    get statusText() { return "Create waypoint connections"; }
+    get text() {
+        return "Connections";
+    }
+
+    get statusText() {
+        return "Create waypoint connections";
+    }
 
     onActivate() {
         super.onActivate();
@@ -76,3 +83,5 @@ export class ConnectionTool extends CreateTool {
         this.targetLayer = this.editor.map.waypoints;
     }
 }
+
+Tool.register(ConnectionTool);

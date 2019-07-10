@@ -9,6 +9,14 @@ export class PanTool extends Tool {
         this.pointer.on("move", e => this.onPointerMove(e.mouseEvent));
     }
 
+    get text() {
+        return "Pan";
+    }
+
+    get statusText() {
+        return "Pan";
+    }
+
     onActivate() {
         this.pointer.activate(this.editor.element, this.button);
     }
@@ -24,3 +32,6 @@ export class PanTool extends Tool {
         }
     }
 }
+
+Tool.register(PanTool);
+Tool.registerPassive(PanTool.bind(null, 1));

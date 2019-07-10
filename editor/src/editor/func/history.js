@@ -3,7 +3,7 @@ import { EditorFunction } from "./base.js";
 class HistoryFunction extends EditorFunction {
     constructor(editor) {
         super(editor);
-        this.editor.on("change", () => this.emit("change"));
+        this.editor.on("historychange", () => this.emit("change"));
     }
 }
 

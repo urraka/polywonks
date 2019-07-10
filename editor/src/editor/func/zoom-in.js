@@ -13,7 +13,7 @@ class ZoomInFunction extends EditorFunction {
     }
 
     onExec() {
-        this.editor.tools.passive.zoom.zoomIn();
+        this.editor.toolset.zoom.zoomIn();
     }
 }
 

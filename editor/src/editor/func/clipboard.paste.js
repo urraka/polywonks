@@ -7,7 +7,7 @@ import { EditorFunction } from "./base.js";
 class PasteFunction extends EditorFunction {
     constructor(editor) {
         super(editor);
-        this.editor.on("statuschange", e => e.status.layer && this.emit("change"));
+        this.editor.on("activelayerchange", () => this.emit("change"));
         Clipboard.on("change", () => this.emit("change"));
     }
 

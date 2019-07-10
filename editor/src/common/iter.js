@@ -8,6 +8,12 @@ function* filter(iterable, fn) {
     }
 }
 
+function* concat(...iterables) {
+    for (const iterable of iterables) {
+        yield* iterable[Symbol.iterator]();
+    }
+}
+
 class Iter {
     constructor(iterable) {
         this.iterable = iterable;
@@ -15,6 +21,10 @@ class Iter {
 
     filter(fn) {
         return iter(filter(this.iterable, fn));
+    }
+
+    concat(...iterables) {
+        return iter(concat(this.iterable, ...iterables));
     }
 
     each(fn) {

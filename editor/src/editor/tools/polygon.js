@@ -3,6 +3,7 @@ import { Color } from "../../common/color.js";
 import { VertexNode, TriangleNode, Attribute } from "../../map/map.js";
 import { SnapSource } from "../snapping.js";
 import { CreateTool } from "./create.js";
+import { Tool } from "./tool.js";
 
 export class PolygonTool extends CreateTool {
     constructor() {
@@ -11,7 +12,13 @@ export class PolygonTool extends CreateTool {
         this.attributes.set("texture", new Attribute("node", null));
     }
 
-    get statusText() { return "Create polygons"; }
+    get text() {
+        return "Polygons";
+    }
+
+    get statusText() {
+        return "Create polygons";
+    }
 
     onPointerBegin() {
         if (this.handle.visible) {
@@ -26,7 +33,7 @@ export class PolygonTool extends CreateTool {
                 this.handle.snapSources.pop();
                 this.endEditing();
             }
-            this.editor.redraw();
+            this.emit("change");
         }
     }
 
@@ -83,3 +90,5 @@ export class PolygonTool extends CreateTool {
         return layers.find(layer => layer.attr("type") === "polygons-front") || super.chooseDefaultLayer();
     }
 }
+
+Tool.register(PolygonTool);

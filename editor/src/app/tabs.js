@@ -39,13 +39,13 @@ export class EditorTabs extends EventEmitter {
         const prevPanel = this.tabView.activePanel;
         const prevEditor = this.activeEditor;
         const panel = this.tabView.addPanel(new ui.TabPanel(Path.filename(editor.saveName), editor));
-        editor.on("change", this.onEditorChange.bind(this, editor, panel));
+        editor.on("historychange", this.onEditorHistoryChange.bind(this, editor, panel));
         if (prevPanel && prevEditor.openedAsDefault && !prevEditor.modified) {
             prevPanel.close();
         }
     }
 
-    onEditorChange(editor, panel) {
+    onEditorHistoryChange(editor, panel) {
         panel.title = Path.filename(editor.saveName);
         panel.modified = editor.modified;
     }

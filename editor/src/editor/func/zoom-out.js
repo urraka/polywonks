@@ -13,7 +13,7 @@ class ZoomOutFunction extends EditorFunction {
     }
 
     onExec() {
-        this.editor.tools.passive.zoom.zoomOut();
+        this.editor.toolset.zoom.zoomOut();
     }
 }
 

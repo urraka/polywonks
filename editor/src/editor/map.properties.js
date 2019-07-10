@@ -16,7 +16,7 @@ export class MapProperties extends EventEmitter {
         this.onAttributeChange = this.onAttributeChange.bind(this);
         this.sheet.on("propertyinput", e => this.onPropertyInput(e));
         this.sheet.on("propertychange", e => this.onPropertyChange(e));
-        this.editor.on("selectionchange", () => this.onSelectionChange());
+        this.editor.selection.on("change", () => this.onSelectionChange());
         this.editor.map.on("attributechange", this.onAttributeChange);
         this.command = null;
         this.node = this.editor.map;

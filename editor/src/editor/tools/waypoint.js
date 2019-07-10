@@ -1,6 +1,7 @@
 import * as PMS from "../../pms/pms.js";
 import { WaypointNode, Attribute } from "../../map/map.js";
 import { CreateTool } from "./create.js";
+import { Tool } from "./tool.js";
 
 export class WaypointTool extends CreateTool {
     constructor() {
@@ -14,7 +15,13 @@ export class WaypointTool extends CreateTool {
         this.attributes.set("action", new Attribute(PMS.ActionType, PMS.ActionType.None));
     }
 
-    get statusText() { return "Create waypoints"; }
+    get text() {
+        return "Waypoints";
+    }
+
+    get statusText() {
+        return "Create waypoints";
+    }
 
     createNode() {
         return new WaypointNode();
@@ -32,3 +39,5 @@ export class WaypointTool extends CreateTool {
         this.node.attr("action", this.attr("action"));
     }
 }
+
+Tool.register(WaypointTool);

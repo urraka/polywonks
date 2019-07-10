@@ -9,6 +9,14 @@ export class ZoomTool extends Tool {
         this.onMouseWheel = this.onMouseWheel.bind(this);
     }
 
+    get text() {
+        return "Zoom";
+    }
+
+    get statusText() {
+        return "Zoom";
+    }
+
     onActivate() {
         this.editor.element.addEventListener("mousemove", this.onMouseMove);
         this.editor.element.addEventListener("wheel", this.onMouseWheel);
@@ -61,3 +69,5 @@ export class ZoomTool extends Tool {
         }
     }
 }
+
+Tool.registerPassive(ZoomTool);

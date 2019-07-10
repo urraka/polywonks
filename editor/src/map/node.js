@@ -57,6 +57,7 @@ export class Node extends EventEmitter {
 
             if (!ValueType.equals(attribute.dataType, val, attribute.value)) {
                 this.emit("attributechange", { attribute: name });
+                this.emit("change");
             }
         }
     }
@@ -82,6 +83,7 @@ export class Node extends EventEmitter {
             this.previousSibling = null;
 
             parent.emit("remove", { node: this });
+            parent.emit("change");
         }
     }
 
@@ -117,6 +119,7 @@ export class Node extends EventEmitter {
         }
 
         this.emit("insert", { node });
+        this.emit("change");
     }
 
     append(node) {

@@ -7,24 +7,13 @@ import { File } from "../app/file.js";
 import { cfg, Settings } from "../app/settings.js";
 import { View } from "./view.js";
 import { EditorFunction } from "./func/func.js";
-import { SelectTool } from "./tools/select.js";
-import { PanTool } from "./tools/pan.js";
 import { ZoomTool } from "./tools/zoom.js";
-import { MovePositionTool } from "./tools/move.position.js";
-import { MoveTextureTool } from "./tools/move.texture.js";
-import { PolygonTool } from "./tools/polygon.js";
-import { CursorTool } from "./tools/cursor.js";
 import { ToolPropertiesItem } from "./tool.properties.js";
-import { SceneryTool } from "./tools/scenery.js";
-import { SpawnTool } from "./tools/spawn.js";
-import { ColliderTool } from "./tools/collider.js";
-import { WaypointTool } from "./tools/waypoint.js";
-import { ConnectionTool } from "./tools/connection.js";
-import { PaintTool } from "./tools/paint.js";
 import { MapExplorer } from "./map.explorer.js";
 import { MapProperties } from "./map.properties.js";
 import { Selection } from "./selection.js";
 import { Grid } from "./grid.js";
+import { Toolset } from "./toolset.js";
 import { styles } from "./editor.styles.js";
 
 ui.registerStyles(styles);
@@ -32,7 +21,6 @@ ui.registerStyles(styles);
 export class Editor extends ui.Panel {
     constructor(map = MapDocument.default()) {
         super("editor");
-
         this.activated = false;
         this.openedAsDefault = false;
         this.map = map;
@@ -42,17 +30,13 @@ export class Editor extends ui.Panel {
         this.activeLayer = null;
         this.previewNodes = new Set();
         this.reactiveNode = null;
-        this.cursor = new CursorTool();
         this.saveName = this.initialSaveName(map.path);
         this.saveIndex = 0;
         this.undone = 0;
         this.commandHistory = [];
-
         this.functions = EditorFunction.instantiate(this);
-        this.cursor.activate(this);
-        this.tools = this.createTools();
+        this.toolset = new Toolset(this);
         this.setupEvents();
-        this.currentTool = this.tools.select;
     }
 
     initialSaveName(path) {
@@ -65,28 +49,6 @@ export class Editor extends ui.Panel {
         }
     }
 
-    createTools() {
-        return {
-            current: null,
-            previous: null,
-            passive: {
-                pan: new PanTool(1),
-                zoom: new ZoomTool(),
-            },
-            pan: new PanTool(0),
-            select: new SelectTool(),
-            move: new MovePositionTool(),
-            texture: new MoveTextureTool(),
-            paint: new PaintTool(),
-            polygon: new PolygonTool(),
-            scenery: new SceneryTool(),
-            spawn: new SpawnTool(),
-            collider: new ColliderTool(),
-            waypoint: new WaypointTool(),
-            connection: new ConnectionTool(),
-        };
-    }
-
     createSidebarPanels(keybindings) {
         const sidebar = {};
         sidebar.mainPanel = new ui.MultiPanelView();
@@ -97,23 +59,8 @@ export class Editor extends ui.Panel {
 
         const bindings = keybindings.findAll("set-tool");
 
-        const tools = [
-            ["pan", "Pan"],
-            ["select", "Select"],
-            ["move", "Move"],
-            ["texture", "Texture"],
-            ["paint", "Paint"],
-            ["polygon", "Polygons"],
-            ["scenery", "Scenery"],
-            ["spawn", "Spawns"],
-            ["collider", "Colliders"],
-            ["waypoint", "Waypoints"],
-            ["connection", "Connections"],
-        ];
-
-        tools.forEach(([key, text]) => {
-            const tool = this.tools[key];
-            const item = new ui.ListViewItem(text, tool);
+        iter(this.toolset.tools).each(([key, tool]) => {
+            const item = new ui.ListViewItem(tool.text, tool);
             const binding = bindings.find(b => b.params.tool === key);
             sidebar.tools.content.addItem(item);
             if (binding) {
@@ -122,21 +69,19 @@ export class Editor extends ui.Panel {
             if (tool.attributes.size > 0) {
                 sidebar.tools.content.addItem(new ToolPropertiesItem(this, tool));
             }
-            if (tool === this.currentTool) {
+            if (tool === this.toolset.currentTool) {
                 sidebar.tools.content.activeItem = item;
             }
         });
 
         sidebar.properties.content.on("nodechange", () => this.onPropertiesNodeChange());
-        sidebar.tools.content.on("itemclick", e => this.currentTool = e.item.data);
+        sidebar.tools.content.on("itemclick", e => this.toolset.currentTool = e.item.data);
 
         return sidebar;
     }
 
     setupEvents() {
-        this.onToolStatusChange = this.onToolStatusChange.bind(this);
-        this.view.on("change", () => this.onViewChange());
-        this.cursor.on("change", () => this.onCursorChange());
+        this.toolset.on("activetoolchange", () => this.onActiveToolChange());
         this.selection.on("change", () => this.onSelectionChange());
         Settings.on("change", e => this.onSettingChange(e.setting));
 
@@ -168,32 +113,15 @@ export class Editor extends ui.Panel {
         this._renderer = value;
     }
 
-    get currentTool() {
-        return this.tools.current;
+    get cursor() {
+        return this._cursor || (this._cursor = this.toolset.passiveTools.get("cursor"));
     }
 
-    set currentTool(value) {
-        const activated = this.tools.current && this.tools.current.activated;
-        this.tools.previous = this.tools.current || value;
-
-        if (this.tools.current) {
-            this.tools.current.deactivate();
-            this.tools.current.off("statuschange", this.onToolStatusChange);
-        }
-
-        this.tools.current = value;
-        this.tools.current.on("statuschange", this.onToolStatusChange);
-
+    onActiveToolChange() {
         if (this.sidebar()) {
             const listView = this.sidebar().tools.content;
-            listView.activeItem = iter(listView.items()).find(item => item.data === value);
+            listView.activeItem = iter(listView.items()).find(item => item.data === this.toolset.currentTool);
         }
-
-        if (activated) {
-            this.tools.current.activate(this);
-        }
-
-        this.redraw();
     }
 
     get modified() {
@@ -208,7 +136,7 @@ export class Editor extends ui.Panel {
             saveIndex = changed ? saveIndex : this.undone;
         }
         this.saveIndex = saveIndex;
-        this.emit("change");
+        this.emit("historychange");
     }
 
     do(command) {
@@ -229,50 +157,33 @@ export class Editor extends ui.Panel {
         }
 
         command.do();
-        this.emit("change");
-        this.redraw();
+        this.emit("historychange");
         return command;
     }
 
     redo() {
         if (this.undone > 0) {
             this.commandHistory[--this.undone].do();
-            this.emit("change");
-            this.redraw();
+            this.emit("historychange");
         }
     }
 
     undo(command) {
         if (this.commandHistory.length > this.undone && (!command || command === this.commandHistory[this.undone])) {
             this.commandHistory[this.undone++].undo();
-            this.emit("change");
-            this.redraw();
+            this.emit("historychange");
             return true;
         }
         return false;
     }
 
-    redraw() {
-        this.emit("redraw");
+    get width() {
+        return this._width || 0;
     }
 
-    statusChange(...args) {
-        const status = {};
-
-        const fn = this._statusFn || (this._statusFn = {
-            tool: () => this.tools.current.status,
-            layer: () => "Layer: " + (this.activeLayer || "None").toString(),
-            cursor: () => this.cursor.status,
-            zoom: () => Math.round(100 * this.view.scale) + "%",
-        });
-
-        if (args.length === 0) args = Object.keys(fn);
-        args.forEach(name => status[name] = fn[name]());
-        this.emit("statuschange", { status });
+    get height() {
+        return this._height || 0;
     }
-
-    get width() { return this._width || 0; }
-    get height() { return this._height || 0; }
 
     onResize() {
         this._width = this.element.clientWidth;
@@ -283,19 +194,14 @@ export class Editor extends ui.Panel {
         if (!this.activated) {
             this.activated = true;
             this.onResize();
-            this.tools.passive.pan.activate(this);
-            this.tools.passive.zoom.activate(this);
-            this.tools.current.activate(this);
-            this.statusChange();
+            this.toolset.activate();
         }
     }
 
     deactivate() {
         if (this.activated) {
             this.activated = false;
-            this.tools.current.deactivate();
-            this.tools.passive.zoom.deactivate();
-            this.tools.passive.pan.deactivate();
+            this.toolset.deactivate();
         }
     }
 
@@ -307,21 +213,12 @@ export class Editor extends ui.Panel {
         if (command in this.functions) {
             this.exec(command, params);
         } else {
-            this.tools.current.onCommand(command, params);
+            this.toolset.currentTool.onCommand(command, params);
         }
     }
 
     onPropertiesNodeChange() {
         this.sidebar().properties.header.title = this.sidebar().properties.content.node.nodeName + " properties";
-    }
-
-    onViewChange() {
-        this.statusChange("cursor", "zoom");
-        this.redraw();
-    }
-
-    onToolStatusChange() {
-        this.statusChange("tool");
     }
 
     get activeLayer() {
@@ -332,7 +229,7 @@ export class Editor extends ui.Panel {
         layer = layer || null;
         if (this.activeLayer !== layer) {
             this._activeLayer = layer;
-            this.statusChange("layer");
+            this.emit("activelayerchange");
         }
     }
 
@@ -343,12 +240,6 @@ export class Editor extends ui.Panel {
         } else if (node instanceof LayerNode) {
             this.activeLayer = node;
         }
-        this.emit("selectionchange");
-        this.redraw();
-    }
-
-    onCursorChange() {
-        this.statusChange("cursor");
     }
 
     onSettingChange(setting) {

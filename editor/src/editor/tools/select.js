@@ -25,6 +25,18 @@ export class SelectTool extends Tool {
         this.onSelectionChange = this.onSelectionChange.bind(this);
     }
 
+    get text() {
+        return "Select";
+    }
+
+    get statusText() {
+        switch (this.mode) {
+            case "replace": return "Select";
+            case "add": return "Select (+)";
+            case "subtract": return "Select (-)";
+        }
+    }
+
     onActivate() {
         this.selection = this.editor.selection;
         this.cycle = 0;
@@ -39,7 +51,6 @@ export class SelectTool extends Tool {
         this.editor.element.addEventListener("mouseenter", this.onMouseEnter);
         this.editor.element.addEventListener("mouseleave", this.onMouseLeave);
         this.selection.on("change", this.onSelectionChange);
-        this.emit("statuschange");
         this.updatePreviewNodes();
     }
 
@@ -49,16 +60,6 @@ export class SelectTool extends Tool {
         this.editor.element.removeEventListener("mouseleave", this.onMouseLeave);
         this.pointer.deactivate();
         this.editor.previewNodes.clear();
-        this.editor.redraw();
-        this.emit("statuschange");
-    }
-
-    get status() {
-        return this.activated ? {
-            "replace": "Select",
-            "add": "Select (+)",
-            "subtract": "Select (-)",
-        }[this.mode] : "";
     }
 
     get mode() {
@@ -100,9 +101,9 @@ export class SelectTool extends Tool {
     updatePreviewNodes() {
         this.editor.previewNodes.clear();
         this.editor.reactiveNode = null;
-        this.editor.redraw();
 
         if (!this.editor.cursor.active) {
+            this.emit("change");
             return;
         }
 
@@ -155,6 +156,8 @@ export class SelectTool extends Tool {
                 }
             }
         }
+
+        this.emit("change");
     }
 
     onSelectionChange() {
@@ -221,7 +224,7 @@ export class SelectTool extends Tool {
             this.selection[this.mode](new Set(nodes));
             this.selection.on("change", this.onSelectionChange);
             this.rect = null;
-            this.editor.redraw();
+            this.emit("change");
         }
     }
 
@@ -248,7 +251,7 @@ export class SelectTool extends Tool {
         if (!this.rect) {
             this.editor.previewNodes.clear();
             this.editor.reactiveNode = null;
-            this.editor.redraw();
+            this.emit("change");
         }
     }
 
@@ -256,3 +259,5 @@ export class SelectTool extends Tool {
         this.updatePreviewNodes();
     }
 }
+
+Tool.register(SelectTool);

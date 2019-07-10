@@ -22,14 +22,15 @@ export class PaintTool extends Tool {
         this.pointer.on("end", e => this.onPointerEnd(e.mouseEvent));
         this.attributes.set("color", new Attribute("color", new Color("#fff")));
         this.onAttrChange = () => this.endPaint();
-        this.onEditorChange = () => this.updateHoveredNodes();
+        this.onMapChange = () => this.updateHoveredNodes();
     }
 
-    get status() {
-        if (this.activated) {
-            return this.fullTriangle ? "Paint triangles" : "Paint vertices";
-        }
-        return "";
+    get text() {
+        return "Paint";
+    }
+
+    get statusText() {
+        return this.fullTriangle ? "Paint triangles" : "Paint vertices";
     }
 
     get rootNode() {
@@ -45,15 +46,14 @@ export class PaintTool extends Tool {
         this.endPoint = null;
         this.fullTriangle = false;
         this.on("attributechange", this.onAttrChange);
-        this.editor.on("change", this.onEditorChange);
+        this.editor.map.on("change", this.onMapChange);
         this.pointer.activate(this.editor.element, 0);
         this.updateHoveredNodes();
-        this.emit("statuschange");
     }
 
     onDeactivate() {
         this.off("attributechange", this.onAttrChange);
-        this.editor.off("change", this.onEditorChange);
+        this.editor.map.off("change", this.onMapChange);
         this.pointer.deactivate();
     }
 
@@ -65,7 +65,7 @@ export class PaintTool extends Tool {
                     if (this.hoveredNodes.length > 0) {
                         this.cycle = (this.cycle + 1) % this.hoveredNodes.length;
                         this.editor.reactiveNode = this.hoveredNodes[this.cycle].parentNode;
-                        this.editor.redraw();
+                        this.emit("change");
                     }
                     break;
                 }
@@ -147,7 +147,7 @@ export class PaintTool extends Tool {
             this.hoveredNodes.forEach(node => this.editor.previewNodes.add(node.parentNode));
             this.editor.reactiveNode = this.hoveredNodes[0].parentNode;
         }
-        this.editor.redraw();
+        this.emit("change");
     }
 
     verticesIntersectingSegment(ax, ay, bx, by) {
@@ -180,3 +180,5 @@ export class PaintTool extends Tool {
         }).flat();
     }
 }
+
+Tool.register(PaintTool);

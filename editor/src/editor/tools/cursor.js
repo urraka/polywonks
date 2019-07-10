@@ -3,20 +3,26 @@ import { Tool } from "./tool.js";
 export class CursorTool extends Tool {
     constructor() {
         super();
-        this.active = false;
         this.position = { x: 0, y: 0 };
-
         this.onMouseDown = this.onMouseDown.bind(this);
         this.onMouseMove = this.onMouseMove.bind(this);
         this.onMouseEnter = this.onMouseEnter.bind(this);
         this.onMouseLeave = this.onMouseLeave.bind(this);
     }
 
-    get status() {
-        if (this.active) {
-            return `${Math.round(this.position.x)}, ${Math.round(this.position.y)}`;
+    get statusText() {
+        return this.active ? `${Math.round(this.position.x)}, ${Math.round(this.position.y)}` : "";
+    }
+
+    get active() {
+        return !!this._active;
+    }
+
+    set active(value) {
+        if (this.active !== value) {
+            this._active = value;
+            this.emit("change");
         }
-        return "";
     }
 
     get x() {
@@ -43,12 +49,10 @@ export class CursorTool extends Tool {
 
     onMouseEnter() {
         this.active = true;
-        this.emit("change");
     }
 
     onMouseLeave() {
         this.active = false;
-        this.emit("change");
     }
 
     onMouseDown(event) {
@@ -69,3 +73,5 @@ export class CursorTool extends Tool {
         }
     }
 }
+
+Tool.registerPassive(CursorTool);

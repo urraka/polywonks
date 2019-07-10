@@ -1,4 +1,6 @@
 import { EventEmitter } from "../../common/event.js";
+import { pascalToDash } from "../../common/format.js";
+import { iter } from "../../common/iter.js";
 import { Node } from "../../map/map.js";
 
 export class Tool extends EventEmitter {
@@ -13,6 +15,10 @@ export class Tool extends EventEmitter {
     }
 
     get status() {
+        return this.activated ? this.statusText : "";
+    }
+
+    get statusText() {
         return "";
     }
 
@@ -29,6 +35,8 @@ export class Tool extends EventEmitter {
             this.deactivate();
             this.editor = editor;
             this.onActivate();
+            this.emit("change");
+            this.emit("statuschange");
         }
     }
 
@@ -36,6 +44,8 @@ export class Tool extends EventEmitter {
         if (this.editor) {
             this.onDeactivate();
             this.editor = null;
+            this.emit("change");
+            this.emit("statuschange");
         }
     }
 
@@ -48,4 +58,30 @@ export class Tool extends EventEmitter {
     }
 
     onCommand() { }
+
+    static get toolName() {
+        return pascalToDash(this.name.replace(/(^bound |Tool$)/g, ""));
+    }
+
+    static get tools() {
+        return Tool._tools || (Tool._tools = new Map());
+    }
+
+    static get passiveTools() {
+        return Tool._passiveTools || (Tool._passiveTools = new Map());
+    }
+
+    static register(tool) {
+        Tool.tools.set(tool.toolName, tool);
+    }
+
+    static registerPassive(tool) {
+        Tool.passiveTools.set(tool.toolName, tool);
+    }
+
+    static instantiate(tools) {
+        const instances = new Map();
+        iter(tools).each(([key, tool]) => instances.set(key, new tool()));
+        return instances;
+    }
 }

@@ -1,6 +1,7 @@
 import { cfg } from "../../app/settings.js";
 import { ColliderNode, Attribute } from "../../map/map.js";
 import { CreateTool } from "./create.js";
+import { Tool } from "./tool.js";
 
 export class ColliderTool extends CreateTool {
     constructor() {
@@ -8,7 +9,13 @@ export class ColliderTool extends CreateTool {
         this.attributes.set("radius", new Attribute("float", cfg("map.collider-radius")));
     }
 
-    get statusText() { return "Create colliders"; }
+    get text() {
+        return "Colliders";
+    }
+
+    get statusText() {
+        return "Create colliders";
+    }
 
     createNode() {
         return new ColliderNode();
@@ -20,3 +27,5 @@ export class ColliderTool extends CreateTool {
         this.node.attr("radius", this.attr("radius"));
     }
 }
+
+Tool.register(ColliderTool);

@@ -2,11 +2,16 @@ import { iter } from "../../common/iter.js";
 import { Mat3x3 } from "../../common/matrix.js";
 import { VertexNode, TriangleNode } from "../../map/map.js";
 import { MoveTool } from "./move.js";
+import { Tool } from "./tool.js";
 
 export class MoveTextureTool extends MoveTool {
     constructor() {
         super();
         this.transforms = null;
+    }
+
+    get text() {
+        return "Move Texture";
     }
 
     get statusText() {
@@ -81,3 +86,5 @@ export class MoveTextureTool extends MoveTool {
         );
     }
 }
+
+Tool.register(MoveTextureTool);
