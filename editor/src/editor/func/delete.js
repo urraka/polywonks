@@ -1,7 +1,7 @@
 import * as ui from "../../ui/ui.js";
 import { iter } from "../../common/iter.js";
 import { ResourceNode } from "../../map/map.js";
-import { EditorCommand } from "../command.js";
+import { HistoryCommand } from "../history.command.js";
 import { EditorFunction } from "./base.js";
 
 class DeleteFunction extends EditorFunction {
@@ -34,7 +34,7 @@ class DeleteFunction extends EditorFunction {
     }
 
     deleteNodes(nodes, linkedNodes) {
-        const command = new EditorCommand(this.editor);
+        const command = new HistoryCommand(this.editor);
         for (const node of nodes) {
             command.remove(node);
         }

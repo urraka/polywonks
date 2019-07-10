@@ -2,7 +2,7 @@ import { iter } from "../../common/iter.js";
 import { Pointer, MovementThreshold } from "../../common/pointer.js";
 import { cfg } from "../../app/settings.js";
 import { PivotNode, VertexNode, WaypointNode, SpawnNode, ColliderNode } from "../../map/map.js";
-import { EditorCommand } from "../command.js";
+import { HistoryCommand } from "../history.command.js";
 import { SnapHandle, SnapSource } from "../snapping.js";
 import { Tool } from "./tool.js";
 
@@ -206,7 +206,7 @@ export class MoveTool extends Tool {
             this.pointers[0].cancel();
             this.pointers[1].cancel();
         } else {
-            this.command = new EditorCommand(this.editor);
+            this.command = new HistoryCommand(this.editor);
 
             const offset = {
                 x: this.editor.cursor.x - (this.handleStart.x - this.handleOffset.x),

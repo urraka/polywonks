@@ -1,5 +1,5 @@
 import { Path } from "../../common/path.js";
-import { EditorCommand } from "../command.js";
+import { HistoryCommand } from "../history.command.js";
 import { EditorFunction } from "./base.js";
 
 class RelocateFunction extends EditorFunction {
@@ -8,7 +8,7 @@ class RelocateFunction extends EditorFunction {
             throw new Error("RelocateFunction: directory must be absolute");
         }
 
-        const command = new EditorCommand(this.editor);
+        const command = new HistoryCommand(this.editor);
         const mount = Path.mount(path);
         const dir = Path.dir(path);
 

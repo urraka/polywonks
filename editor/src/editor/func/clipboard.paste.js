@@ -1,7 +1,7 @@
 import { Path } from "../../common/path.js";
 import { Clipboard } from "../../app/clipboard.js";
 import { ResourceNode, TriangleNode } from "../../map/map.js";
-import { EditorCommand } from "../command.js";
+import { HistoryCommand } from "../history.command.js";
 import { EditorFunction } from "./base.js";
 
 class PasteFunction extends EditorFunction {
@@ -28,7 +28,7 @@ class PasteFunction extends EditorFunction {
         const dir = Path.dir(this.editor.map.path);
 
         this.editor.selection.clear();
-        const command = new EditorCommand(this.editor);
+        const command = new HistoryCommand(this.editor);
 
         data.nodes.forEach(nodeEntry => {
             for (const node of nodeEntry.tree()) {

@@ -3,7 +3,7 @@ import { iter } from "../../common/iter.js";
 import { Pointer } from "../../common/pointer.js";
 import { Color } from "../../common/color.js";
 import { TriangleNode, Attribute } from "../../map/map.js";
-import { EditorCommand } from "../command.js";
+import { HistoryCommand } from "../history.command.js";
 import { Tool } from "./tool.js";
 
 export class PaintTool extends Tool {
@@ -121,7 +121,7 @@ export class PaintTool extends Tool {
             if (this.command && !this.editor.history.undo(this.command)) {
                 this.endPaint();
             }
-            this.command = new EditorCommand(this.editor);
+            this.command = new HistoryCommand(this.editor);
             nodes.forEach(node => this.commandNodes.add(node));
             for (const node of this.commandNodes) {
                 this.command.attr(node, "color", this.attr("color"));

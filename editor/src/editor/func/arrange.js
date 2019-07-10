@@ -1,7 +1,7 @@
 import { EditorFunction } from "./base.js";
 import { LayerNode } from "../../map/map.js";
 import { iter } from "../../common/iter.js";
-import { EditorCommand } from "../command.js";
+import { HistoryCommand } from "../history.command.js";
 
 class ArrangeFunction extends EditorFunction {
     constructor(editor) {
@@ -69,7 +69,7 @@ class BringToFrontFunction extends ArrangeFunction {
     }
 
     onExec() {
-        const command = new EditorCommand(this.editor);
+        const command = new HistoryCommand(this.editor);
         for (const [layer, nodes] of this.sort()) {
             if (this.canBringNodesForward(nodes)) {
                 const last = this.filterNodesToLast(layer, nodes);
@@ -95,7 +95,7 @@ class BringForwardFunction extends ArrangeFunction {
     }
 
     onExec() {
-        const command = new EditorCommand(this.editor);
+        const command = new HistoryCommand(this.editor);
         for (const [layer, nodes] of this.sort()) {
             if (this.canBringNodesForward(nodes)) {
                 const last = this.filterNodesToLast(layer, nodes);
@@ -122,7 +122,7 @@ class SendBackwardFunction extends ArrangeFunction {
     }
 
     onExec() {
-        const command = new EditorCommand(this.editor);
+        const command = new HistoryCommand(this.editor);
         for (const [layer, nodes] of this.sort()) {
             if (this.canSendNodesBackward(nodes)) {
                 const first = this.filterNodesToFirst(layer, nodes);
@@ -141,7 +141,7 @@ class SendToBackFunction extends ArrangeFunction {
     }
 
     onExec() {
-        const command = new EditorCommand(this.editor);
+        const command = new HistoryCommand(this.editor);
         for (const [layer, nodes] of this.sort()) {
             if (this.canSendNodesBackward(nodes)) {
                 const first = this.filterNodesToFirst(layer, nodes);

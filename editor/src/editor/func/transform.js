@@ -2,7 +2,7 @@ import { iter } from "../../common/iter.js";
 import { Mat2d } from "../../common/matrix.js";
 import { normalizeAngle } from "../../common/math.js";
 import { SceneryNode, LayerNode } from "../../map/map.js";
-import { EditorCommand } from "../command.js";
+import { HistoryCommand } from "../history.command.js";
 import { EditorFunction } from "./base.js";
 
 export class TransformFunction extends EditorFunction {
@@ -35,7 +35,7 @@ export class TransformFunction extends EditorFunction {
     }
 
     onExec() {
-        const command = new EditorCommand(this.editor);
+        const command = new HistoryCommand(this.editor);
         command.on("willchange", this.onCommandWillChange);
         const transform = this.computeTransform(this.origin());
         for (const node of new Set(this.nodes())) {

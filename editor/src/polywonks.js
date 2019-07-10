@@ -27,7 +27,6 @@ import * as editor from "./editor/editor.js";
 import * as map_explorer from "./editor/map.explorer.js";
 import * as map_properties from "./editor/map.properties.js";
 import * as tool_properties from "./editor/tool.properties.js";
-import * as editor_command from "./editor/command.js";
 import * as selection from "./editor/selection.js";
 import * as grid from "./editor/grid.js";
 import * as snapping from "./editor/snapping.js";
@@ -36,6 +35,7 @@ import * as tool from "./editor/tools/tool.js";
 import * as toolset from "./editor/toolset.js";
 import * as editor_sidebar from "./editor/sidebar.js";
 import * as history from "./editor/history.js";
+import * as history_command from "./editor/history.command.js";
 
 import * as app from "./app/app.js";
 import * as file from "./app/file.js";
@@ -79,7 +79,6 @@ export const Polywonks = (() => {
         map_explorer,
         map_properties,
         tool_properties,
-        editor_command,
         selection,
         grid,
         snapping,
@@ -88,6 +87,7 @@ export const Polywonks = (() => {
         toolset,
         editor_sidebar,
         history,
+        history_command,
 
         // app
         app,

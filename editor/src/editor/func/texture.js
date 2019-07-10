@@ -1,7 +1,7 @@
 import { iter } from "../../common/iter.js";
 import { Mat3x3 } from "../../common/matrix.js";
 import { VertexNode, TriangleNode } from "../../map/map.js";
-import { EditorCommand } from "../command.js";
+import { HistoryCommand } from "../history.command.js";
 import { EditorFunction } from "./base.js";
 import { TransformFunction, FlipFunction, RotateFunction } from "./transform.js";
 
@@ -17,7 +17,7 @@ class TextureTransformFunction extends TransformFunction {
     }
 
     onExec() {
-        const command = new EditorCommand(this.editor);
+        const command = new HistoryCommand(this.editor);
         const transform = this.computeTransform(this.origin());
         const uvTransformsCache = new Map();
         for (const vertex of new Set(this.nodes())) {
@@ -58,7 +58,7 @@ class TextureTransformFunction extends TransformFunction {
 
 class TextureResetFunction extends TextureTransformFunction {
     onExec() {
-        const command = new EditorCommand(this.editor);
+        const command = new HistoryCommand(this.editor);
         for (const vertex of new Set(this.nodes())) {
             const texture = vertex.parentNode.attr("texture");
             if (texture) {
