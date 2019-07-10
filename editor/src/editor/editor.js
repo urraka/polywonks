@@ -8,12 +8,10 @@ import { cfg, Settings } from "../app/settings.js";
 import { View } from "./view.js";
 import { EditorFunction } from "./func/func.js";
 import { ZoomTool } from "./tools/zoom.js";
-import { ToolPropertiesItem } from "./tool.properties.js";
-import { MapExplorer } from "./map.explorer.js";
-import { MapProperties } from "./map.properties.js";
 import { Selection } from "./selection.js";
 import { Grid } from "./grid.js";
 import { Toolset } from "./toolset.js";
+import { EditorSidebar } from "./sidebar.js";
 import { styles } from "./editor.styles.js";
 
 ui.registerStyles(styles);
@@ -49,42 +47,9 @@ export class Editor extends ui.Panel {
         }
     }
 
-    createSidebarPanels(keybindings) {
-        const sidebar = {};
-        sidebar.mainPanel = new ui.MultiPanelView();
-        sidebar.mainPanel.element.classList.add("editor-sidebar-panels");
-        sidebar.tools = sidebar.mainPanel.addPanel(null, new ui.ListView());
-        sidebar.explorer = sidebar.mainPanel.addPanel("Map", new MapExplorer(this));
-        sidebar.properties = sidebar.mainPanel.addPanel("Map Properties", new MapProperties(this));
-
-        const bindings = keybindings.findAll("set-tool");
-
-        iter(this.toolset.tools).each(([key, tool]) => {
-            const item = new ui.ListViewItem(tool.text, tool);
-            const binding = bindings.find(b => b.params.tool === key);
-            sidebar.tools.content.addItem(item);
-            if (binding) {
-                item.keyBinding = binding.keys;
-            }
-            if (tool.attributes.size > 0) {
-                sidebar.tools.content.addItem(new ToolPropertiesItem(this, tool));
-            }
-            if (tool === this.toolset.currentTool) {
-                sidebar.tools.content.activeItem = item;
-            }
-        });
-
-        sidebar.properties.content.on("nodechange", () => this.onPropertiesNodeChange());
-        sidebar.tools.content.on("itemclick", e => this.toolset.currentTool = e.item.data);
-
-        return sidebar;
-    }
-
     setupEvents() {
-        this.toolset.on("activetoolchange", () => this.onActiveToolChange());
         this.selection.on("change", () => this.onSelectionChange());
         Settings.on("change", e => this.onSettingChange(e.setting));
-
         for (const [name, func] of Object.entries(this.functions)) {
             func.on("change", () => this.emit("functionchange", { name }));
         }
@@ -92,7 +57,7 @@ export class Editor extends ui.Panel {
 
     sidebar(keybindings) {
         if (!this._sidebar && keybindings) {
-            this._sidebar = this.createSidebarPanels(keybindings);
+            this._sidebar = new EditorSidebar(this, keybindings);
         }
         return this._sidebar;
     }
@@ -115,13 +80,6 @@ export class Editor extends ui.Panel {
 
     get cursor() {
         return this._cursor || (this._cursor = this.toolset.passiveTools.get("cursor"));
-    }
-
-    onActiveToolChange() {
-        if (this.sidebar()) {
-            const listView = this.sidebar().tools.content;
-            listView.activeItem = iter(listView.items()).find(item => item.data === this.toolset.currentTool);
-        }
     }
 
     get modified() {
@@ -215,10 +173,6 @@ export class Editor extends ui.Panel {
         } else {
             this.toolset.currentTool.onCommand(command, params);
         }
-    }
-
-    onPropertiesNodeChange() {
-        this.sidebar().properties.header.title = this.sidebar().properties.content.node.nodeName + " properties";
     }
 
     get activeLayer() {

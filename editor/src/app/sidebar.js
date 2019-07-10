@@ -22,7 +22,7 @@ export class Sidebar extends ui.Panel {
 
     onEditorClose(editor) {
         if (editor.sidebar()) {
-            editor.sidebar().mainPanel.element.remove();
+            editor.sidebar().element.remove();
         }
     }
 
@@ -31,8 +31,8 @@ export class Sidebar extends ui.Panel {
         if (panels) panels.classList.remove("active");
 
         const editorSidebar = editor.sidebar(this.keybindings);
-        if (!editorSidebar.mainPanel.element.parentElement) this.tools.append(editorSidebar.mainPanel);
-        editorSidebar.mainPanel.element.classList.add("active");
+        if (!editorSidebar.element.parentElement) this.tools.append(editorSidebar);
+        editorSidebar.element.classList.add("active");
     }
 
     get activeTab() {
