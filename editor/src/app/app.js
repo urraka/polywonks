@@ -53,14 +53,6 @@ export class App extends ui.Panel {
         window.dispatchEvent(new Event('resize'));
     }
 
-    get editor() {
-        return this.tabs.activeEditor;
-    }
-
-    get editors() {
-        return this.tabs.editors;
-    }
-
     openDefault() {
         const editor = this.open();
         editor.openedAsDefault = true;
@@ -99,7 +91,7 @@ export class App extends ui.Panel {
     }
 
     onTabChange() {
-        this.emit("activeeditorchange", { editor: this.editor });
+        this.emit("activeeditorchange", { editor: this.tabs.activeEditor });
     }
 
     onTabClose(event) {
@@ -169,8 +161,8 @@ export class App extends ui.Panel {
 
         if (commands[command]) {
             commands[command](params);
-        } else if (this.editor) {
-            this.editor.onCommand(command, params);
+        } else if (this.tabs.activeEditor) {
+            this.tabs.activeEditor.onCommand(command, params);
         }
     }
 }

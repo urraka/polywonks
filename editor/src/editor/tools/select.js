@@ -227,19 +227,17 @@ export class SelectTool extends Tool {
     onPointerMove(event) {
         if (this.selecting && !this.rect && this.movement.moved(event)) {
             this.rect = new Rect(this.rectPosition.x, this.rectPosition.y, 0, 0);
-
             if (this.revertNodes) {
                 this.selection.replace(this.revertNodes);
                 this.affectedNode = null;
                 this.revertNodes = null;
             }
         }
-
         if (this.rect) {
             this.rect.x1 = this.editor.cursor.x;
             this.rect.y1 = this.editor.cursor.y;
+            this.emit("change");
         }
-
         this.updatePreviewNodes();
     }
 
