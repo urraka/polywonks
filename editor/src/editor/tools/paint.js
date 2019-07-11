@@ -64,8 +64,7 @@ export class PaintTool extends Tool {
                 case "select.cycle": {
                     if (this.hoveredNodes.length > 0) {
                         this.cycle = (this.cycle + 1) % this.hoveredNodes.length;
-                        this.editor.reactiveNode = this.hoveredNodes[this.cycle].parentNode;
-                        this.emit("change");
+                        this.editor.reactive.replace(new Set([this.hoveredNodes[this.cycle].parentNode]));
                     }
                     break;
                 }
@@ -140,14 +139,13 @@ export class PaintTool extends Tool {
         const b = this.endPoint || this.editor.cursor;
         this.hoveredNodes = this.verticesIntersectingSegment(a.x, a.y, b.x, b.y);
         this.cycle = 0;
-        this.editor.reactiveNode = null;
-        this.editor.previewNodes.clear();
         if (this.hoveredNodes.length > 0) {
-            this.hoveredNodes.forEach(node => this.editor.previewNodes.add(node));
-            this.hoveredNodes.forEach(node => this.editor.previewNodes.add(node.parentNode));
-            this.editor.reactiveNode = this.hoveredNodes[0].parentNode;
+            this.editor.preview.replace(new Set(this.hoveredNodes.concat(this.hoveredNodes.map(node => node.parentNode))));
+            this.editor.reactive.replace(new Set([this.hoveredNodes[0].parentNode]));
+        } else {
+            this.editor.preview.clear();
+            this.editor.reactive.clear();
         }
-        this.emit("change");
     }
 
     verticesIntersectingSegment(ax, ay, bx, by) {

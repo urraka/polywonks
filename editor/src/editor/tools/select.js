@@ -3,6 +3,7 @@ import { Rect } from "../../common/rect.js";
 import { Pointer, MovementThreshold } from "../../common/pointer.js";
 import { cfg } from "../../app/settings.js";
 import { Tool } from "./tool.js";
+import { iter } from "../../common/iter.js";
 
 export class SelectTool extends Tool {
     constructor() {
@@ -59,7 +60,8 @@ export class SelectTool extends Tool {
         this.editor.element.removeEventListener("mouseenter", this.onMouseEnter);
         this.editor.element.removeEventListener("mouseleave", this.onMouseLeave);
         this.pointer.deactivate();
-        this.editor.previewNodes.clear();
+        this.editor.preview.clear();
+        this.editor.reactive.clear();
     }
 
     get mode() {
@@ -99,11 +101,10 @@ export class SelectTool extends Tool {
     }
 
     updatePreviewNodes() {
-        this.editor.previewNodes.clear();
-        this.editor.reactiveNode = null;
+        this.editor.preview.clear();
+        this.editor.reactive.clear();
 
         if (!this.editor.cursor.active) {
-            this.emit("change");
             return;
         }
 
@@ -113,9 +114,9 @@ export class SelectTool extends Tool {
                 this.rootNode.nodesIntersectingRect(...this.rect.values(), this.editor.view.scale);
 
             if (this.mode === "subtract") {
-                this.editor.previewNodes = new Set([...nodes].filter(node => this.selection.has(node)));
+                this.editor.preview.replace(new Set([...nodes].filter(node => this.selection.has(node))));
             } else {
-                this.editor.previewNodes = new Set(nodes);
+                this.editor.preview.replace(new Set(nodes));
             }
         } else {
             const { x, y } = this.editor.cursor.position;
@@ -129,15 +130,12 @@ export class SelectTool extends Tool {
                     nodes = [nodes[xMath.mod(-1 - this.cycle, nodes.length)]];
                 }
 
-                this.editor.previewNodes = new Set(nodes);
-                this.editor.reactiveNode = nodes.pop();
+                this.editor.preview.replace(new Set(nodes));
+                this.editor.reactive.replace(new Set(nodes.slice(-1)));
             } else {
                 if (this.mode === "add") {
                     nodes = nodes.filter(node => !this.selection.has(node));
                 }
-
-                this.editor.reactiveNode = null;
-                this.editor.previewNodes = new Set();
 
                 if (nodes.length > 0) {
                     let index = nodes.indexOf(this.affectedNode);
@@ -150,14 +148,12 @@ export class SelectTool extends Tool {
 
                     if (nodes.length > 0) {
                         this.cycle = this.cycle % nodes.length;
-                        this.editor.reactiveNode = nodes[xMath.mod(index - this.cycle, nodes.length)];
-                        this.editor.previewNodes = new Set(nodes);
+                        this.editor.reactive.replace(new Set([nodes[xMath.mod(index - this.cycle, nodes.length)]]));
+                        this.editor.preview.replace(new Set(nodes));
                     }
                 }
             }
         }
-
-        this.emit("change");
     }
 
     onSelectionChange() {
@@ -183,7 +179,7 @@ export class SelectTool extends Tool {
             changed = this.selection.clear();
         }
 
-        this.affectedNode = this.editor.reactiveNode;
+        this.affectedNode = iter(this.editor.reactive.nodes).first();
         this.revertNodes = this.selection.clone();
         const affected = this.affectedNode ? new Set([this.affectedNode]) : new Set();
         changed = this.selection[this.mode](affected) || changed;
@@ -249,9 +245,8 @@ export class SelectTool extends Tool {
 
     onMouseLeave() {
         if (!this.rect) {
-            this.editor.previewNodes.clear();
-            this.editor.reactiveNode = null;
-            this.emit("change");
+            this.editor.preview.clear();
+            this.editor.reactive.clear();
         }
     }
 

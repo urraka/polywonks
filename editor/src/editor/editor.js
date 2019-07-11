@@ -26,10 +26,9 @@ export class Editor extends ui.Panel {
         this.view = new View(this);
         this.grid = new Grid(this.view);
         this.selection = new Selection(this);
+        this.preview = new Selection(this);
+        this.reactive = new Selection(this);
         this.history = new EditorHistory(this);
-        this.activeLayer = null;
-        this.previewNodes = new Set();
-        this.reactiveNode = null;
         this.functions = EditorFunction.instantiate(this);
         this.toolset = new Toolset(this);
         this.sidebar = new EditorSidebar(this);

@@ -58,6 +58,8 @@ export class Renderer {
         if (this.editor) {
             this.editor.view.off("change", this.redraw);
             this.editor.selection.off("change", this.redraw);
+            this.editor.preview.off("change", this.redraw);
+            this.editor.reactive.off("change", this.redraw);
             this.editor.toolset.off("toolstatechange", this.redraw);
             this.editor.map.off("visibilitychange", this.redraw);
             this.editor.map.off("change", this.redraw);
@@ -66,6 +68,8 @@ export class Renderer {
         this.editor.renderer = this;
         this.editor.view.on("change", this.redraw);
         this.editor.selection.on("change", this.redraw);
+        this.editor.preview.on("change", this.redraw);
+        this.editor.reactive.on("change", this.redraw);
         this.editor.toolset.on("toolstatechange", this.redraw);
         this.editor.map.on("visibilitychange", this.redraw);
         this.editor.map.on("change", this.redraw);
@@ -312,7 +316,7 @@ export class Renderer {
                             renderLayers.selectionVertices.push(node.firstChild);
                         }
                     }
-                } else if (this.editor.previewNodes.has(node) || (this.isVertex(node) && cfg("view.vertices"))) {
+                } else if (this.editor.preview.nodes.has(node) || (this.isVertex(node) && cfg("view.vertices"))) {
                     if (this.isVertex(node)) {
                         if (!(node instanceof PivotNode) || !this.editor.selection.has(node.parentNode)) {
                             renderLayers.previewVertices.push(node);
@@ -595,13 +599,13 @@ export class Renderer {
     }
 
     subtractingNode(node) {
-        return this.subtractingEnabled() && this.editor.previewNodes.has(node);
+        return this.subtractingEnabled() && this.editor.preview.nodes.has(node);
     }
 
     chooseSelectionColor(node, palette, preview) {
         if (preview) {
             if (!this.subtractingEnabled()) {
-                if (node === this.editor.reactiveNode) {
+                if (this.editor.reactive.nodes.has(node)) {
                     return palette.reactive;
                 } else {
                     return palette.preview;
