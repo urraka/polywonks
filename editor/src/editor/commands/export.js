@@ -3,9 +3,9 @@ import { Path } from "../../common/path.js";
 import { cfg } from "../../app/settings.js";
 import { File } from "../../app/file.js";
 import { SaveDialog } from "../../app/dialog.save.js";
-import { EditorFunction } from "./base.js";
+import { EditorCommand } from "./command.js";
 
-class ExportFunction extends EditorFunction {
+class ExportCommand extends EditorCommand {
     onExec() {
         const filename = Path.replaceExtension(Path.filename(this.editor.history.saveName), ".pms");
         const path = Path.resolve(cfg("app.export-location"), filename);
@@ -23,7 +23,7 @@ class ExportFunction extends EditorFunction {
     }
 }
 
-class ExportAsFunction extends EditorFunction {
+class ExportAsCommand extends EditorCommand {
     onExec() {
         const filename = Path.replaceExtension(Path.filename(this.editor.history.saveName), ".pms");
         const path = Path.resolve(cfg("app.export-location"), filename);
@@ -39,7 +39,7 @@ class ExportAsFunction extends EditorFunction {
     }
 }
 
-class ExportDownloadFunction extends EditorFunction {
+class ExportDownloadCommand extends EditorCommand {
     onExec() {
         const filename = Path.replaceExtension(Path.filename(this.editor.history.saveName), ".pms");
         const data = this.editor.map.toPMS().toArrayBuffer();
@@ -47,6 +47,6 @@ class ExportDownloadFunction extends EditorFunction {
     }
 }
 
-EditorFunction.register(ExportFunction);
-EditorFunction.register(ExportAsFunction);
-EditorFunction.register(ExportDownloadFunction);
+EditorCommand.register(ExportCommand);
+EditorCommand.register(ExportAsCommand);
+EditorCommand.register(ExportDownloadCommand);

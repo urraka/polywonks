@@ -1,23 +1,23 @@
 import * as ui from "../ui/ui.js";
 import { iter } from "../common/iter.js";
 import { EventEmitter } from "../common/event.js";
-import { Editor } from "../editor/editor.js";
 import { menu as MenuItems } from "../config.js";
-import { Settings, cfg } from "./settings.js";
 import { Keybindings } from "./keybindings.js";
+import { Command } from "./command.js";
 
 export class Menu extends EventEmitter {
     constructor(app) {
         super();
+        this.app = app;
         this.items = {};
         this.invalidatedItems = new Set();
         this.titlebar = new ui.TitleBar();
 
-        this.onEditorFunctionChange = this.onEditorFunctionChange.bind(this);
+        this.onCommandChange = this.onCommandChange.bind(this);
         this.titlebar.menu.on("itemclick", e => this.onMenuItemClick(e.item));
         this.titlebar.menu.on("menushow", e => this.onMenuShow(e.menu));
-        Settings.on("change", e => this.onSettingChange(e.setting));
         app.on("activeeditorchange", e => this.onEditorChange(e.editor));
+        app.on("commandchange", this.onCommandChange);
 
         this.addMenuItems(this.titlebar.menu, MenuItems);
         this.updateItems();
@@ -31,31 +31,23 @@ export class Menu extends EventEmitter {
         return this._editor;
     }
 
-    onEditorChange(editor) {
-        if (this.editor) {
-            this.editor.off("functionchange", this.onEditorFunctionChange);
-        }
-        this._editor = editor;
-        if (this.editor) {
-            this.editor.on("functionchange", this.onEditorFunctionChange);
-        }
-        this.updateEditorItems();
-    }
-
     get editorItems() {
         return this._editorItems || (
             this._editorItems = new Set(iter(Object.values(this.items)).filter(item => {
-                return Editor.isEditorFunction(item.key);
+                return !Command.find(this.app, item.key);
             }))
         );
     }
 
-    get settingItems() {
-        return this._settingItems || (
-            this._settingItems = new Set(iter(Object.values(this.items)).filter(item => {
-                return !Editor.isEditorFunction(item.key);
-            }))
-        );
+    onEditorChange(editor) {
+        if (this.editor) {
+            this.editor.off("commandchange", this.onCommandChange);
+        }
+        this._editor = editor;
+        if (this.editor) {
+            this.editor.on("commandchange", this.onCommandChange);
+        }
+        this.updateEditorItems();
     }
 
     addMenuItems(menu, items) {
@@ -95,16 +87,15 @@ export class Menu extends EventEmitter {
         }
     }
 
-    updateSettingItems() {
-        for (const item of this.settingItems) {
-            this.updateItem(item);
-        }
-    }
-
     updateItem(item) {
         if (item.ownerMenu.visible) {
-            item.enabled = this.isMenuItemEnabled(item);
-            item.checked = this.isMenuItemChecked(item);
+            const command = this.findCommand(item);
+            if (command) {
+                item.enabled = command.enabled;
+                item.checked = command.checked;
+            } else {
+                item.enabled = false;
+            }
             item.keyBinding = Keybindings.find(item.key);
             this.invalidatedItems.delete(item);
         } else {
@@ -112,29 +103,11 @@ export class Menu extends EventEmitter {
         }
     }
 
-    isMenuItemEnabled(item) {
-        if (this.editorItems.has(item)) {
-            const editor = this.editor;
-            return !!(editor && editor.functions[item.key].enabled);
+    findCommand(item) {
+        for (const provider of this.app.commandProviders()) {
+            const command = Command.find(provider, item.key);
+            if (command) return command;
         }
-        return true;
-    }
-
-    isMenuItemChecked(item) {
-        if (this.settingItems.has(item)) {
-            switch (item.key) {
-                case "toggle-snap-to-grid": return cfg("editor.snap-to-grid");
-                case "toggle-snap-to-objects": return cfg("editor.snap-to-objects");
-                case "toggle-grid": return cfg("view.grid");
-                case "toggle-background": return cfg("view.background");
-                case "toggle-vertices": return cfg("view.vertices");
-                case "toggle-wireframe": return cfg("view.wireframe");
-                case "show-polygon-texture": return cfg("view.polygons") === "texture";
-                case "show-polygon-plain": return cfg("view.polygons") === "plain";
-                case "show-polygon-none": return cfg("view.polygons") === "none";
-            }
-        }
-        return false;
     }
 
     onMenuItemClick(item) {
@@ -151,11 +124,7 @@ export class Menu extends EventEmitter {
         }
     }
 
-    onSettingChange() {
-        this.updateSettingItems();
-    }
-
-    onEditorFunctionChange(event) {
+    onCommandChange(event) {
         if (event.name in this.items) {
             this.updateItem(this.items[event.name]);
         }

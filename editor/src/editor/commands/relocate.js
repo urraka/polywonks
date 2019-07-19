@@ -1,14 +1,14 @@
 import { Path } from "../../common/path.js";
-import { HistoryCommand } from "../history.command.js";
-import { EditorFunction } from "./base.js";
+import { EditCommand } from "../edit.js";
+import { EditorCommand } from "./command.js";
 
-class RelocateFunction extends EditorFunction {
+class RelocateCommand extends EditorCommand {
     onExec({ path }) {
         if (!path.startsWith("/")) {
-            throw new Error("RelocateFunction: directory must be absolute");
+            throw new Error("RelocateCommand: directory must be absolute");
         }
 
-        const command = new HistoryCommand(this.editor);
+        const command = new EditCommand(this.editor);
         const mount = Path.mount(path);
         const dir = Path.dir(path);
 
@@ -31,4 +31,4 @@ class RelocateFunction extends EditorFunction {
     }
 }
 
-EditorFunction.register(RelocateFunction);
+EditorCommand.register(RelocateCommand);

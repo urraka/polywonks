@@ -1,11 +1,11 @@
 import { iter } from "../../common/iter.js";
 import { VertexNode, TriangleNode } from "../../map/map.js";
-import { EditorFunction } from "./base.js";
+import { EditorCommand } from "./command.js";
 
-class SelectionVertSwitchFunction extends EditorFunction {
+class SelectionVertSwitchCommand extends EditorCommand {
     constructor(editor) {
         super(editor);
-        this.editor.selection.on("change", () => this.emit("change"));
+        this.editor.selection.on("change", this.emitChange);
     }
 
     get enabled() {
@@ -46,4 +46,4 @@ class SelectionVertSwitchFunction extends EditorFunction {
     }
 }
 
-EditorFunction.register(SelectionVertSwitchFunction);
+EditorCommand.register(SelectionVertSwitchCommand);

@@ -90,7 +90,7 @@ export class Keybindings extends EventEmitter {
     }
 
     onKeyDown(event) {
-        if (!ui.Dialog.activeDialog && !(event.target instanceof HTMLInputElement)) {
+        if (!event.repeat && !ui.Dialog.activeDialog && !(event.target instanceof HTMLInputElement)) {
             const modifiers = [
                 +event.metaKey,
                 +event.ctrlKey,

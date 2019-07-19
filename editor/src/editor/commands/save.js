@@ -3,13 +3,9 @@ import { Path } from "../../common/path.js";
 import { File } from "../../app/file.js";
 import { SaveDialog } from "../../app/dialog.save.js";
 import { Editor } from "../editor.js";
-import { EditorFunction } from "./base.js";
+import { EditorCommand } from "./command.js";
 
-class SaveFunction extends EditorFunction {
-    constructor(editor) {
-        super(editor);
-    }
-
+class SaveCommand extends EditorCommand {
     onExec() {
         const mount = Path.mount(this.editor.history.saveName);
         if (!mount) return this.editor.exec("save-as");
@@ -33,7 +29,7 @@ class SaveFunction extends EditorFunction {
     }
 }
 
-class SaveAsFunction extends EditorFunction {
+class SaveAsCommand extends EditorCommand {
     onExec() {
         return new Promise((resolve, reject) => {
             const fname = Path.filename(this.editor.history.saveName);
@@ -43,6 +39,7 @@ class SaveAsFunction extends EditorFunction {
                 const saveIndex = this.editor.history.index;
                 const editor = new Editor(this.editor.map.clone());
                 editor.exec("relocate", { path: event.path });
+                editor.dispose();
                 File.write(event.path, editor.map.serialize(), ok => {
                     if (ok) {
                         this.editor.history.save(saveIndex, event.path);
@@ -57,7 +54,7 @@ class SaveAsFunction extends EditorFunction {
     }
 }
 
-class SaveDownloadFunction extends EditorFunction {
+class SaveDownloadCommand extends EditorCommand {
     onExec() {
         const filename = Path.filename(this.editor.history.saveName);
         const data = this.editor.map.serialize();
@@ -65,6 +62,6 @@ class SaveDownloadFunction extends EditorFunction {
     }
 }
 
-EditorFunction.register(SaveFunction);
-EditorFunction.register(SaveAsFunction);
-EditorFunction.register(SaveDownloadFunction);
+EditorCommand.register(SaveCommand);
+EditorCommand.register(SaveAsCommand);
+EditorCommand.register(SaveDownloadCommand);

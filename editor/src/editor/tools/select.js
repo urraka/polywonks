@@ -1,13 +1,15 @@
 import * as xMath from "../../common/math.js";
+import { iter } from "../../common/iter.js";
 import { Rect } from "../../common/rect.js";
 import { Pointer, MovementThreshold } from "../../common/pointer.js";
+import { Command } from "../../app/command.js";
 import { cfg } from "../../app/settings.js";
 import { Tool } from "./tool.js";
-import { iter } from "../../common/iter.js";
 
 export class SelectTool extends Tool {
     constructor() {
         super();
+
         this.selection = null;
         this.cycle = 0;
         this.affectedNode = null;
@@ -24,6 +26,8 @@ export class SelectTool extends Tool {
         this.onMouseEnter = this.onMouseEnter.bind(this);
         this.onMouseLeave = this.onMouseLeave.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
+
+        Command.provide(this);
     }
 
     get text() {
@@ -84,23 +88,13 @@ export class SelectTool extends Tool {
         }
     }
 
-    onCommand(command) {
-        if (this.activated) {
-            switch (command) {
-                case "+select.add": this.mode = "add"; break;
-                case "+select.subtract": this.mode = "subtract"; break;
-                case "-select.add": this.mode = "replace"; break;
-                case "-select.subtract": this.mode = "replace"; break;
-                case "select.cycle": {
-                    this.cycle++;
-                    this.updatePreviewNodes();
-                    break;
-                }
-            }
-        }
+    cycleNodes() {
+        this.cycle++;
+        this.updatePreviewNodes();
     }
 
     updatePreviewNodes() {
+        if (!this.activated) return;
         this.editor.preview.clear();
         this.editor.reactive.clear();
 

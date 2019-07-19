@@ -1,11 +1,11 @@
 import { iter } from "../../common/iter.js";
 import { Mat3x3 } from "../../common/matrix.js";
 import { VertexNode, TriangleNode } from "../../map/map.js";
-import { HistoryCommand } from "../history.command.js";
-import { EditorFunction } from "./base.js";
-import { TransformFunction, FlipFunction, RotateFunction } from "./transform.js";
+import { EditCommand } from "../edit.js";
+import { EditorCommand } from "./command.js";
+import { TransformCommand, FlipCommand, RotateCommand } from "./transform.js";
 
-class TextureTransformFunction extends TransformFunction {
+class TextureTransformCommand extends TransformCommand {
     *nodes() {
         for (const node of this.editor.selection.nodes) {
             if ((node instanceof VertexNode) && node.parentNode) {
@@ -17,7 +17,7 @@ class TextureTransformFunction extends TransformFunction {
     }
 
     onExec() {
-        const command = new HistoryCommand(this.editor);
+        const command = new EditCommand(this.editor);
         const transform = this.computeTransform(this.origin());
         const uvTransformsCache = new Map();
         for (const vertex of new Set(this.nodes())) {
@@ -56,9 +56,9 @@ class TextureTransformFunction extends TransformFunction {
     }
 }
 
-class TextureResetFunction extends TextureTransformFunction {
+class TextureResetCommand extends TextureTransformCommand {
     onExec() {
-        const command = new HistoryCommand(this.editor);
+        const command = new EditCommand(this.editor);
         for (const vertex of new Set(this.nodes())) {
             const texture = vertex.parentNode.attr("texture");
             if (texture) {
@@ -75,39 +75,39 @@ class TextureResetFunction extends TextureTransformFunction {
     }
 }
 
-class TextureFlipFunction extends TextureTransformFunction {
+class TextureFlipCommand extends TextureTransformCommand {
     get scaleX() { return 1; }
     get scaleY() { return 1; }
     computeTransform(...args) {
-        return FlipFunction.prototype.computeTransform.call(this, ...args);
+        return FlipCommand.prototype.computeTransform.call(this, ...args);
     }
 }
 
-class TextureRotateFunction extends TextureTransformFunction {
+class TextureRotateCommand extends TextureTransformCommand {
     get rotationAngle() { return 0; }
     computeTransform(...args) {
-        return RotateFunction.prototype.computeTransform.call(this, ...args);
+        return RotateCommand.prototype.computeTransform.call(this, ...args);
     }
 }
 
-class TextureFlipHorizontalFunction extends TextureFlipFunction {
+class TextureFlipHorizontalCommand extends TextureFlipCommand {
     get scaleX() { return -1; }
 }
 
-class TextureFlipVerticalFunction extends TextureFlipFunction {
+class TextureFlipVerticalCommand extends TextureFlipCommand {
     get scaleY() { return -1; }
 }
 
-class TextureRotate90CwFunction extends TextureRotateFunction {
+class TextureRotate90CwCommand extends TextureRotateCommand {
     get rotationAngle() { return -0.5 * Math.PI; }
 }
 
-class TextureRotate90CcwFunction extends TextureRotateFunction {
+class TextureRotate90CcwCommand extends TextureRotateCommand {
     get rotationAngle() { return 0.5 * Math.PI; }
 }
 
-EditorFunction.register(TextureResetFunction);
-EditorFunction.register(TextureFlipHorizontalFunction);
-EditorFunction.register(TextureFlipVerticalFunction);
-EditorFunction.register(TextureRotate90CwFunction);
-EditorFunction.register(TextureRotate90CcwFunction);
+EditorCommand.register(TextureResetCommand);
+EditorCommand.register(TextureFlipHorizontalCommand);
+EditorCommand.register(TextureFlipVerticalCommand);
+EditorCommand.register(TextureRotate90CwCommand);
+EditorCommand.register(TextureRotate90CcwCommand);

@@ -4,7 +4,7 @@ import { iter } from "../common/iter.js";
 import { EventEmitter } from "../common/event.js";
 import { Property } from "../app/property.js";
 import { LayerNode } from "../map/map.js";
-import { HistoryCommand } from "./history.command.js";
+import { EditCommand } from "./edit.js";
 
 export class MapProperties extends EventEmitter {
     constructor(editor) {
@@ -71,7 +71,7 @@ export class MapProperties extends EventEmitter {
     changeValue(key, value) {
         this.editor.map.off("attributechange", this.onAttributeChange);
         if (this.command) this.editor.history.undo(this.command);
-        this.command = new HistoryCommand(this.editor);
+        this.command = new EditCommand(this.editor);
         const type = this.node.attributes.get(key).dataType;
         const layer = this.node.closest("layer");
         const selection = this.editor.selection;

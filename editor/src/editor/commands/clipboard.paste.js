@@ -1,14 +1,18 @@
 import { Path } from "../../common/path.js";
 import { Clipboard } from "../../app/clipboard.js";
 import { ResourceNode, TriangleNode } from "../../map/map.js";
-import { HistoryCommand } from "../history.command.js";
-import { EditorFunction } from "./base.js";
+import { EditCommand } from "../edit.js";
+import { EditorCommand } from "./command.js";
 
-class PasteFunction extends EditorFunction {
+class PasteCommand extends EditorCommand {
     constructor(editor) {
         super(editor);
-        this.editor.on("activelayerchange", () => this.emit("change"));
-        Clipboard.on("change", () => this.emit("change"));
+        this.editor.on("activelayerchange", this.emitChange);
+        Clipboard.on("change", this.emitChange);
+    }
+
+    dispose() {
+        Clipboard.off("change", this.emitChange);
     }
 
     get enabled() {
@@ -28,7 +32,7 @@ class PasteFunction extends EditorFunction {
         const dir = Path.dir(this.editor.map.path);
 
         this.editor.selection.clear();
-        const command = new HistoryCommand(this.editor);
+        const command = new EditCommand(this.editor);
 
         data.nodes.forEach(nodeEntry => {
             for (const node of nodeEntry.tree()) {
@@ -73,4 +77,4 @@ class PasteFunction extends EditorFunction {
     }
 }
 
-EditorFunction.register(PasteFunction);
+EditorCommand.register(PasteCommand);

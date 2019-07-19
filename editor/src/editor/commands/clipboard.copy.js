@@ -1,11 +1,11 @@
-import { Clipboard } from "../../app/clipboard.js";
 import { ClonedNodesCollection, LayerNode, ConnectionNode } from "../../map/map.js";
-import { EditorFunction } from "./base.js";
+import { Clipboard } from "../../app/clipboard.js";
+import { EditorCommand } from "./command.js";
 
-class CopyFunction extends EditorFunction {
+class CopyCommand extends EditorCommand {
     constructor(editor) {
         super(editor);
-        this.editor.selection.on("change", () => this.emit("change"));
+        this.editor.selection.on("change", this.emitChange);
     }
 
     get enabled() {
@@ -50,4 +50,4 @@ class CopyFunction extends EditorFunction {
     }
 }
 
-EditorFunction.register(CopyFunction);
+EditorCommand.register(CopyCommand);

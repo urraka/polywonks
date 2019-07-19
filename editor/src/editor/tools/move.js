@@ -1,8 +1,9 @@
 import { iter } from "../../common/iter.js";
 import { Pointer, MovementThreshold } from "../../common/pointer.js";
+import { Command } from "../../app/command.js";
 import { cfg } from "../../app/settings.js";
 import { PivotNode, VertexNode, WaypointNode, SpawnNode, ColliderNode } from "../../map/map.js";
-import { HistoryCommand } from "../history.command.js";
+import { EditCommand } from "../edit.js";
 import { SnapHandle, SnapSource } from "../snapping.js";
 import { Tool } from "./tool.js";
 
@@ -29,6 +30,8 @@ export class MoveTool extends Tool {
             pointer.on("move", this.onPointerMove);
             pointer.on("end", this.onPointerEnd);
         }
+
+        Command.provide(this);
     }
 
     get status() {
@@ -70,20 +73,6 @@ export class MoveTool extends Tool {
         this.selectTool.deactivate();
         this.pointers[0].deactivate();
         this.pointers[1].deactivate();
-    }
-
-    onCommand(command) {
-        if (this.activated) {
-            if (!this.selectTool.activated && (command === "+select.add" || command === "+select.subtract")) {
-                this.selectTool.activate(this.editor);
-            }
-
-            this.selectTool.onCommand(command);
-
-            if (this.selectTool.activated && this.selectTool.mode === "replace") {
-                this.onPointerMove();
-            }
-        }
     }
 
     onSelectStatusChange() {
@@ -153,6 +142,7 @@ export class MoveTool extends Tool {
     }
 
     onPointerMove(event) {
+        if (!this.activated) return;
         const pointer = event ? event.target : null;
 
         if (pointer && pointer.dragging && !this.selectTool.activated) {
@@ -206,7 +196,7 @@ export class MoveTool extends Tool {
             this.pointers[0].cancel();
             this.pointers[1].cancel();
         } else {
-            this.command = new HistoryCommand(this.editor);
+            this.command = new EditCommand(this.editor);
 
             const offset = {
                 x: this.editor.cursor.x - (this.handleStart.x - this.handleOffset.x),

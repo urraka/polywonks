@@ -3,7 +3,8 @@ import { iter } from "../../common/iter.js";
 import { Pointer } from "../../common/pointer.js";
 import { Color } from "../../common/color.js";
 import { TriangleNode, Attribute } from "../../map/map.js";
-import { HistoryCommand } from "../history.command.js";
+import { Command } from "../../app/command.js";
+import { EditCommand } from "../edit.js";
 import { Tool } from "./tool.js";
 
 export class PaintTool extends Tool {
@@ -15,7 +16,6 @@ export class PaintTool extends Tool {
         this.cycle = 0;
         this.startPoint = null;
         this.endPoint = null;
-        this.fullTriangle = false;
         this.pointer = new Pointer();
         this.pointer.on("begin", e => this.onPointerBegin(e.mouseEvent));
         this.pointer.on("move", e => this.onPointerMove(e.mouseEvent));
@@ -23,6 +23,8 @@ export class PaintTool extends Tool {
         this.attributes.set("color", new Attribute("color", new Color("#fff")));
         this.onAttrChange = () => this.endPaint();
         this.onMapChange = () => this.updateHoveredNodes();
+
+        Command.provide(this);
     }
 
     get text() {
@@ -35,6 +37,17 @@ export class PaintTool extends Tool {
 
     get rootNode() {
         return this.editor.activeLayer || this.editor.map;
+    }
+
+    get fullTriangle() {
+        return !!this._fullTriangle;
+    }
+
+    set fullTriangle(value) {
+        if (this.fullTriangle !== !!value) {
+            this._fullTriangle = value;
+            this.emit("statuschange");
+        }
     }
 
     onActivate() {
@@ -55,32 +68,6 @@ export class PaintTool extends Tool {
         this.off("attributechange", this.onAttrChange);
         this.editor.map.off("change", this.onMapChange);
         this.pointer.deactivate();
-    }
-
-    onCommand(command) {
-        if (this.activated) {
-            const fullTriangle = this.fullTriangle;
-            switch (command) {
-                case "select.cycle": {
-                    if (this.hoveredNodes.length > 0) {
-                        this.cycle = (this.cycle + 1) % this.hoveredNodes.length;
-                        this.editor.reactive.replace(new Set([this.hoveredNodes[this.cycle].parentNode]));
-                    }
-                    break;
-                }
-                case "+select.add": {
-                    this.fullTriangle = true;
-                    break;
-                }
-                case "-select.add": {
-                    this.fullTriangle = false;
-                    break;
-                }
-            }
-            if (this.fullTriangle !== fullTriangle) {
-                this.emit("statuschange");
-            }
-        }
     }
 
     onPointerBegin() {
@@ -107,6 +94,13 @@ export class PaintTool extends Tool {
         }
     }
 
+    cycleNodes() {
+        if (this.hoveredNodes.length > 0) {
+            this.cycle = (this.cycle + 1) % this.hoveredNodes.length;
+            this.editor.reactive.replace(new Set([this.hoveredNodes[this.cycle].parentNode]));
+        }
+    }
+
     affectedNodes(singleNode) {
         const nodes = singleNode ? this.hoveredNodes.slice(this.cycle, this.cycle + 1) : this.hoveredNodes;
         if (this.fullTriangle) {
@@ -120,7 +114,7 @@ export class PaintTool extends Tool {
             if (this.command && !this.editor.history.undo(this.command)) {
                 this.endPaint();
             }
-            this.command = new HistoryCommand(this.editor);
+            this.command = new EditCommand(this.editor);
             nodes.forEach(node => this.commandNodes.add(node));
             for (const node of this.commandNodes) {
                 this.command.attr(node, "color", this.attr("color"));

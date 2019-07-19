@@ -2,14 +2,14 @@ import { iter } from "../../common/iter.js";
 import { Mat2d } from "../../common/matrix.js";
 import { normalizeAngle } from "../../common/math.js";
 import { SceneryNode, LayerNode } from "../../map/map.js";
-import { HistoryCommand } from "../history.command.js";
-import { EditorFunction } from "./base.js";
+import { EditCommand } from "../edit.js";
+import { EditorCommand } from "./command.js";
 
-export class TransformFunction extends EditorFunction {
+export class TransformCommand extends EditorCommand {
     constructor(editor) {
         super(editor);
         this.onCommandWillChange = this.onCommandWillChange.bind(this);
-        this.editor.selection.on("change", () => this.emit("change"));
+        this.editor.selection.on("change", this.emitChange);
     }
 
     get enabled() {
@@ -35,7 +35,7 @@ export class TransformFunction extends EditorFunction {
     }
 
     onExec() {
-        const command = new HistoryCommand(this.editor);
+        const command = new EditCommand(this.editor);
         command.on("willchange", this.onCommandWillChange);
         const transform = this.computeTransform(this.origin());
         for (const node of new Set(this.nodes())) {
@@ -63,7 +63,7 @@ export class TransformFunction extends EditorFunction {
     }
 }
 
-export class FlipFunction extends TransformFunction {
+export class FlipCommand extends TransformCommand {
     get scaleX() { return 1; }
     get scaleY() { return 1; }
     get sizeAttributeName() { return ""; }
@@ -83,7 +83,7 @@ export class FlipFunction extends TransformFunction {
     }
 }
 
-export class RotateFunction extends TransformFunction {
+export class RotateCommand extends TransformCommand {
     get rotationAngle() { return 0; }
 
     computeTransform({ x, y }) {
@@ -100,25 +100,25 @@ export class RotateFunction extends TransformFunction {
     }
 }
 
-class FlipHorizontalFunction extends FlipFunction {
+class FlipHorizontalCommand extends FlipCommand {
     get scaleX() { return -1; }
     get sizeAttributeName() { return "width"; }
 }
 
-class FlipVerticalFunction extends FlipFunction {
+class FlipVerticalCommand extends FlipCommand {
     get scaleY() { return -1; }
     get sizeAttributeName() { return "height"; }
 }
 
-class Rotate90CwFunction extends RotateFunction {
+class Rotate90CwCommand extends RotateCommand {
     get rotationAngle() { return -0.5 * Math.PI; }
 }
 
-class Rotate90CcwFunction extends RotateFunction {
+class Rotate90CcwCommand extends RotateCommand {
     get rotationAngle() { return 0.5 * Math.PI; }
 }
 
-EditorFunction.register(FlipHorizontalFunction);
-EditorFunction.register(FlipVerticalFunction);
-EditorFunction.register(Rotate90CwFunction);
-EditorFunction.register(Rotate90CcwFunction);
+EditorCommand.register(FlipHorizontalCommand);
+EditorCommand.register(FlipVerticalCommand);
+EditorCommand.register(Rotate90CwCommand);
+EditorCommand.register(Rotate90CcwCommand);

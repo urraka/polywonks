@@ -1,7 +1,7 @@
 import { iter } from "../../common/iter.js";
 import { Pointer } from "../../common/pointer.js";
 import { SnapHandle, SnapSource } from "../snapping.js";
-import { HistoryCommand } from "../history.command.js";
+import { EditCommand } from "../edit.js";
 import { Tool } from "./tool.js";
 
 export class CreateTool extends Tool {
@@ -148,7 +148,7 @@ export class CreateTool extends Tool {
     endEditing() {
         this.editing = false;
         this.editor.selection.clear();
-        const command = new HistoryCommand(this.editor);
+        const command = new EditCommand(this.editor);
         this.insertNode(command);
         this.editor.history.do(command);
         this.updateTargetLayer();

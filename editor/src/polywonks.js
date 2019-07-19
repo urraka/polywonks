@@ -24,6 +24,7 @@ import * as iter from "./common/iter.js";
 import * as map from "./map/map.js";
 
 import * as editor from "./editor/editor.js";
+import * as editor_commands from "./editor/editor.commands.js";
 import * as map_explorer from "./editor/map.explorer.js";
 import * as map_properties from "./editor/map.properties.js";
 import * as tool_properties from "./editor/tool.properties.js";
@@ -35,9 +36,11 @@ import * as tool from "./editor/tools/tool.js";
 import * as toolset from "./editor/toolset.js";
 import * as editor_sidebar from "./editor/sidebar.js";
 import * as history from "./editor/history.js";
-import * as history_command from "./editor/history.command.js";
+import * as edit from "./editor/edit.js";
 
 import * as app from "./app/app.js";
+import * as app_commands from "./app/app.commands.js";
+import * as command from "./app/command.js";
 import * as file from "./app/file.js";
 import * as render from "./app/render.js";
 import * as settings from "./app/settings.js";
@@ -62,6 +65,7 @@ export const Polywonks = (() => {
         buffer_reader,
         buffer_writer,
         color,
+        command,
         enm,
         event,
         matrix,
@@ -75,7 +79,9 @@ export const Polywonks = (() => {
         map,
 
         // editor
+        edit,
         editor,
+        editor_commands,
         map_explorer,
         map_properties,
         tool_properties,
@@ -87,10 +93,10 @@ export const Polywonks = (() => {
         toolset,
         editor_sidebar,
         history,
-        history_command,
 
         // app
         app,
+        app_commands,
         file,
         render,
         settings,

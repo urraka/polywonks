@@ -1,19 +1,22 @@
 import { EventEmitter } from "../common/event.js";
+import { Command } from "../app/command.js";
 import { Tool } from "./tools/tool.js";
 import "./tools/cursor.js";
 import "./tools/pan.js";
 import "./tools/zoom.js";
 import "./tools/select.js";
+import "./tools/select.commands.js";
 import "./tools/move.objects.js";
 import "./tools/move.texture.js";
+import "./tools/move.commands.js";
 import "./tools/paint.js";
+import "./tools/paint.commands.js";
 import "./tools/polygon.js";
 import "./tools/scenery.js";
 import "./tools/spawn.js";
 import "./tools/collider.js";
 import "./tools/waypoint.js";
 import "./tools/connection.js";
-import { iter } from "../common/iter.js";
 
 export class Toolset extends EventEmitter {
     constructor(editor) {
@@ -65,11 +68,32 @@ export class Toolset extends EventEmitter {
     }
 
     defineGetters() {
-        for (const [name, tool] of iter(this.passiveTools).concat(this.tools)) {
+        for (const [name, tool] of this.allTools()) {
             if (!(name in this)) {
                 Object.defineProperty(this, name, {
                     get() { return tool; }
                 });
+            }
+        }
+    }
+
+    *allTools() {
+        for (const entry of this.passiveTools) yield entry;
+        for (const entry of this.tools) yield entry;
+    }
+
+    *commandProviders() {
+        for (const [,tool] of this.allTools()) {
+            if (tool.activated && Command.isProvider(tool)) {
+                yield tool;
+            }
+        }
+    }
+
+    dispose() {
+        for (const [,tool] of this.allTools()) {
+            if (Command.isProvider(tool)) {
+                Command.dispose(tool);
             }
         }
     }

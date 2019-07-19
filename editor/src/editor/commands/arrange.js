@@ -1,12 +1,12 @@
-import { EditorFunction } from "./base.js";
-import { LayerNode } from "../../map/map.js";
 import { iter } from "../../common/iter.js";
-import { HistoryCommand } from "../history.command.js";
+import { LayerNode } from "../../map/map.js";
+import { EditCommand } from "../edit.js";
+import { EditorCommand } from "./command.js";
 
-class ArrangeFunction extends EditorFunction {
+class ArrangeCommand extends EditorCommand {
     constructor(editor) {
         super(editor);
-        this.editor.selection.on("change", () => this.emit("change"));
+        this.editor.selection.on("change", this.emitChange);
     }
 
     *nodes() {
@@ -63,13 +63,13 @@ class ArrangeFunction extends EditorFunction {
     }
 }
 
-class BringToFrontFunction extends ArrangeFunction {
+class BringToFrontCommand extends ArrangeCommand {
     get enabled() {
         return this.canBringNodesForward(this.nodes());
     }
 
     onExec() {
-        const command = new HistoryCommand(this.editor);
+        const command = new EditCommand(this.editor);
         for (const [layer, nodes] of this.sort()) {
             if (this.canBringNodesForward(nodes)) {
                 const last = this.filterNodesToLast(layer, nodes);
@@ -81,7 +81,7 @@ class BringToFrontFunction extends ArrangeFunction {
     }
 }
 
-class BringForwardFunction extends ArrangeFunction {
+class BringForwardCommand extends ArrangeCommand {
     get enabled() {
         return this.canBringNodesForward(this.nodes());
     }
@@ -95,7 +95,7 @@ class BringForwardFunction extends ArrangeFunction {
     }
 
     onExec() {
-        const command = new HistoryCommand(this.editor);
+        const command = new EditCommand(this.editor);
         for (const [layer, nodes] of this.sort()) {
             if (this.canBringNodesForward(nodes)) {
                 const last = this.filterNodesToLast(layer, nodes);
@@ -108,7 +108,7 @@ class BringForwardFunction extends ArrangeFunction {
     }
 }
 
-class SendBackwardFunction extends ArrangeFunction {
+class SendBackwardCommand extends ArrangeCommand {
     get enabled() {
         return this.canSendNodesBackward(this.nodes());
     }
@@ -122,7 +122,7 @@ class SendBackwardFunction extends ArrangeFunction {
     }
 
     onExec() {
-        const command = new HistoryCommand(this.editor);
+        const command = new EditCommand(this.editor);
         for (const [layer, nodes] of this.sort()) {
             if (this.canSendNodesBackward(nodes)) {
                 const first = this.filterNodesToFirst(layer, nodes);
@@ -135,13 +135,13 @@ class SendBackwardFunction extends ArrangeFunction {
     }
 }
 
-class SendToBackFunction extends ArrangeFunction {
+class SendToBackCommand extends ArrangeCommand {
     get enabled() {
         return this.canSendNodesBackward(this.nodes());
     }
 
     onExec() {
-        const command = new HistoryCommand(this.editor);
+        const command = new EditCommand(this.editor);
         for (const [layer, nodes] of this.sort()) {
             if (this.canSendNodesBackward(nodes)) {
                 const first = this.filterNodesToFirst(layer, nodes);
@@ -153,7 +153,7 @@ class SendToBackFunction extends ArrangeFunction {
     }
 }
 
-EditorFunction.register(BringToFrontFunction);
-EditorFunction.register(BringForwardFunction);
-EditorFunction.register(SendBackwardFunction);
-EditorFunction.register(SendToBackFunction);
+EditorCommand.register(BringToFrontCommand);
+EditorCommand.register(BringForwardCommand);
+EditorCommand.register(SendBackwardCommand);
+EditorCommand.register(SendToBackCommand);

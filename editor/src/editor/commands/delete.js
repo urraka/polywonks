@@ -1,13 +1,13 @@
 import * as ui from "../../ui/ui.js";
 import { iter } from "../../common/iter.js";
 import { ResourceNode } from "../../map/map.js";
-import { HistoryCommand } from "../history.command.js";
-import { EditorFunction } from "./base.js";
+import { EditCommand } from "../edit.js";
+import { EditorCommand } from "./command.js";
 
-class DeleteFunction extends EditorFunction {
+class DeleteCommand extends EditorCommand {
     constructor(editor) {
         super(editor);
-        this.editor.selection.on("change", () => this.emit("change"));
+        this.editor.selection.on("change", this.emitChange);
     }
 
     get enabled() {
@@ -34,7 +34,7 @@ class DeleteFunction extends EditorFunction {
     }
 
     deleteNodes(nodes, linkedNodes) {
-        const command = new HistoryCommand(this.editor);
+        const command = new EditCommand(this.editor);
         for (const node of nodes) {
             command.remove(node);
         }
@@ -71,4 +71,4 @@ class DeleteFunction extends EditorFunction {
     }
 }
 
-EditorFunction.register(DeleteFunction);
+EditorCommand.register(DeleteCommand);

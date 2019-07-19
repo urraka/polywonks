@@ -135,4 +135,8 @@ export class Settings extends ui.MultiPanelView {
     static on(...args) {
         Settings.emitter.on(...args);
     }
+
+    static off(...args) {
+        Settings.emitter.off(...args);
+    }
 }

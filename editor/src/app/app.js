@@ -1,7 +1,7 @@
 import * as ui from "../ui/ui.js";
 import { Path } from "../common/path.js";
 import { Editor } from "../editor/editor.js";
-import { cfg } from "./settings.js";
+import { Command } from "./command.js";
 import { Keybindings } from "./keybindings.js";
 import { Renderer } from "./render.js";
 import { Sidebar } from "./sidebar.js";
@@ -43,6 +43,8 @@ export class App extends ui.Panel {
         document.addEventListener("dragenter", e => this.onDragEnter(e));
         document.addEventListener("contextmenu", e => e.preventDefault());
         Keybindings.on("command", e => this.onCommand(e.command, e.params));
+
+        Command.provide(this);
 
         this.openDefault();
     }
@@ -138,31 +140,15 @@ export class App extends ui.Panel {
         event.preventDefault();
     }
 
-    onCommand(command, params = null) {
-        const commands = this._commands || (this._commands = {
-            "new-map": () => {
-                this.open();
-                this.sidebar.activeTab = "sidebar-tools";
-            },
-            "show-explorer": () => this.sidebar.activeTab = "sidebar-explorer",
-            "toggle-snap-to-grid": () => cfg("editor.snap-to-grid", !cfg("editor.snap-to-grid")),
-            "toggle-snap-to-objects": () => cfg("editor.snap-to-objects", !cfg("editor.snap-to-objects")),
-            "toggle-grid": () => cfg("view.grid", !cfg("view.grid")),
-            "toggle-background": () => cfg("view.background", !cfg("view.background")),
-            "toggle-vertices": () => cfg("view.vertices", !cfg("view.vertices")),
-            "toggle-wireframe": () => cfg("view.wireframe", !cfg("view.wireframe")),
-            "show-polygon-texture": () => cfg("view.polygons", "texture"),
-            "show-polygon-plain": () => cfg("view.polygons", "plain"),
-            "show-polygon-none": () => cfg("view.polygons", "none"),
-            "browse-to-github": () => window.open(cfg("app.github")),
-        });
-
+    onCommand(command, params) {
         document.activeElement.blur();
-
-        if (commands[command]) {
-            commands[command](params);
-        } else if (this.tabs.activeEditor) {
-            this.tabs.activeEditor.onCommand(command, params);
+        for (const provider of this.commandProviders()) {
+            Command.exec(provider, command, params);
         }
+    }
+
+    *commandProviders() {
+        yield this;
+        yield* this.tabs.activeEditor.commandProviders();
     }
 }

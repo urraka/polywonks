@@ -1,12 +1,12 @@
 import { Path } from "../../common/path.js";
 import { ImageNode, TextureNode } from "../../map/map.js";
 import { File } from "../../app/file.js";
-import { HistoryCommand } from "../history.command.js";
-import { EditorFunction } from "./base.js";
+import { EditCommand } from "../edit.js";
+import { EditorCommand } from "./command.js";
 
-class AddResourcesFunction extends EditorFunction {
+class AddResourcesCommand extends EditorCommand {
     onLoaded(type, resources) {
-        const command = new HistoryCommand(this.editor);
+        const command = new EditCommand(this.editor);
         const mount = Path.mount(this.editor.map.path);
         const dir = Path.dir(this.editor.map.path);
         for (const res of resources) {
@@ -38,4 +38,4 @@ class AddResourcesFunction extends EditorFunction {
     }
 }
 
-EditorFunction.register(AddResourcesFunction);
+EditorCommand.register(AddResourcesCommand);

@@ -3,10 +3,10 @@ import * as ui from "../ui/ui.js";
 import { Path } from "../common/path.js";
 import { iter } from "../common/iter.js";
 import { MapDocument, LayerNode } from "../map/map.js";
+import { Command } from "../app/command.js";
 import { File } from "../app/file.js";
 import { Settings } from "../app/settings.js";
 import { View } from "./view.js";
-import { EditorFunction } from "./func/func.js";
 import { ZoomTool } from "./tools/zoom.js";
 import { Selection } from "./selection.js";
 import { Grid } from "./grid.js";
@@ -20,6 +20,7 @@ ui.registerStyles(styles);
 export class Editor extends ui.Panel {
     constructor(map = MapDocument.default()) {
         super("editor");
+
         this.activated = false;
         this.openedAsDefault = false;
         this.map = map;
@@ -29,23 +30,14 @@ export class Editor extends ui.Panel {
         this.preview = new Selection(this);
         this.reactive = new Selection(this);
         this.history = new EditorHistory(this);
-        this.functions = EditorFunction.instantiate(this);
         this.toolset = new Toolset(this);
         this.sidebar = new EditorSidebar(this);
 
+        this.onSettingChange = this.onSettingChange.bind(this);
         this.selection.on("change", () => this.onSelectionChange());
-        Settings.on("change", e => this.onSettingChange(e.setting));
-        for (const [name, func] of Object.entries(this.functions)) {
-            func.on("change", () => this.emit("functionchange", { name }));
-        }
-    }
+        Settings.on("change", this.onSettingChange);
 
-    textureInfo(node) {
-        if (this.renderer) {
-            return this.renderer.textureInfo(node);
-        } else {
-            return { width: 0, height: 0 };
-        }
+        Command.provide(this);
     }
 
     get renderer() {
@@ -68,9 +60,29 @@ export class Editor extends ui.Panel {
         return this._height || 0;
     }
 
-    onResize() {
-        this._width = this.element.clientWidth;
-        this._height = this.element.clientHeight;
+    get activeLayer() {
+        return this._activeLayer || null;
+    }
+
+    set activeLayer(layer) {
+        layer = layer || null;
+        if (this.activeLayer !== layer) {
+            this._activeLayer = layer;
+            this.emit("activelayerchange");
+        }
+    }
+
+    *commandProviders() {
+        yield this;
+        yield* this.toolset.commandProviders();
+    }
+
+    textureInfo(node) {
+        if (this.renderer) {
+            return this.renderer.textureInfo(node);
+        } else {
+            return { width: 0, height: 0 };
+        }
     }
 
     activate() {
@@ -88,28 +100,19 @@ export class Editor extends ui.Panel {
         }
     }
 
+    dispose() {
+        Settings.off("change", this.onSettingChange);
+        Command.dispose(this);
+        this.toolset.dispose();
+    }
+
     exec(command, params) {
-        return this.functions[command].exec(params);
+        return Command.exec(this, command, params);
     }
 
-    onCommand(command, params) {
-        if (command in this.functions) {
-            this.exec(command, params);
-        } else {
-            this.toolset.currentTool.onCommand(command, params);
-        }
-    }
-
-    get activeLayer() {
-        return this._activeLayer || null;
-    }
-
-    set activeLayer(layer) {
-        layer = layer || null;
-        if (this.activeLayer !== layer) {
-            this._activeLayer = layer;
-            this.emit("activelayerchange");
-        }
+    onResize() {
+        this._width = this.element.clientWidth;
+        this._height = this.element.clientHeight;
     }
 
     onSelectionChange() {
@@ -121,17 +124,13 @@ export class Editor extends ui.Panel {
         }
     }
 
-    onSettingChange(setting) {
-        if (setting === "editor.zoom-min" || setting === "editor.zoom-max") {
+    onSettingChange(event) {
+        if (event.setting === "editor.zoom-min" || event.setting === "editor.zoom-max") {
             const zoom = new ZoomTool();
             zoom.activate(this);
             zoom.zoom(1, this.width / 2, this.height / 2);
             zoom.deactivate();
         }
-    }
-
-    static isEditorFunction(name) {
-        return EditorFunction.includes(name);
     }
 
     static loadFile(path, fn) {

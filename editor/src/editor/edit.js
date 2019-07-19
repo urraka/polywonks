@@ -91,7 +91,7 @@ class RelocateCommand {
     undo() { this.map.path = this.revertPath; }
 }
 
-export class HistoryCommand extends EventEmitter {
+export class EditCommand extends EventEmitter {
     constructor(editor) {
         super();
         this.editor = editor;

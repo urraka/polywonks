@@ -28,6 +28,10 @@ export class Clipboard {
         Clipboard.emitter.on(...args);
     }
 
+    static off(...args) {
+        Clipboard.emitter.off(...args);
+    }
+
     static get emitter() {
         return Clipboard._emitter || (Clipboard._emitter = new EventEmitter());
     }
