@@ -6,6 +6,7 @@ import { EventEmitter } from "../common/event.js";
 export class EditorTabs extends EventEmitter {
     constructor(app) {
         super();
+        this.defaultEditor = null;
         this.tabView = new ui.TabView();
         this.tabView.content.element.prepend(app.renderer.context.canvas);
         this.tabView.on("willchange", e => this.onTabWillChange(e));
@@ -35,12 +36,14 @@ export class EditorTabs extends EventEmitter {
         return this.tabView.count;
     }
 
-    addEditor(editor) {
+    addEditor(editor, defaultEditor = false) {
         const prevPanel = this.tabView.activePanel;
         const prevEditor = this.activeEditor;
         const panel = this.tabView.addPanel(new ui.TabPanel(Path.filename(editor.history.saveName), editor));
         editor.history.on("change", this.onEditorHistoryChange.bind(this, editor, panel));
-        if (prevPanel && prevEditor.openedAsDefault && !prevEditor.history.modified) {
+        if (defaultEditor) {
+            this.defaultEditor = editor;
+        } else if (prevEditor && prevEditor === this.defaultEditor) {
             prevPanel.close();
         }
     }
@@ -48,6 +51,9 @@ export class EditorTabs extends EventEmitter {
     onEditorHistoryChange(editor, panel) {
         panel.title = Path.filename(editor.history.saveName);
         panel.modified = editor.history.modified;
+        if (editor === this.defaultEditor) {
+            this.defaultEditor = null;
+        }
     }
 
     onTabWillChange() {

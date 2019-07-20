@@ -14,7 +14,7 @@ class AppCommand extends Command {
 
 class NewMapCommand extends AppCommand {
     onExec() {
-        this.app.open();
+        this.app.openDefault();
         this.app.sidebar.activeTab = "sidebar-tools";
     }
 }

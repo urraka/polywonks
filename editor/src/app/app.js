@@ -56,8 +56,7 @@ export class App extends ui.Panel {
     }
 
     openDefault() {
-        const editor = this.open();
-        editor.openedAsDefault = true;
+        this.tabs.addEditor(new Editor(), true);
     }
 
     openFile(path, fn) {
@@ -72,19 +71,6 @@ export class App extends ui.Panel {
                     ui.msgbox("Polywonks", "Invalid map format.");
                 }
             });
-        }
-    }
-
-    openEditor(editor = new Editor()) {
-        this.tabs.addEditor(editor);
-        return editor;
-    }
-
-    open(...args) {
-        if (typeof args[0] === "string") {
-            return this.openFile(...args);
-        } else {
-            return this.openEditor(...args);
         }
     }
 
@@ -116,7 +102,7 @@ export class App extends ui.Panel {
                         Editor.loadPms(reader.result, file.name) :
                         Editor.loadPolywonks(reader.result, file.name);
                     if (editor) {
-                        this.open(editor);
+                        this.tabs.addEditor(editor);
                         this.sidebar.activeTab = "sidebar-tools";
                     } else {
                         ui.msgbox("Polywonks", "Invalid map format.");

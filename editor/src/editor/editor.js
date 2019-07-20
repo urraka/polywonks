@@ -21,9 +21,8 @@ export class Editor extends ui.Panel {
     constructor(map = MapDocument.default()) {
         super("editor");
 
-        this.activated = false;
-        this.openedAsDefault = false;
         this.map = map;
+        this.activated = false;
         this.view = new View(this);
         this.grid = new Grid(this.view);
         this.selection = new Selection(this);
