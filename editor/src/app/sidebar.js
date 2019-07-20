@@ -21,13 +21,24 @@ export class Sidebar extends ui.Panel {
 
     onEditorClose(editor) {
         editor.sidebar.element.remove();
+        if (editor === this.editor) {
+            this._editor = undefined;
+        }
     }
 
     onEditorChange(editor) {
-        const panels = this.tools.element.querySelector(".editor-sidebar-panels.active");
-        if (panels) panels.classList.remove("active");
-        if (!editor.sidebar.element.parentElement) this.tools.append(editor.sidebar);
-        editor.sidebar.element.classList.add("active");
+        if (this.editor) {
+            this.editor.sidebar.active = false;
+        }
+        this._editor = editor;
+        this.editor.sidebar.active = true;
+        if (!this.editor.sidebar.attached) {
+            this.tools.append(editor.sidebar);
+        }
+    }
+
+    get editor() {
+        return this._editor;
     }
 
     get activeTab() {

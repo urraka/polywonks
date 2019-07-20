@@ -39,6 +39,18 @@ export class EditorSidebar {
         return this.panels.element;
     }
 
+    get attached() {
+        return !!this.element.parentElement;
+    }
+
+    get active() {
+        return this.element.classList.contains("active");
+    }
+
+    set active(value) {
+        return this.element.classList.toggle("active", !!value);
+    }
+
     onPropertiesNodeChange() {
         const props = this.properties.content;
         this.properties.header.title = props.node.nodeName + " properties";
