@@ -33,5 +33,11 @@ export class PanTool extends Tool {
     }
 }
 
+export class PassivePanTool extends PanTool {
+    constructor() {
+        super(1);
+    }
+}
+
 Tool.register(PanTool);
-Tool.registerPassive(PanTool.bind(null, 1));
+Tool.registerPassive(PassivePanTool);

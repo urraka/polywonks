@@ -60,7 +60,7 @@ export class Tool extends EventEmitter {
     onCommand() { }
 
     static get toolName() {
-        return pascalToDash(this.name.replace(/(^bound |Tool$)/g, ""));
+        return pascalToDash(this.name.replace(/Tool$/, ""));
     }
 
     static get tools() {
