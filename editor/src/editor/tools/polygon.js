@@ -1,6 +1,7 @@
 import { iter } from "../../common/iter.js";
 import { Color } from "../../common/color.js";
 import { VertexNode, TriangleNode, Attribute } from "../../map/map.js";
+import { Renderer } from "../../app/render.js";
 import { SnapSource } from "../snapping.js";
 import { CreateTool } from "./create.js";
 import { Tool } from "./tool.js";
@@ -76,8 +77,8 @@ export class PolygonTool extends CreateTool {
         const texture = this.node.attr("texture");
         let u = 0, v = 0;
         if (texture) {
-            const w = texture.attr("width") || this.editor.textureInfo(texture).width;
-            const h = texture.attr("height") || this.editor.textureInfo(texture).height;
+            const w = texture.attr("width") || Renderer.textureInfo(texture).width;
+            const h = texture.attr("height") || Renderer.textureInfo(texture).height;
             if (w) u = vertex.x / w;
             if (h) v = vertex.y / h;
         }

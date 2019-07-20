@@ -1,6 +1,7 @@
 import { iter } from "../../common/iter.js";
 import { Mat3x3 } from "../../common/matrix.js";
 import { VertexNode, TriangleNode } from "../../map/map.js";
+import { Renderer } from "../../app/render.js";
 import { EditCommand } from "../edit.js";
 import { EditorCommand } from "./command.js";
 import { TransformCommand, FlipCommand, RotateCommand } from "./transform.js";
@@ -62,8 +63,8 @@ class TextureResetCommand extends TextureTransformCommand {
         for (const vertex of new Set(this.nodes())) {
             const texture = vertex.parentNode.attr("texture");
             if (texture) {
-                const w = texture.attr("width") || this.editor.textureInfo(texture).width;
-                const h = texture.attr("height") || this.editor.textureInfo(texture).height;
+                const w = texture.attr("width") || Renderer.textureInfo(texture).width;
+                const h = texture.attr("height") || Renderer.textureInfo(texture).height;
                 command.attr(vertex, "u", w !== 0 ? vertex.x / w : 0);
                 command.attr(vertex, "v", h !== 0 ? vertex.y / h : 0);
             } else {

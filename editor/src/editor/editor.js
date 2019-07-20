@@ -39,14 +39,6 @@ export class Editor extends ui.Panel {
         Command.provide(this);
     }
 
-    get renderer() {
-        return this._renderer;
-    }
-
-    set renderer(value) {
-        this._renderer = value;
-    }
-
     get cursor() {
         return this._cursor || (this._cursor = this.toolset.passiveTools.get("cursor"));
     }
@@ -74,14 +66,6 @@ export class Editor extends ui.Panel {
     *commandProviders() {
         yield this;
         yield* this.toolset.commandProviders();
-    }
-
-    textureInfo(node) {
-        if (this.renderer) {
-            return this.renderer.textureInfo(node);
-        } else {
-            return { width: 0, height: 0 };
-        }
     }
 
     activate() {

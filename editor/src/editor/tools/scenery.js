@@ -1,6 +1,7 @@
 import { Color } from "../../common/color.js";
 import { iter } from "../../common/iter.js";
 import { SceneryNode, Attribute, PivotNode, ImageNode } from "../../map/map.js";
+import { Renderer } from "../../app/render.js";
 import { CreateTool } from "./create.js";
 import { Tool } from "./tool.js";
 
@@ -49,8 +50,8 @@ export class SceneryTool extends CreateTool {
             this.node.attr("image", image);
             this.node.attr("x", this.handle.x);
             this.node.attr("y", this.handle.y);
-            this.node.attr("width", image.attr("width") || this.editor.textureInfo(image).width);
-            this.node.attr("height", image.attr("height") || this.editor.textureInfo(image).height);
+            this.node.attr("width", image.attr("width") || Renderer.textureInfo(image).width);
+            this.node.attr("height", image.attr("height") || Renderer.textureInfo(image).height);
             this.node.attr("color", this.attr("color"));
         }
     }

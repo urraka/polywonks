@@ -27,7 +27,6 @@ export class Renderer {
         this.context = new Gfx.Context();
         this.batch = this.context.createBatch();
         this.textures = new Map();
-        this.texturesInfo = new Map();
         this.icons = {};
         this.animFrameId = null;
         this.theme = null;
@@ -50,6 +49,18 @@ export class Renderer {
         return Renderer.iconsInfo[name];
     }
 
+    static get texturesInfo() {
+        return Renderer._texturesInfo || (Renderer._texturesInfo = new Map());
+    }
+
+    static textureInfo(node) {
+        return Renderer.texturesInfo.get(node) || { width: 0, height: 0 };
+    }
+
+    get texturesInfo() {
+        return Renderer.texturesInfo;
+    }
+
     get editor() {
         return this._editor;
     }
@@ -65,7 +76,6 @@ export class Renderer {
             this.editor.map.off("change", this.redraw);
         }
         this._editor = editor;
-        this.editor.renderer = this;
         this.editor.view.on("change", this.redraw);
         this.editor.selection.on("change", this.redraw);
         this.editor.preview.on("change", this.redraw);
@@ -233,11 +243,6 @@ export class Renderer {
         }
 
         return texture;
-    }
-
-    textureInfo(node) {
-        this.texture(node);
-        return this.texturesInfo.get(node);
     }
 
     redraw() {
