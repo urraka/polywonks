@@ -9,11 +9,16 @@ export class Keybindings extends EventEmitter {
         super();
         this.bindings = {};
         this.pushed = new Set();
-        for (const [key, command] of Object.entries(DefaultBindings)) {
-            if (typeof command === "string") {
-                this.add(key, command);
+        for (const [key, entry] of Object.entries(DefaultBindings)) {
+            if (typeof entry === "string") {
+                this.add(key, entry);
             } else {
-                this.add(key, command[0], command[1]);
+                const entries = entry.slice();
+                while (entries.length) {
+                    const cmd = entries.shift();
+                    const params = typeof entries[0] === "object" ? entries.shift() : null;
+                    this.add(key, cmd, params);
+                }
             }
         }
 
@@ -59,7 +64,9 @@ export class Keybindings extends EventEmitter {
             }
         }
 
-        this.bindings[key.toUpperCase()] = { command, params, key };
+        const k = key.toUpperCase();
+        this.bindings[k] = this.bindings[k] || [];
+        this.bindings[k].push({ command, params, key });
     }
 
     keysText(binding) {
@@ -71,9 +78,11 @@ export class Keybindings extends EventEmitter {
     }
 
     find(command) {
-        for (const binding of Object.values(this.bindings)) {
-            if (binding.command === command) {
-                return this.keysText(binding);
+        for (const bindingGroup of Object.values(this.bindings)) {
+            for (const binding of bindingGroup) {
+                if (binding.command === command) {
+                    return this.keysText(binding);
+                }
             }
         }
         return null;
@@ -81,9 +90,11 @@ export class Keybindings extends EventEmitter {
 
     findAll(command) {
         const result = [];
-        for (const binding of Object.values(this.bindings)) {
-            if (binding.command === command) {
-                result.push({ command, params: binding.params, keys: this.keysText(binding) });
+        for (const bindingGroup of Object.values(this.bindings)) {
+            for (const binding of bindingGroup) {
+                if (binding.command === command) {
+                    result.push({ command, params: binding.params, keys: this.keysText(binding) });
+                }
             }
         }
         return result;
@@ -103,12 +114,14 @@ export class Keybindings extends EventEmitter {
                 modifiers + "_" + event.key.toUpperCase(),
             ];
 
-            const binding = this.bindings[key[0]] || this.bindings[key[1]];
+            const bindingGroup = this.bindings[key[0]] || this.bindings[key[1]];
 
-            if (binding) {
+            if (bindingGroup) {
                 event.preventDefault();
-                if (binding.command.startsWith("+")) this.pushed.add(binding.command);
-                this.emit("command", { command: binding.command, params: binding.params });
+                for (const binding of bindingGroup) {
+                    if (binding.command.startsWith("+")) this.pushed.add(binding.command);
+                    this.emit("command", { command: binding.command, params: binding.params });
+                }
             }
         }
     }
@@ -127,14 +140,16 @@ export class Keybindings extends EventEmitter {
                 event.key.toUpperCase(),
             ];
 
-            for (const [k, binding] of Object.entries(this.bindings)) {
-                if (this.pushed.has(binding.command)) {
-                    const keyName = k.slice(5);
-                    if (eventKeyName[0] === keyName || eventKeyName[1] === keyName ||
-                        modifiers.some((m, i) => +k.charAt(i) - m === 1)
-                    ) {
-                        this.pushed.delete(binding.command);
-                        this.emit("command", { command: "-" + binding.command.slice(1) });
+            for (const [k, bindingGroup] of Object.entries(this.bindings)) {
+                for (const binding of bindingGroup) {
+                    if (this.pushed.has(binding.command)) {
+                        const keyName = k.slice(5);
+                        if (eventKeyName[0] === keyName || eventKeyName[1] === keyName ||
+                            modifiers.some((m, i) => +k.charAt(i) - m === 1)
+                        ) {
+                            this.pushed.delete(binding.command);
+                            this.emit("command", { command: "-" + binding.command.slice(1) });
+                        }
                     }
                 }
             }

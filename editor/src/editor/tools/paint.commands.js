@@ -1,7 +1,7 @@
 import { PaintTool } from "./paint.js";
 import { ToolCommand } from "./tool.command.js";
 
-class SelectAddCommand extends ToolCommand {
+class PaintFullTriangleCommand extends ToolCommand {
     onHold() {
         this.tool.fullTriangle = true;
     }
@@ -11,11 +11,11 @@ class SelectAddCommand extends ToolCommand {
     }
 }
 
-class SelectCycleCommand extends ToolCommand {
+class CycleObjectsCommand extends ToolCommand {
     onExec() {
         this.tool.cycleNodes();
     }
 }
 
-ToolCommand.register(PaintTool, SelectAddCommand);
-ToolCommand.register(PaintTool, SelectCycleCommand);
+ToolCommand.register(PaintTool, PaintFullTriangleCommand);
+ToolCommand.register(PaintTool, CycleObjectsCommand);

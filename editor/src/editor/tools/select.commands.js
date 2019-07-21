@@ -21,7 +21,7 @@ class SelectSubtractCommand extends ToolCommand {
     }
 }
 
-class SelectCycleCommand extends ToolCommand {
+class CycleObjectsCommand extends ToolCommand {
     onExec() {
         this.tool.cycleNodes();
     }
@@ -29,4 +29,4 @@ class SelectCycleCommand extends ToolCommand {
 
 ToolCommand.register(SelectTool, SelectAddCommand);
 ToolCommand.register(SelectTool, SelectSubtractCommand);
-ToolCommand.register(SelectTool, SelectCycleCommand);
+ToolCommand.register(SelectTool, CycleObjectsCommand);
