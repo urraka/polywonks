@@ -81,7 +81,7 @@ export class SelectTool extends Tool {
     }
 
     get rootNode() {
-        if (this.mode === "subtract") {
+        if (!cfg("editor.restrict-selection") || this.mode === "subtract") {
             return this.editor.map;
         } else {
             return this.editor.activeLayer || this.editor.map;

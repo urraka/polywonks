@@ -91,6 +91,12 @@ class ToggleWireframeCommand extends ToggleSettingCommand {
     }
 }
 
+class ToggleRestrictSelectionCommand extends ToggleSettingCommand {
+    constructor(...args) {
+        super("editor.restrict-selection", ...args);
+    }
+}
+
 class SwitchSettingCommand extends SettingCommand {
     constructor(setting, value, ...args) {
         super(setting, ...args);
@@ -133,6 +139,7 @@ AppCommand.register(ToggleGridCommand);
 AppCommand.register(ToggleBackgroundCommand);
 AppCommand.register(ToggleVerticesCommand);
 AppCommand.register(ToggleWireframeCommand);
+AppCommand.register(ToggleRestrictSelectionCommand);
 AppCommand.register(ShowPolygonTextureCommand);
 AppCommand.register(ShowPolygonPlainCommand);
 AppCommand.register(ShowPolygonNoneCommand);

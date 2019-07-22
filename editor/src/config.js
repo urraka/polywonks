@@ -30,6 +30,7 @@ export const settings = {
     "editor.snap-radius": 5,
     "editor.snap-to-grid": true,
     "editor.snap-to-objects": true,
+    "editor.restrict-selection": false,
     "view.grid": true,
     "view.background": true,
     "view.polygons": "texture",
@@ -114,6 +115,7 @@ export const menu = [
         ["Paste", "paste"],
     ]],
     ["Selection", [
+        ["Restrict to Layer", "toggle-restrict-selection"],
         ["Switch Vertices/Polygons", "selection-vert-switch"],
     ]],
     ["Object", [
