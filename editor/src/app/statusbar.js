@@ -4,17 +4,21 @@ import { EventEmitter } from "../common/event.js";
 export class Statusbar extends EventEmitter {
     constructor(app) {
         super();
+        this.app = app;
         this.statusbar = new ui.Statusbar();
-        this.statusbar.addItem("tool", "left", 200);
-        this.statusbar.addItem("layer", "left", 200, "left");
-        this.statusbar.addItem("zoom", "right", 100, "right");
-        this.statusbar.addItem("cursor", "right", 100, "right");
+        this.statusbar.left.addTextItem("tool", 200);
+        this.statusbar.left.addTextItem("layer", 200);
+        this.statusbar.right.addTextItem("zoom", 100, "right");
+        this.statusbar.right.addTextItem("cursor", 100, "right");
+        this.statusbar.right.addToggleButton("toggle-grid", "grid-icon", "Toggle Grid");
+        this.statusbar.on("buttonclick", e => this.emit("command", { command: e.button }));
 
         this.onToolStatusChange = () => this.updateItems("tool");
         this.onActiveLayerChange = () => this.updateItems("layer");
         this.onViewChange = () => this.updateItems("cursor", "zoom");
         this.onCursorChange = () => this.updateItems("cursor");
 
+        app.on("commandchange", e => this.onCommandChange(e));
         app.on("activeeditorchange", e => this.onEditorChange(e.editor));
     }
 
@@ -43,17 +47,27 @@ export class Statusbar extends EventEmitter {
         this.updateItems();
     }
 
+    onCommandChange(event) {
+        if (this.statusbar.itemType(event.name) === "button") {
+            this.updateItems(event.name);
+        }
+    }
+
     updateItems(...items) {
         if (items.length === 0) {
             items = this.statusbar.items.keys();
         }
         for (const key of items) {
-            this.statusbar.set(key, this.statusText(key));
+            if (this.statusbar.itemType(key) === "button") {
+                const command = this.app.findCommand(key);
+                this.statusbar.toggle(key, command.checked);
+            } else {
+                this.statusbar.set(key, this.statusText(key));
+            }
         }
     }
 
     statusText(key) {
-        if (!this.editor) return "";
         switch (key) {
             case "tool": return this.editor.toolset.status;
             case "layer": return "Layer: " + (this.editor.activeLayer || "None").toString();

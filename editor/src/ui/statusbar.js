@@ -1,48 +1,60 @@
 import { elem, registerStyles } from "./common.js";
 import { Panel } from "./panel.js";
+import { styles } from "./statusbar.styles.js";
 
-registerStyles(/* css */`
-.statusbar {
-    height: 22px;
-    line-height: 22px;
-    flex-shrink: 0;
-    background-color: rgb(var(--theme-statusbar));
-}
-
-.statusbar > .panel:last-child {
-    justify-content: flex-end;
-}
-
-.statusbar > .panel:first-child .statusbar-item {
-    margin-left: 10px;
-}
-
-.statusbar > .panel:last-child .statusbar-item {
-    margin-right: 10px;
-}
-`);
+registerStyles(styles);
 
 export class Statusbar extends Panel {
     constructor() {
         super("statusbar");
         this.items = new Map();
-        this.left = this.append(new Panel());
-        this.right = this.append(new Panel());
+        this.left = this.append(new StatusbarPanel(this));
+        this.right = this.append(new StatusbarPanel(this));
     }
 
-    addItem(name, side, width, textAlign = null) {
-        const item = elem("div", "statusbar-item");
-        item.style.width = width + "px";
-
-        if (textAlign) {
-            item.style.textAlign = textAlign;
+    itemType(key) {
+        const item = this.items.get(key);
+        if (item) {
+            switch (item.tagName) {
+                case "DIV": return "text";
+                case "BUTTON": return "button";
+            }
         }
-
-        this.items.set(name, item);
-        this[side].append(item);
     }
 
-    set(name, value) {
-        this.items.get(name).textContent = value;
+    set(key, value) {
+        this.items.get(key).textContent = value;
+    }
+
+    toggle(key, value) {
+        this.items.get(key).classList.toggle("active", value);
+    }
+}
+
+export class StatusbarPanel extends Panel {
+    constructor(statusbar) {
+        super();
+        this.statusbar = statusbar;
+    }
+
+    addItem(key, type = "div") {
+        const item = this.append(elem(type, "statusbar-item"));
+        this.statusbar.items.set(key, item);
+        return item;
+    }
+
+    addTextItem(key, width, textAlign = null) {
+        const item = this.addItem(key);
+        item.style.width = width + "px";
+        if (textAlign) item.style.textAlign = textAlign;
+        return item;
+    }
+
+    addToggleButton(key, icon, text = "") {
+        const item = this.addItem(key, "button");
+        item.classList.add(icon);
+        item.title = text;
+        item.addEventListener("click", () => this.statusbar.emit("buttonclick", { button: key }));
+        return item;
     }
 }

@@ -89,7 +89,7 @@ export class Menu extends EventEmitter {
 
     updateItem(item) {
         if (item.ownerMenu.visible) {
-            const command = this.findCommand(item);
+            const command = this.app.findCommand(item.key);
             if (command) {
                 item.enabled = command.enabled;
                 item.checked = command.checked;
@@ -100,13 +100,6 @@ export class Menu extends EventEmitter {
             this.invalidatedItems.delete(item);
         } else {
             this.invalidatedItems.add(item);
-        }
-    }
-
-    findCommand(item) {
-        for (const provider of this.app.commandProviders()) {
-            const command = Command.find(provider, item.key);
-            if (command) return command;
         }
     }
 

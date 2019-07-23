@@ -29,6 +29,7 @@ export class App extends ui.Panel {
         this.sidebar.explorers.forEach(explorer => explorer.on("command", e => this.onCommand(e.command, e.params)));
 
         this.statusbar = new Statusbar(this);
+        this.statusbar.on("command", e => this.onCommand(e.command));
 
         const clientArea = new ui.Panel("client-area");
         clientArea.append(this.sidebar);
@@ -130,6 +131,13 @@ export class App extends ui.Panel {
         document.activeElement.blur();
         for (const provider of this.commandProviders()) {
             Command.exec(provider, command, params);
+        }
+    }
+
+    findCommand(name) {
+        for (const provider of this.commandProviders()) {
+            const command = Command.find(provider, name);
+            if (command) return command;
         }
     }
 
