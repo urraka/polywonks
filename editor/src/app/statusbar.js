@@ -11,6 +11,7 @@ export class Statusbar extends EventEmitter {
         this.statusbar.right.addTextItem("zoom", 100, "right");
         this.statusbar.right.addTextItem("cursor", 100, "right");
         this.statusbar.right.addToggleButton("toggle-grid", "grid-icon", "Toggle Grid");
+        this.statusbar.right.addToggleButton("toggle-wireframe", "wireframe-icon", "Toggle Wireframe");
         this.statusbar.on("buttonclick", e => this.emit("command", { command: e.button }));
 
         this.onToolStatusChange = () => this.updateItems("tool");
