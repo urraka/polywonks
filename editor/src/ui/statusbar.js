@@ -57,4 +57,8 @@ export class StatusbarPanel extends Panel {
         item.addEventListener("click", () => this.statusbar.emit("buttonclick", { button: key }));
         return item;
     }
+
+    addSeparator() {
+        this.append(elem("div", "separator"));
+    }
 }

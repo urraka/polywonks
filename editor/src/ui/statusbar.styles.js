@@ -40,4 +40,8 @@ export const styles = /* css */`
 .statusbar > .panel > button.active {
     background-color: rgb(var(--theme-text-active));
 }
+
+.statusbar > .panel > .separator {
+    width: 5px;
+}
 `;
