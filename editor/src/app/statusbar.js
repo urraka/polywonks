@@ -13,6 +13,8 @@ export class Statusbar extends EventEmitter {
         this.statusbar.right.addToggleButton("toggle-grid", "grid-icon", "Toggle Grid");
         this.statusbar.right.addToggleButton("toggle-wireframe", "wireframe-icon", "Toggle Wireframe");
         this.statusbar.right.addToggleButton("toggle-vertices", "vertices-icon", "Toggle Vertices");
+        this.statusbar.right.addToggleButton("toggle-snap-to-grid", "snap-grid-icon", "Toggle Snap to Grid");
+        this.statusbar.right.addToggleButton("toggle-snap-to-objects", "snap-objects-icon", "Toggle Snap to Objects");
         this.statusbar.on("buttonclick", e => this.emit("command", { command: e.button }));
 
         this.onToolStatusChange = () => this.updateItems("tool");
