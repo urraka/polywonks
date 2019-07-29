@@ -5,10 +5,24 @@ import { File } from "../../app/file.js";
 import { SaveDialog } from "../../app/dialog.save.js";
 import { EditorCommand } from "./command.js";
 
-class ExportCommand extends EditorCommand {
+class ExportBase extends EditorCommand {
+    get filename() {
+        const name = Path.filename(this.editor.map.attr("text"));
+        if (name) {
+            return name + ".pms";
+        } else {
+            return Path.replaceExtension(Path.filename(this.editor.history.saveName), ".pms");
+        }
+    }
+
+    get path() {
+        return Path.resolve(cfg("app.export-location"), this.filename);
+    }
+}
+
+class ExportCommand extends ExportBase {
     onExec() {
-        const filename = Path.replaceExtension(Path.filename(this.editor.history.saveName), ".pms");
-        const path = Path.resolve(cfg("app.export-location"), filename);
+        const path = this.path;
         File.refresh(Path.mount(path), () => {
             if (File.exists(path)) {
                 File.write(path, this.editor.map.toPMS().toArrayBuffer(), ok => {
@@ -23,10 +37,9 @@ class ExportCommand extends EditorCommand {
     }
 }
 
-class ExportAsCommand extends EditorCommand {
+class ExportAsCommand extends ExportBase {
     onExec() {
-        const filename = Path.replaceExtension(Path.filename(this.editor.history.saveName), ".pms");
-        const path = Path.resolve(cfg("app.export-location"), filename);
+        const path = this.path;
         const dialog = new SaveDialog("Export as...", Path.filename(path), Path.dir(path));
         dialog.on("save", event => {
             File.write(event.path, this.editor.map.toPMS().toArrayBuffer(), ok => {
@@ -39,11 +52,10 @@ class ExportAsCommand extends EditorCommand {
     }
 }
 
-class ExportDownloadCommand extends EditorCommand {
+class ExportDownloadCommand extends ExportBase {
     onExec() {
-        const filename = Path.replaceExtension(Path.filename(this.editor.history.saveName), ".pms");
         const data = this.editor.map.toPMS().toArrayBuffer();
-        ui.download(filename, new Blob([data], {type: "octet/stream"}));
+        ui.download(this.filename, new Blob([data], {type: "octet/stream"}));
     }
 }
 
