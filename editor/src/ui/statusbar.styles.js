@@ -6,6 +6,12 @@ export const styles = /* css */`
     background-color: rgb(var(--theme-statusbar));
 }
 
+.statusbar > .panel > .statusbar-item:not(button) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .statusbar > .panel:last-child {
     justify-content: flex-end;
 }

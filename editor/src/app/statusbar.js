@@ -5,8 +5,11 @@ export class Statusbar extends EventEmitter {
     constructor(app) {
         super();
         this.app = app;
+        this.infoTimer = null;
+        this.commandMessage = "";
+
         this.statusbar = new ui.Statusbar();
-        this.statusbar.left.addTextItem("tool", 200);
+        this.statusbar.left.addTextItem("tool", 300);
         this.statusbar.left.addTextItem("layer", 200);
         this.statusbar.right.addTextItem("zoom", 100, "right");
         this.statusbar.right.addTextItem("cursor", 100, "right");
@@ -23,7 +26,10 @@ export class Statusbar extends EventEmitter {
         this.onActiveLayerChange = () => this.updateItems("layer");
         this.onViewChange = () => this.updateItems("cursor", "zoom");
         this.onCursorChange = () => this.updateItems("cursor");
+        this.onCommandInfo = this.onCommandInfo.bind(this);
+        this.onInfoTimeout = this.onInfoTimeout.bind(this);
 
+        app.on("commandinfo", this.onCommandInfo);
         app.on("commandchange", e => this.onCommandChange(e));
         app.on("activeeditorchange", e => this.onEditorChange(e.editor));
     }
@@ -38,6 +44,7 @@ export class Statusbar extends EventEmitter {
 
     onEditorChange(editor) {
         if (this.editor) {
+            this.editor.off("commandinfo", this.onCommandInfo);
             this.editor.toolset.off("statuschange", this.onToolStatusChange);
             this.editor.off("activelayerchange", this.onActiveLayerChange);
             this.editor.view.off("change", this.onViewChange);
@@ -45,6 +52,7 @@ export class Statusbar extends EventEmitter {
         }
         this._editor = editor;
         if (this.editor) {
+            this.editor.on("commandinfo", this.onCommandInfo);
             this.editor.toolset.on("statuschange", this.onToolStatusChange);
             this.editor.on("activelayerchange", this.onActiveLayerChange);
             this.editor.view.on("change", this.onViewChange);
@@ -57,6 +65,19 @@ export class Statusbar extends EventEmitter {
         if (this.statusbar.itemType(event.name) === "button") {
             this.updateItems(event.name);
         }
+    }
+
+    onCommandInfo(event) {
+        if (this.infoTimer) clearTimeout(this.infoTimer);
+        this.infoTimer = setTimeout(this.onInfoTimeout, 1800);
+        this.commandMessage = event.message;
+        this.updateItems("tool");
+    }
+
+    onInfoTimeout() {
+        this.infoTimer = null;
+        this.commandMessage = "";
+        this.updateItems("tool");
     }
 
     updateItems(...items) {
@@ -75,7 +96,7 @@ export class Statusbar extends EventEmitter {
 
     statusText(key) {
         switch (key) {
-            case "tool": return this.editor.toolset.status;
+            case "tool": return this.commandMessage || this.editor.toolset.status;
             case "layer": return "Layer: " + (this.editor.activeLayer || "None").toString();
             case "zoom": return Math.round(100 * this.editor.view.scale) + "%";
             case "cursor": return this.editor.cursor.status;

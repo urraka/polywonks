@@ -4,6 +4,7 @@ export class Command {
     constructor(provider) {
         this.provider = provider;
         this.emitChange = () => this.provider.emit("commandchange", { name: this.commandName });
+        this.emitInfo = message => this.provider.emit("commandinfo", { message });
     }
 
     get enabled() {

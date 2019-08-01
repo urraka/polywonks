@@ -16,6 +16,7 @@ class SaveCommand extends EditorCommand {
                     File.write(this.editor.history.saveName, this.editor.map.serialize(), ok => {
                         if (ok) {
                             this.editor.history.save(saveIndex, this.editor.history.saveName);
+                            this.emitInfo("Saved to " + this.editor.history.saveName);
                             resolve();
                         } else {
                             ui.msgbox("Save", "Failed to write file " + this.editor.history.saveName, () => reject());
@@ -43,6 +44,7 @@ class SaveAsCommand extends EditorCommand {
                 File.write(event.path, editor.map.serialize(), ok => {
                     if (ok) {
                         this.editor.history.save(saveIndex, event.path);
+                        this.emitInfo("Saved to " + event.path);
                         resolve();
                     } else {
                         ui.msgbox("Save as...", "Failed to write file " + event.path, () => reject());

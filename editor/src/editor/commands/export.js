@@ -26,7 +26,9 @@ class ExportCommand extends ExportBase {
         File.refresh(Path.mount(path), () => {
             if (File.exists(path)) {
                 File.write(path, this.editor.map.toPMS().toArrayBuffer(), ok => {
-                    if (!ok) {
+                    if (ok) {
+                        this.emitInfo("Exported to " + path);
+                    } else {
                         ui.msgbox("Export", "Failed to write file " + path);
                     }
                 });
@@ -43,7 +45,9 @@ class ExportAsCommand extends ExportBase {
         const dialog = new SaveDialog("Export as...", Path.filename(path), Path.dir(path));
         dialog.on("save", event => {
             File.write(event.path, this.editor.map.toPMS().toArrayBuffer(), ok => {
-                if (!ok) {
+                if (ok) {
+                    this.emitInfo("Exported to " + event.path);
+                } else {
                     ui.msgbox("Export as...", "Failed to write file " + event.path);
                 }
             });
