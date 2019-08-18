@@ -1,5 +1,4 @@
 import { iter } from "../../common/iter.js";
-import { Pointer } from "../../common/pointer.js";
 import { SnapHandle, SnapSource } from "../snapping.js";
 import { EditCommand } from "../edit.js";
 import { Tool } from "./tool.js";
@@ -11,15 +10,14 @@ export class CreateTool extends Tool {
         this.targetLayer = null;
         this.node = null;
         this.handle = null;
-        this.pointer = new Pointer();
-        this.pointer.on("begin", e => this.onPointerBegin(e.mouseEvent));
-        this.pointer.on("move", e => this.onPointerMove(e.mouseEvent));
+        this.button = null;
         this.onAttrChange = this.onAttrChange.bind(this);
-        this.onMouseDown = this.onMouseDown.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
         this.onNodeRemove = this.onNodeRemove.bind(this);
         this.onActiveLayerChange = this.onActiveLayerChange.bind(this);
         this.onCursorChange = this.onCursorChange.bind(this);
+        this.onButtonDown = this.onButtonDown.bind(this);
+        this.onPointerMove = this.onPointerMove.bind(this);
     }
 
     get status() {
@@ -46,6 +44,7 @@ export class CreateTool extends Tool {
             }
         }
 
+        this.button = null;
         this.editing = false;
         this.targetLayer = null;
         this.handle = new SnapHandle(this.editor);
@@ -57,22 +56,24 @@ export class CreateTool extends Tool {
         this.updateTargetLayer();
         this.updateHandle();
 
-        this.pointer.activate(this.editor.element, 0);
         this.on("attributechange", this.onAttrChange);
         this.editor.on("activelayerchange", this.onActiveLayerChange);
-        this.editor.cursor.on("change", this.onCursorChange);
+        this.editor.cursor.on("visibilitychange", this.onCursorChange);
+        this.editor.cursor.on("move", this.onPointerMove);
+        this.editor.cursor.leftButton.on("buttondown", this.onButtonDown);
+        this.editor.cursor.rightButton.on("buttondown", this.onButtonDown);
         this.editor.map.on("remove", this.onNodeRemove);
-        this.editor.element.addEventListener("mousedown", this.onMouseDown);
         document.addEventListener("keydown", this.onKeyDown);
     }
 
     onDeactivate() {
-        this.pointer.deactivate();
         this.off("attributechange", this.onAttrChange);
         this.editor.off("activelayerchange", this.onActiveLayerChange);
-        this.editor.cursor.off("change", this.onCursorChange);
+        this.editor.cursor.off("visibilitychange", this.onCursorChange);
+        this.editor.cursor.off("move", this.onPointerMove);
+        this.editor.cursor.leftButton.off("buttondown", this.onButtonDown);
+        this.editor.cursor.rightButton.off("buttondown", this.onButtonDown);
         this.editor.map.off("remove", this.onNodeRemove);
-        this.editor.element.removeEventListener("mousedown", this.onMouseDown);
         document.removeEventListener("keydown", this.onKeyDown);
     }
 
@@ -101,23 +102,31 @@ export class CreateTool extends Tool {
         this.updateHandle();
     }
 
-    onPointerBegin() {
-        if (this.handle.visible) {
-            this.beginEditing();
-            this.endEditing();
+    onButtonDown(event) {
+        switch (event.target) {
+            case this.editor.cursor.leftButton: {
+                this.button = event.target;
+                if (this.handle.visible) {
+                    this.onEdit();
+                }
+                break;
+            }
+            case this.editor.cursor.rightButton: {
+                this.editor.toolset.currentTool = this.editor.toolset.select;
+                break;
+            }
         }
+    }
+
+    onEdit() {
+        this.beginEditing();
+        this.endEditing();
     }
 
     onPointerMove() {
         this.handle.moveTo(this.editor.cursor.x, this.editor.cursor.y);
         this.updateNode();
         this.emit("change");
-    }
-
-    onMouseDown(event) {
-        if (event.button === 2) {
-            this.editor.toolset.currentTool = this.editor.toolset.select;
-        }
     }
 
     onKeyDown(event) {
@@ -162,7 +171,7 @@ export class CreateTool extends Tool {
 
     updateHandle() {
         const visible = this.handle.visible;
-        this.handle.visible = this.editor.cursor.active && !!this.targetLayer;
+        this.handle.visible = this.editor.cursor.visible && !!this.targetLayer;
         if (this.handle.visible !== visible) {
             this.emit("change");
         }

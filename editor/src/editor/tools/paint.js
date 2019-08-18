@@ -1,6 +1,5 @@
 import * as xMath from "../../common/math.js";
 import { iter } from "../../common/iter.js";
-import { Pointer } from "../../common/pointer.js";
 import { Color } from "../../common/color.js";
 import { TriangleNode, Attribute } from "../../map/map.js";
 import { Command } from "../../app/command.js";
@@ -16,13 +15,13 @@ export class PaintTool extends Tool {
         this.cycle = 0;
         this.startPoint = null;
         this.endPoint = null;
-        this.pointer = new Pointer();
-        this.pointer.on("begin", e => this.onPointerBegin(e.mouseEvent));
-        this.pointer.on("move", e => this.onPointerMove(e.mouseEvent));
-        this.pointer.on("end", e => this.onPointerEnd(e.mouseEvent));
+        this.button = null;
         this.attributes.set("color", new Attribute("color", new Color("#fff")));
         this.onAttrChange = () => this.endPaint();
         this.onMapChange = () => this.updateHoveredNodes();
+        this.onPointerMove = this.onPointerMove.bind(this);
+        this.onButtonDown = this.onButtonDown.bind(this);
+        this.onButtonUp = this.onButtonUp.bind(this);
 
         Command.provide(this);
     }
@@ -58,33 +57,39 @@ export class PaintTool extends Tool {
         this.startPoint = null;
         this.endPoint = null;
         this.fullTriangle = false;
+        this.button = null;
         this.on("attributechange", this.onAttrChange);
         this.editor.map.on("change", this.onMapChange);
-        this.pointer.activate(this.editor.element, 0);
+        this.editor.cursor.on("move", this.onPointerMove);
+        this.editor.cursor.leftButton.on("buttondown", this.onButtonDown);
+        this.editor.cursor.leftButton.on("buttonup", this.onButtonUp);
         this.updateHoveredNodes();
     }
 
     onDeactivate() {
         this.off("attributechange", this.onAttrChange);
         this.editor.map.off("change", this.onMapChange);
-        this.pointer.deactivate();
+        this.editor.cursor.off("move", this.onPointerMove);
+        this.editor.cursor.leftButton.off("buttondown", this.onButtonDown);
+        this.editor.cursor.leftButton.off("buttonup", this.onButtonUp);
     }
 
-    onPointerBegin() {
+    onButtonDown(event) {
         const p = this.editor.cursor.position;
+        this.button = event.target;
         this.startPoint = { ...p };
         this.endPoint = { ...p };
         this.paintNodes(this.affectedNodes(true));
     }
 
-    onPointerEnd() {
+    onButtonUp() {
         this.startPoint = null;
         this.endPoint = null;
         this.endPaint();
     }
 
     onPointerMove() {
-        if (this.pointer.dragging) {
+        if (this.button && this.button.dragging) {
             this.endPoint = { ...this.editor.cursor.position };
             this.updateHoveredNodes();
             this.paintNodes(this.affectedNodes(false));

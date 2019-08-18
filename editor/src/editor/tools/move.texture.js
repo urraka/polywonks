@@ -18,12 +18,12 @@ export class MoveTextureTool extends MoveTool {
         return "Move texture";
     }
 
-    onPointerEnd(event) {
-        if (this.dragging && !this.handle.active) {
+    onButtonUp(event) {
+        if (event.target === this.button && this.button.dragging && !this.handle.active) {
             const node = this.handle.referenceNode;
             this.handle.reset(this.handleStart.x, this.handleStart.y, node);
         }
-        super.onPointerEnd(event);
+        super.onButtonUp(event);
     }
 
     filterSelection() {

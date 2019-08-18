@@ -1,29 +1,39 @@
+import { Pointer } from "../../common/pointer.js";
+import { cfg, Settings } from "../../app/settings.js";
 import { Tool } from "./tool.js";
 
 export class CursorTool extends Tool {
     constructor() {
         super();
-        this.mouseEvent = null;
         this.position = { x: 0, y: 0 };
+        this.clientX = 0;
+        this.clientY = 0;
+
+        this.pointer = new Pointer();
+        this.pointer.on("move", e => this.onPointerEvent(e));
+        this.pointer.on("buttondown", e => this.onPointerEvent(e));
+        this.leftButton = this.pointer.button(0);
+        this.middleButton = this.pointer.button(1);
+        this.rightButton = this.pointer.button(2);
+
         this.onViewChange = this.onViewChange.bind(this);
-        this.onMouseDown = this.onMouseDown.bind(this);
-        this.onMouseMove = this.onMouseMove.bind(this);
         this.onMouseEnter = this.onMouseEnter.bind(this);
         this.onMouseLeave = this.onMouseLeave.bind(this);
+        this.onSettingChange = this.onSettingChange.bind(this);
     }
 
     get statusText() {
-        return this.active ? `${Math.round(this.position.x)}, ${Math.round(this.position.y)}` : "";
+        return this.visible ? `${Math.round(this.position.x)}, ${Math.round(this.position.y)}` : "";
     }
 
-    get active() {
-        return !!this._active;
+    get visible() {
+        return !!this._visible;
     }
 
-    set active(value) {
-        if (this.active !== value) {
-            this._active = value;
-            this.emit("change");
+    set visible(value) {
+        if (this.visible !== value) {
+            this._visible = value;
+            this.emit("visibilitychange");
         }
     }
 
@@ -36,53 +46,58 @@ export class CursorTool extends Tool {
     }
 
     onActivate() {
+        Settings.on("change", this.onSettingChange);
         this.editor.view.on("change", this.onViewChange);
-        this.editor.element.addEventListener("mousedown", this.onMouseDown, true);
-        this.editor.element.addEventListener("mousemove", this.onMouseMove, true);
         this.editor.element.addEventListener("mouseenter", this.onMouseEnter);
         this.editor.element.addEventListener("mouseleave", this.onMouseLeave);
+        this.pointer.dragThreshold = cfg("editor.drag-threshold");
+        this.pointer.activate(this.editor.element);
     }
 
     onDeactivate() {
+        Settings.off("change", this.onSettingChange);
         this.editor.view.off("change", this.onViewChange);
-        this.editor.element.removeEventListener("mousedown", this.onMouseDown, true);
-        this.editor.element.removeEventListener("mousemove", this.onMouseMove, true);
         this.editor.element.removeEventListener("mouseenter", this.onMouseEnter);
         this.editor.element.removeEventListener("mouseleave", this.onMouseLeave);
+        this.pointer.deactivate();
+    }
+
+    onSettingChange(event) {
+        if (event.setting === "editor.drag-threshold") {
+            this.pointer.dragThreshold = cfg("editor.drag-threshold");
+        }
     }
 
     onViewChange() {
-        if (this.mouseEvent) {
-            this.updatePosition(this.mouseEvent);
+        if (this.visible) {
+            this.updatePosition();
+        }
+    }
+
+    onPointerEvent(event) {
+        if (event.mouseEvent) {
+            this.clientX = event.mouseEvent.clientX;
+            this.clientY = event.mouseEvent.clientY;
+            this.updatePosition();
+            this.visible = true;
         }
     }
 
     onMouseEnter() {
-        this.active = true;
+        this.visible = true;
     }
 
     onMouseLeave() {
-        this.mouseEvent = false;
-        this.active = false;
+        this.visible = false;
     }
 
-    onMouseDown(event) {
-        this.mouseEvent = event;
-        this.updatePosition(event);
-    }
-
-    onMouseMove(event) {
-        this.mouseEvent = event;
-        this.updatePosition(event);
-    }
-
-    updatePosition(event) {
+    updatePosition() {
         const rect = this.editor.element.getBoundingClientRect();
-        const pos = this.editor.view.canvasToMap(event.clientX - rect.left, event.clientY - rect.top);
+        const pos = this.editor.view.canvasToMap(this.clientX - rect.left, this.clientY - rect.top);
         if (pos.x !== this.position.x || pos.y !== this.position.y) {
             this.position.x = pos.x;
             this.position.y = pos.y;
-            this.emit("change");
+            this.emit("move");
         }
     }
 }

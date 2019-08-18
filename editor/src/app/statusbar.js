@@ -48,7 +48,8 @@ export class Statusbar extends EventEmitter {
             this.editor.toolset.off("statuschange", this.onToolStatusChange);
             this.editor.off("activelayerchange", this.onActiveLayerChange);
             this.editor.view.off("change", this.onViewChange);
-            this.editor.cursor.off("change", this.onCursorChange);
+            this.editor.cursor.off("move", this.onCursorChange);
+            this.editor.cursor.off("visibilitychange", this.onCursorChange);
         }
         this._editor = editor;
         if (this.editor) {
@@ -56,7 +57,8 @@ export class Statusbar extends EventEmitter {
             this.editor.toolset.on("statuschange", this.onToolStatusChange);
             this.editor.on("activelayerchange", this.onActiveLayerChange);
             this.editor.view.on("change", this.onViewChange);
-            this.editor.cursor.on("change", this.onCursorChange);
+            this.editor.cursor.on("move", this.onCursorChange);
+            this.editor.cursor.on("visibilitychange", this.onCursorChange);
         }
         this.updateItems();
     }

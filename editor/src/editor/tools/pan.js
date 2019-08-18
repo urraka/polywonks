@@ -1,12 +1,11 @@
-import { Pointer } from "../../common/pointer.js";
 import { Tool } from "./tool.js";
 
 export class PanTool extends Tool {
-    constructor(button = 0) {
+    constructor() {
         super();
-        this.button = button;
-        this.pointer = new Pointer();
-        this.pointer.on("move", e => this.onPointerMove(e.mouseEvent));
+        this.position = { x: 0, y: 0 };
+        this.onPointerMove = this.onPointerMove.bind(this);
+        this.onCursorChange = this.onCursorChange.bind(this);
     }
 
     get text() {
@@ -17,25 +16,45 @@ export class PanTool extends Tool {
         return "Pan";
     }
 
+    get button() {
+        return this.editor.cursor.leftButton;
+    }
+
     onActivate() {
-        this.pointer.activate(this.editor.element, this.button);
+        this.updatePosition();
+        this.editor.cursor.on("move", this.onPointerMove);
+        this.editor.cursor.on("visibilitychange", this.onCursorChange);
     }
 
     onDeactivate() {
-        this.pointer.deactivate();
+        this.editor.cursor.off("move", this.onPointerMove);
+        this.editor.cursor.off("visibilitychange", this.onCursorChange);
     }
 
-    onPointerMove(event) {
-        if (this.pointer.dragging) {
-            this.editor.view.x -= event.movementX / this.editor.view.scale;
-            this.editor.view.y -= event.movementY / this.editor.view.scale;
+    onCursorChange() {
+        this.updatePosition();
+    }
+
+    onPointerMove() {
+        if (this.button.pressed) {
+            const dx = this.editor.cursor.x - this.position.x;
+            const dy = this.editor.cursor.y - this.position.y;
+            this.editor.cursor.off("move", this.onPointerMove);
+            this.editor.view.set(this.editor.view.x - dx, this.editor.view.y - dy);
+            this.editor.cursor.on("move", this.onPointerMove);
         }
+        this.updatePosition();
+    }
+
+    updatePosition() {
+        this.position.x = this.editor.cursor.x;
+        this.position.y = this.editor.cursor.y;
     }
 }
 
 export class PassivePanTool extends PanTool {
-    constructor() {
-        super(1);
+    get button() {
+        return this.editor.cursor.middleButton;
     }
 }
 

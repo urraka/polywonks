@@ -1,7 +1,5 @@
 import { iter } from "../../common/iter.js";
-import { Pointer, MovementThreshold } from "../../common/pointer.js";
 import { Command } from "../../app/command.js";
-import { cfg } from "../../app/settings.js";
 import { PivotNode, VertexNode, WaypointNode, SpawnNode, ColliderNode } from "../../map/map.js";
 import { EditCommand } from "../edit.js";
 import { SnapHandle, SnapSource } from "../snapping.js";
@@ -14,22 +12,15 @@ export class MoveTool extends Tool {
         this.command = null;
         this.handleStart = null;
         this.handleOffset = null;
-        this.dragging = false;
         this.snapSources = null;
         this.handle = null;
-        this.movement = new MovementThreshold();
-        this.pointers = [new Pointer(null, 0), new Pointer(null, 2)];
-        this.onPointerBegin = this.onPointerBegin.bind(this);
+        this.button = null;
+        this.onButtonDown = this.onButtonDown.bind(this);
+        this.onButtonUp = this.onButtonUp.bind(this);
         this.onPointerMove = this.onPointerMove.bind(this);
-        this.onPointerEnd = this.onPointerEnd.bind(this);
         this.onSelectStatusChange = this.onSelectStatusChange.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.onMapChange = this.onMapChange.bind(this);
-        for (const pointer of this.pointers) {
-            pointer.on("begin", this.onPointerBegin);
-            pointer.on("move", this.onPointerMove);
-            pointer.on("end", this.onPointerEnd);
-        }
 
         Command.provide(this);
     }
@@ -50,18 +41,20 @@ export class MoveTool extends Tool {
         this.command = null;
         this.handleStart = null;
         this.handleOffset = null;
-        this.dragging = false;
         this.snapSources = [new SnapSource(this.editor.map)];
         this.handle = this.createHandle();
-        this.movement.reset(cfg("editor.drag-threshold"));
-        this.pointers[0].activate(this.editor.element);
-        this.pointers[1].activate(this.editor.element);
+        this.button = null;
+        this.editor.cursor.on("move", this.onPointerMove);
+        this.editor.cursor.leftButton.on("buttondown", this.onButtonDown);
+        this.editor.cursor.leftButton.on("buttonup", this.onButtonUp);
+        this.editor.cursor.rightButton.on("buttondown", this.onButtonDown);
+        this.editor.cursor.rightButton.on("buttonup", this.onButtonUp);
         this.selectTool.activate(this.editor);
         this.selectTool.on("statuschange", this.onSelectStatusChange);
         this.editor.selection.on("change", this.onSelectionChange);
         this.editor.map.on("change", this.onMapChange);
 
-        if (this.editor.cursor.active) {
+        if (this.editor.cursor.visible) {
             this.onPointerMove();
         }
     }
@@ -71,8 +64,11 @@ export class MoveTool extends Tool {
         this.editor.selection.off("change", this.onSelectionChange);
         this.editor.map.off("change", this.onMapChange);
         this.selectTool.deactivate();
-        this.pointers[0].deactivate();
-        this.pointers[1].deactivate();
+        this.editor.cursor.off("move", this.onPointerMove);
+        this.editor.cursor.leftButton.off("buttondown", this.onButtonDown);
+        this.editor.cursor.leftButton.off("buttonup", this.onButtonUp);
+        this.editor.cursor.rightButton.off("buttondown", this.onButtonDown);
+        this.editor.cursor.rightButton.off("buttonup", this.onButtonUp);
     }
 
     onSelectStatusChange() {
@@ -109,13 +105,12 @@ export class MoveTool extends Tool {
         throw new Error("Must implement");
     }
 
-    onPointerBegin(event) {
-        this.movement.click(event.mouseEvent);
-        if (event.target === this.pointers[1]) {
-            this.selectTool.deactivate();
-            this.pointers[0].deactivate();
-        } else {
-            this.pointers[1].deactivate();
+    onButtonDown(event) {
+        if (!this.button) {
+            this.button = event.target;
+            if (this.button === this.editor.cursor.rightButton) {
+                this.selectTool.deactivate();
+            }
         }
         if (!this.selectTool.activated) {
             this.handleStart = {
@@ -129,25 +124,24 @@ export class MoveTool extends Tool {
         }
     }
 
-    onPointerEnd(event) {
-        this.movement.click(event.mouseEvent);
-        this.handleStart = null;
-        this.handleOffset = null;
-        this.dragging = false;
-        this.command = null;
-        this.handle.snapResult = null;
-        this.pointers[0].activate();
-        this.pointers[1].activate();
-        setTimeout(() => this.onPointerMove(event));
+    onButtonUp(event) {
+        if (event.target === this.button) {
+            this.handleStart = null;
+            this.handleOffset = null;
+            this.command = null;
+            this.handle.snapResult = null;
+            this.button = null;
+            setTimeout(() => this.onPointerMove());
+        }
     }
 
-    onPointerMove(event) {
-        if (!this.activated) return;
-        const pointer = event ? event.target : null;
+    onPointerMove() {
+        if (!this.activated) {
+            return;
+        }
 
-        if (pointer && pointer.dragging && !this.selectTool.activated) {
-            this.dragging = this.dragging || this.movement.moved(event.mouseEvent);
-            if (this.dragging) {
+        if (this.button && this.button.pressed && !this.selectTool.activated) {
+            if (this.button.dragging) {
                 if (this.handle.active) {
                     this.moveHandle();
                 } else {
@@ -193,8 +187,7 @@ export class MoveTool extends Tool {
         this.editor.map.off("change", this.onMapChange);
 
         if (this.command && !this.editor.history.undo(this.command)) {
-            this.pointers[0].cancel();
-            this.pointers[1].cancel();
+            this.button.release();
         } else {
             this.command = new EditCommand(this.editor);
 

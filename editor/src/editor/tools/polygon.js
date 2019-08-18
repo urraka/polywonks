@@ -21,21 +21,19 @@ export class PolygonTool extends CreateTool {
         return "Create polygons";
     }
 
-    onPointerBegin() {
-        if (this.handle.visible) {
-            if (!this.editing) {
-                this.beginEditing();
-                this.addVertex();
-                this.addVertex();
-                this.handle.snapSources.push(new SnapSource(this.node, n => !n.parentNode || n !== n.parentNode.lastChild));
-            } else if (iter(this.node.children()).count() < 3) {
-                this.addVertex();
-            } else {
-                this.handle.snapSources.pop();
-                this.endEditing();
-            }
-            this.emit("change");
+    onEdit() {
+        if (!this.editing) {
+            this.beginEditing();
+            this.addVertex();
+            this.addVertex();
+            this.handle.snapSources.push(new SnapSource(this.node, n => !n.parentNode || n !== n.parentNode.lastChild));
+        } else if (iter(this.node.children()).count() < 3) {
+            this.addVertex();
+        } else {
+            this.handle.snapSources.pop();
+            this.endEditing();
         }
+        this.emit("change");
     }
 
     updateNode() {

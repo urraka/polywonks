@@ -28,8 +28,8 @@ export class ConnectionTool extends CreateTool {
         this.handle.snapSources = [new SnapSource(this.editor.map.waypoints, this.snapFilter)];
     }
 
-    onPointerBegin() {
-        if (this.handle.visible && this.handle.snapResult) {
+    onEdit() {
+        if (this.handle.snapResult) {
             if (!this.selectedWaypoint) {
                 this.beginEditing();
                 this.selectedWaypoint = this.handle.snapResult.node;

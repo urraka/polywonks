@@ -20,11 +20,12 @@ class Draggable extends EventEmitter {
     constructor(element) {
         super();
         this.element = element;
-        this.pointer = new Pointer();
-        this.pointer.on("begin", e => this.onPointerChange(e.mouseEvent));
+        this.pointer = new Pointer(element.parentElement);
+        this.button = this.pointer.button(0);
         this.pointer.on("move", e => this.onPointerChange(e.mouseEvent));
-        this.pointer.on("end", e => this.onPointerChange(e.mouseEvent));
-        this.pointer.activate(element.parentElement, 0);
+        this.button.on("buttondown", e => this.onPointerChange(e.mouseEvent));
+        this.button.on("buttonup", e => this.onPointerChange(e.mouseEvent));
+        this.pointer.activate();
         this.element.closest("[tabindex]").addEventListener("keydown", e => this.onKeyDown(e));
         this.reset(0, 0);
     }
@@ -50,7 +51,7 @@ class Draggable extends EventEmitter {
     }
 
     onPointerChange(event) {
-        if (this.pointer.dragging) {
+        if (event && this.button.pressed) {
             const rect = this.element.parentElement.getBoundingClientRect();
             const x = event.clientX - rect.left;
             const y = event.clientY - rect.top;

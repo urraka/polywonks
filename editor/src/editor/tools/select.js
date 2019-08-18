@@ -1,7 +1,6 @@
 import * as xMath from "../../common/math.js";
 import { iter } from "../../common/iter.js";
 import { Rect } from "../../common/rect.js";
-import { Pointer, MovementThreshold } from "../../common/pointer.js";
 import { Command } from "../../app/command.js";
 import { cfg } from "../../app/settings.js";
 import { Tool } from "./tool.js";
@@ -14,17 +13,14 @@ export class SelectTool extends Tool {
         this.cycle = 0;
         this.affectedNode = null;
         this.revertNodes = null;
-        this.selecting = false;
         this._mode = "replace";
         this.rect = null;
         this.rectPosition = { x: 0, y: 0 };
-        this.movement = new MovementThreshold();
-        this.pointer = new Pointer();
-        this.pointer.on("begin", e => this.onPointerBegin(e.mouseEvent));
-        this.pointer.on("move", e => this.onPointerMove(e.mouseEvent));
-        this.pointer.on("end", e => this.onPointerEnd(e.mouseEvent));
-        this.onMouseEnter = this.onMouseEnter.bind(this);
-        this.onMouseLeave = this.onMouseLeave.bind(this);
+        this.button = null;
+        this.onCursorChange = this.onCursorChange.bind(this);
+        this.onPointerMove = this.onPointerMove.bind(this);
+        this.onButtonDown = this.onButtonDown.bind(this);
+        this.onButtonUp = this.onButtonUp.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
 
         Command.provide(this);
@@ -42,28 +38,37 @@ export class SelectTool extends Tool {
         }
     }
 
+    get selecting() {
+        return this.button && this.button.pressed;
+    }
+
+    get dragging() {
+        return this.button && this.button.dragging;
+    }
+
     onActivate() {
         this.selection = this.editor.selection;
         this.cycle = 0;
         this.affectedNode = null;
         this.revertNodes = null;
-        this.selecting = false;
         this._mode = "replace";
         this.rect = null;
         this.rectPosition = { x: 0, y: 0 };
-        this.movement.reset(cfg("editor.drag-threshold"));
-        this.pointer.activate(this.editor.element, 0);
-        this.editor.element.addEventListener("mouseenter", this.onMouseEnter);
-        this.editor.element.addEventListener("mouseleave", this.onMouseLeave);
+        this.button = null;
+        this.editor.cursor.on("visibilitychange", this.onCursorChange);
+        this.editor.cursor.on("move", this.onPointerMove);
+        this.editor.cursor.leftButton.on("buttondown", this.onButtonDown);
+        this.editor.cursor.leftButton.on("buttonup", this.onButtonUp);
         this.selection.on("change", this.onSelectionChange);
         this.updatePreviewNodes();
     }
 
     onDeactivate() {
         this.selection.off("change", this.onSelectionChange);
-        this.editor.element.removeEventListener("mouseenter", this.onMouseEnter);
-        this.editor.element.removeEventListener("mouseleave", this.onMouseLeave);
-        this.pointer.deactivate();
+        this.editor.cursor.off("visibilitychange", this.onCursorChange);
+        this.editor.cursor.off("move", this.onPointerMove);
+        this.editor.cursor.leftButton.off("buttondown", this.onButtonDown);
+        this.editor.cursor.leftButton.off("buttonup", this.onButtonUp);
         this.editor.preview.clear();
         this.editor.reactive.clear();
     }
@@ -94,11 +99,14 @@ export class SelectTool extends Tool {
     }
 
     updatePreviewNodes() {
-        if (!this.activated) return;
+        if (!this.activated) {
+            return;
+        }
+
         this.editor.preview.clear();
         this.editor.reactive.clear();
 
-        if (!this.editor.cursor.active) {
+        if (!this.editor.cursor.visible) {
             return;
         }
 
@@ -157,13 +165,12 @@ export class SelectTool extends Tool {
         }
     }
 
-    onPointerBegin(event) {
-        this.movement.click(event);
-
+    onButtonDown(event) {
         if (this.rect) {
             return;
         }
 
+        this.button = event.target;
         this.selection.off("change", this.onSelectionChange);
 
         let changed = false;
@@ -191,17 +198,13 @@ export class SelectTool extends Tool {
             this.updatePreviewNodes();
         }
 
-        this.selecting = true;
         this.rectPosition.x = this.editor.cursor.x;
         this.rectPosition.y = this.editor.cursor.y;
 
         this.selection.on("change", this.onSelectionChange);
     }
 
-    onPointerEnd(event) {
-        this.movement.click(event);
-        this.selecting = false;
-
+    onButtonUp() {
         if (this.rect) {
             this.rect.x1 = this.editor.cursor.x;
             this.rect.y1 = this.editor.cursor.y;
@@ -218,8 +221,8 @@ export class SelectTool extends Tool {
         }
     }
 
-    onPointerMove(event) {
-        if (this.selecting && !this.rect && this.movement.moved(event)) {
+    onPointerMove() {
+        if (this.dragging && !this.rect) {
             this.rect = new Rect(this.rectPosition.x, this.rectPosition.y, 0, 0);
             if (this.revertNodes) {
                 this.selection.replace(this.revertNodes);
@@ -235,14 +238,7 @@ export class SelectTool extends Tool {
         this.updatePreviewNodes();
     }
 
-    onMouseLeave() {
-        if (!this.rect) {
-            this.editor.preview.clear();
-            this.editor.reactive.clear();
-        }
-    }
-
-    onMouseEnter() {
+    onCursorChange() {
         this.updatePreviewNodes();
     }
 }
