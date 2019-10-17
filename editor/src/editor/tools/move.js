@@ -32,6 +32,13 @@ export class MoveTool extends Tool {
         return "";
     }
 
+    get cursorImage() {
+        if (this.activated && !this.selectTool.activated) {
+            return "move";
+        }
+        return super.cursorImage;
+    }
+
     get selectTool() {
         return this.editor.toolset.select;
     }

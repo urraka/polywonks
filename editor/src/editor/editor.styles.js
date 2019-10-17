@@ -20,4 +20,12 @@ export const styles = /* css */`
 .editor-sidebar-panels li.active-layer > label {
     color: rgb(var(--theme-text-active));
 }
+
+.cursor-default {
+    cursor: default;
+}
+
+.cursor-move {
+    cursor: move;
+}
 `;

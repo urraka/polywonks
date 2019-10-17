@@ -22,6 +22,10 @@ export class Tool extends EventEmitter {
         return "";
     }
 
+    get cursorImage() {
+        return "default";
+    }
+
     attr(name, value) {
         return Node.prototype.attr.call(this, name, value);
     }

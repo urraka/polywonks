@@ -5,6 +5,7 @@ import { Tool } from "./tool.js";
 export class CursorTool extends Tool {
     constructor() {
         super();
+        this.image = "default";
         this.position = { x: 0, y: 0 };
         this.clientX = 0;
         this.clientY = 0;
@@ -16,6 +17,7 @@ export class CursorTool extends Tool {
         this.middleButton = this.pointer.button(1);
         this.rightButton = this.pointer.button(2);
 
+        this.onToolsetChange = this.onToolsetChange.bind(this);
         this.onViewChange = this.onViewChange.bind(this);
         this.onMouseEnter = this.onMouseEnter.bind(this);
         this.onMouseLeave = this.onMouseLeave.bind(this);
@@ -47,6 +49,7 @@ export class CursorTool extends Tool {
 
     onActivate() {
         Settings.on("change", this.onSettingChange);
+        this.editor.toolset.on("statuschange", this.onToolsetChange);
         this.editor.view.on("change", this.onViewChange);
         this.editor.element.addEventListener("mouseenter", this.onMouseEnter);
         this.editor.element.addEventListener("mouseleave", this.onMouseLeave);
@@ -56,6 +59,7 @@ export class CursorTool extends Tool {
 
     onDeactivate() {
         Settings.off("change", this.onSettingChange);
+        this.editor.toolset.off("statuschange", this.onToolsetChange);
         this.editor.view.off("change", this.onViewChange);
         this.editor.element.removeEventListener("mouseenter", this.onMouseEnter);
         this.editor.element.removeEventListener("mouseleave", this.onMouseLeave);
@@ -66,6 +70,13 @@ export class CursorTool extends Tool {
         if (event.setting === "editor.drag-threshold") {
             this.pointer.dragThreshold = cfg("editor.drag-threshold");
         }
+    }
+
+    onToolsetChange() {
+        const current = this.image;
+        this.image = this.editor.toolset.currentTool.cursorImage;
+        this.editor.element.classList.remove(`cursor-${current}`);
+        this.editor.element.classList.add(`cursor-${this.image}`);
     }
 
     onViewChange() {
