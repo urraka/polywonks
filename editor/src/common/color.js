@@ -157,6 +157,29 @@ export class Color extends Uint8Array {
         return [h / 6, s, v, a];
     }
 
+    toHSL() {
+        const r = this.r / 255;
+        const g = this.g / 255;
+        const b = this.b / 255;
+        const a = this.a / 255;
+        const min = Math.min(r, g, b);
+        const max = Math.max(r, g, b);
+        const l = (max + min) / 2;
+        if (max === min) {
+            return [0, 0, l, a];
+        } else {
+            let h = 0;
+            const delta = max - min;
+            const s = l > 0.5 ? delta / (2 - max - min) : delta / (max + min);
+            switch (max) {
+                case r: h = (g - b) / delta + (g < b ? 6 : 0); break;
+                case g: h = (b - r) / delta + 2; break;
+                case b: h = (r - g) / delta + 4; break;
+            }
+            return [h / 6, s, l, a];
+        }
+    }
+
     /**
      * Takes normalized values [0..1]
      */
@@ -172,6 +195,28 @@ export class Color extends Uint8Array {
         const g = [t, v, v, q, p, p][mod];
         const b = [p, p, t, v, v, q][mod];
         return new Color(r * 255, g * 255, b * 255, a * 255);
+    }
+
+    static fromHSL(h, s, l, a = 1) {
+        if (h === 0) {
+            const x = 255 * l;
+            return new Color(x, x, x, 255 * a);
+        } else {
+            const hue2rgb = (p, q, t) => {
+                if (t < 0) t += 1;
+                if (t > 1) t -= 1;
+                if (t < 1/6) return p + (q - p) * 6 * t;
+                if (t < 1/2) return q;
+                if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                return p;
+            }
+            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            const p = 2 * l - q;
+            const r = 255 * hue2rgb(p, q, h + 1/3);
+            const g = 255 * hue2rgb(p, q, h);
+            const b = 255 * hue2rgb(p, q, h - 1/3);
+            return new Color(r, g, b, 255 * a);
+        }
     }
 
     equals(b) {
