@@ -106,13 +106,7 @@ export const styles = /* css */`
     width: fit-content;
     height: calc(100% - 16px);
     overflow: hidden;
-}
-
-.color-picker-color > svg {
-    display: block;
-    visibility: hidden;
-    height: 100%;
-    width: auto;
+    flex-shrink: 0;
 }
 
 .color-picker-hue, .color-picker-alpha {

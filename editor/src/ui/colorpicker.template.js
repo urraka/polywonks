@@ -11,7 +11,6 @@ export const template = /* html */`
         <div class="color-picker-props"></div>
         <div class="color-picker-ctrls">
             <div class="color-picker-color">
-                <svg width="1" height="1"></svg>
                 <div class="color-picker-saturation">
                     <div class="color-picker-value" tabindex="0">
                         <div class="color-picker-crosshair"></div>

@@ -203,6 +203,8 @@ export class ColorPicker extends EventEmitter {
             this.element.style.top = Math.max(0, rcPosition.top + rcPosition.height - rcPicker.height) + "px";
             this.element.appendChild(this.element.querySelector(".color-picker-palette"));
         }
+        const satur = this.element.querySelector(".color-picker-color");
+        satur.style.width = satur.clientHeight + "px";
         setTimeout(() => document.addEventListener("focusout", this.onFocusOut, true));
         document.addEventListener("keydown", this.onKeyDown, true);
         window.addEventListener("scroll", this.onWindowScrollOrResize, true);
